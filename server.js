@@ -10,8 +10,8 @@ var DocDB = require('./framework/docDB');
 var app = express();
 
 //globals
-docDB = null;
-passport = require('passport');
+var docDB = null;
+var passport = require('passport');
 
 app.set('port', process.env.PORT || 3000);
 
@@ -44,8 +44,7 @@ app.use(function(req, res, next){
   res.status(404).send('Sorry, unable to locate this resource');
 });
 
-app.use(function(err, req, res, next){
-  console.error(err.stack);
+app.use(function(err, req, res, next){  
   res.status(500).send('Error');
 });
 
