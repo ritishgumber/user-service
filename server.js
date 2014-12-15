@@ -10,10 +10,16 @@ var DocDB = require('./framework/docDB');
 var app = express();
 
 //globals
-var docDB = null;
-var passport = require('passport');
+docDB = null;
+passport = require('passport');
 
 app.set('port', process.env.PORT || 3000);
+
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
@@ -38,13 +44,16 @@ if(siteConfig.initialized) {
 
       res.send('No Config File');
 }
+
+
 app.use('/auth', require('./routes/auth')(passport));
 
 app.use(function(req, res, next){
   res.status(404).send('Sorry, unable to locate this resource');
 });
 
-app.use(function(err, req, res, next){  
+app.use(function(err, req, res, next){
+  console.error(err.stack);
   res.status(500).send('Error');
 });
 
