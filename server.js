@@ -53,8 +53,7 @@ app.use(function(req, res, next){
 });
 
 app.use(function(err, req, res, next){
-  console.error(err.stack);
-  res.status(500).send('Error');
+    res.status(500).send('Error');
 });
 
 var server = app.listen(app.get('port'), function() {

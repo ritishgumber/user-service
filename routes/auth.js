@@ -59,14 +59,6 @@ module.exports = function(passport) {
         });
     });
 
-  app.get('/nani', function(req, res, next) {
-      if(true)
-        {
-
-          return res.send("naniiii..");
-        }
-        next(e);
-  });
 
     app.get('/remove', function(req, res, next) {
         if(req.user.UserId != req.body.id) {
