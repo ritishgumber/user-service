@@ -1,18 +1,11 @@
 {
-  "name": "documentdb-passport-boilerplate",
-  "description": "Node.js Starter site for Azure using DocumentDB, Passport and bootstrap",
+  "name": "CbFrontendServices",
+  "description": "CbFrontendServices is a RESTful API to connect to Azure's DocuementDB with Passport.js",
   "main": "./webserver.js",
   "author": {
-    "name": "Luke Van Horn"
+    "name": "HackerBay"
   },
-  "version": "0.1.0",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/lukevanhorn/documentdb-passport-boilerplate.git"
-  },
-  "bugs": {
-    "url": "https://github.com/lukevanhorn/documentdb-passport-boilerplate/issues"
-  },
+  "version": "0.1.0",  
   "dependencies": {
     "express": "~4.2.0",
     "static-favicon": "~1.0.0",
@@ -45,15 +38,9 @@
     "passport",
     "express",
     "session"
-  ],
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "http://opensource.org/licenses/MIT"
-    }
-  ],
+  ],  
   "engine": {
     "node": ">=10.21"
-  },
-  "homepage": "https://github.com/lukevanhorn/documentdb-passport-boilerplate"
+  }
+ 
 }
