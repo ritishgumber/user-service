@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 var async = require('async');
 var crypto = require('crypto');
@@ -9,6 +9,8 @@ var FacebookStrategy = require('passport-facebook').Strategy;
 var GitHubStrategy = require('passport-github').Strategy;
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 var LinkedinStrategy = require('passport-linkedin').Strategy;
+
+var UserCollection = require('../config/collections.js').user;
 
 module.exports = {
 
@@ -25,7 +27,7 @@ module.exports = {
     getAccount: function (userId, callback) {
         var self = this;
 
-        docDB.getItem('select * from root r where r.userId ="' + userId + '"', function(e, user) {
+        docDB.getItem(UserCollection,'select * from root r where r.userId ="' + userId + '"', function(e, user) {
             if(!user) {
                 return callback(e);
             }
@@ -38,7 +40,7 @@ module.exports = {
     authenticate: function(userId, password, callback) {
         var self = this;
 
-      docDB.getItem('select * from root r where r.userId="'+userId+'"', function(e, user) {
+      docDB.getItem(UserCollection,'select * from root r where r.userId="'+userId+'"', function(e, user) {
             if (e || !user) {
                 if(!user) {
 
@@ -63,7 +65,7 @@ module.exports = {
     isAdmin: function (id, callback) {
         var self = this;
 
-        docDB.getItem('select * from root r where r.userId = "' + id + '"', function(e, user) {
+        docDB.getItem(UserCollection,'select * from root r where r.userId = "' + id + '"', function(e, user) {
             if(user && user.admin === true) {
                 return callback(true);
             }
@@ -74,7 +76,7 @@ module.exports = {
     providerLogin: function (userinfo, callback) {
         var self = this;
 
-        docDB.getItem('select * from root r where r.providers.' + userinfo.provider + ' = "' + userinfo.providerId + '"', function(e, user) {
+        docDB.getItem(UserCollection,'select * from root r where r.providers.' + userinfo.provider + ' = "' + userinfo.providerId + '"', function(e, user) {
             if(user) {
                 return callback(e, user);
             }
@@ -129,7 +131,7 @@ module.exports = {
         }
 
 
-        docDB.addItem(user, function(e, user) {
+        docDB.addItem(UserCollection,user, function(e, user) {
             return callback(e, user);
         });
     },
@@ -152,7 +154,7 @@ module.exports = {
             user.profile.userId = user.userId;
 
             //update a new user
-            docDB.updateItem(user, function(e) {
+            docDB.updateItem(UserCollection,user, function(e) {
                 callback(e,user);
             });
         });
@@ -165,12 +167,12 @@ module.exports = {
             callback('Error: You cannot delete the admin account');
         }
 
-        docDB.getItem('select * from root r where r.userId = "' + userId + '"', function (e, user) {
+        docDB.getItem(UserCollection,'select * from root r where r.userId = "' + userId + '"', function (e, user) {
             if(e || !user) {
                 return callback(e);
             }
 
-            docDB.removeItem(user, function(e) {
+            docDB.removeItem(UserCollection,user, function(e) {
                 return callback(e);
             });
         });

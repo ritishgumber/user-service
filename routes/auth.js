@@ -1,15 +1,12 @@
 ﻿var express = require('express');
 var app=express();
-
 var controller = require('../services/user');
-
 var LocalStrategy = require('passport-local').Strategy;
 var TwitterStrategy = require('passport-twitter').Strategy;
 var FacebookStrategy = require('passport-facebook').Strategy;
 var GitHubStrategy = require('passport-github').Strategy;
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 var LinkedinStrategy = require('passport-linkedin').Strategy;
-
 
 //setup passport
 module.exports = function(passport) {
@@ -58,7 +55,6 @@ module.exports = function(passport) {
             });
         });
     });
-
 
     app.get('/remove', function(req, res, next) {
         if(req.user.UserId != req.body.id) {

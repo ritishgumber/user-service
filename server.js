@@ -6,7 +6,7 @@ var fs = require('fs');
 var session = require('express-session');
 var DocumentDBSessionStore = require('express-session-documentdb');
 var DocDB = require('./framework/docDB');
-
+var siteConfig = require('./config/settings.js');
 var app = express();
 
 //globals
@@ -26,14 +26,6 @@ app.use(bodyParser.urlencoded());
 app.use(cookieParser('azure ermahgerd'));
 
 
-
-//read in the global configuration settings in settings.json
-siteConfig = {};
-if(fs.existsSync('./settings.json')) {
-    siteConfig = JSON.parse(fs.readFileSync('./settings.json').toString());
-
-}
-
 if(siteConfig.initialized) {
     docDB = new DocDB(siteConfig.documentdb);
     app.use(session({ secret: 'azure ermahgerd', saveUninitialized: true, resave: true, store: new DocumentDBSessionStore(siteConfig.documentdb) }));
@@ -47,13 +39,14 @@ if(siteConfig.initialized) {
 
 
 app.use('/auth', require('./routes/auth')(passport));
+app.use('/', require('./routes/project')());
 
 app.use(function(req, res, next){
   res.status(404).send('Sorry, unable to locate this resource');
 });
 
 app.use(function(err, req, res, next){
-    res.status(500).send('Error');
+  res.status(500).send('Error');
 });
 
 var server = app.listen(app.get('port'), function() {
