@@ -46,11 +46,9 @@ module.exports = {
 
                     return callback('Invalid User');
                 }
-                  console.log(user);
+                
                 return callback(e);
             }
-
-
 
             if (self.encryptPassword(password, user.salt) === user.password) {
 

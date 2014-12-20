@@ -39,9 +39,11 @@ function DocDB(options) {
 
 DocDB.prototype.updateItem = function(item, callback) {
     var self = this;
+		//item.completed = true;
 
     self.client.replaceDocument(item._self, item, function (err, doc) {
-        return callback(err, doc);
+
+				return callback(err, doc);
     });
 }
 
@@ -60,6 +62,21 @@ DocDB.prototype.getItem = function (collection,query, callback) {
         return callback(null, results[0]);
     });
 }
+
+
+//get list of item
+DocDB.prototype.getItemList = function (collection,query, callback) {
+		var self = this;
+
+		self.client.queryDocuments(self.collection[collection]._self, query).toArray(function (err, results) {
+				if (err || results.length == 0) {
+						return callback(err);
+				}
+
+				return callback(null, results);
+		});
+}
+
 
 // create an item
 DocDB.prototype.addItem = function (collection,item, callback) {

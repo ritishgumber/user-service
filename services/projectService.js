@@ -7,11 +7,6 @@ var ProjectCollection = require('../config/collections.js').project;
 
 module.exports = {
 
-
-
-
-
-
       createProject: function (data,currentUserId,callback) {
             var self = this;
 
@@ -42,6 +37,57 @@ module.exports = {
                 }
                 return callback(e, url);
 
+            });
+
+        },
+        projectList: function (currentUserId, callback) {
+            var self = this;
+
+            docDB.getItemList(ProjectCollection,'select * from root r where r.userId ="' + currentUserId + '"', function(e, list) {
+                if(!list) {
+                    return callback(e);
+                }
+
+                return callback(e,list);
+            });
+
+        },
+
+        editProject: function(currentUserId,id,name,url, callback) {
+            var self = this;
+
+            self.getProject(id, function (e, project) {
+                if (e || !project) {
+                    return callback('error updating project');
+                }
+                self.checkURL(url,function (e, data) {
+                  if (data) {
+                      return callback('This URL already Exists');
+                  }
+                  project.userId=currentUserId;
+                  project.projectName = name;
+                  project.url= url;
+
+                  //update a new project
+                  docDB.updateItem(project, function(e) {
+                      callback(e,project);
+                  });
+
+              });
+
+
+            });
+
+        },
+
+        getProject: function (id, callback) {
+            var self = this;
+
+            docDB.getItem(ProjectCollection,'select * from root r where r.id ="' + id + '"', function(e, project) {
+                if(!project) {
+                    return callback(e);
+                }
+                return callback(e,project);
             });
 
         }
