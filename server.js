@@ -34,7 +34,7 @@ if(siteConfig.initialized) {
     app.use(passport.session());
 } else {
 
-      res.send('No Config File');
+      console.log('No Config File');
 }
 
 

@@ -46,13 +46,13 @@ module.exports = {
 
                     return callback('Invalid User');
                 }
-                
+
                 return callback(e);
             }
 
             if (self.encryptPassword(password, user.salt) === user.password) {
 
-                return callback(null, user.profile);
+                return callback(null, user);
             }
             else {
                 return callback('Invalid password');

@@ -8,10 +8,10 @@ module.exports = function() {
     app.post('/project/create', function(req,res,next) {
 
         var data = req.body || {};
-        var currentUserId=req.sessionID;
-        if(currentUserId && data){
+        var currentUser=req.session.passport.user.id;
+        if(currentUser && data){
 
-          controller.createProject(data,currentUserId,function(e, project) {
+          controller.createProject(data,currentUser,function(e, project) {
               if (e || !project) {
                   return res.send(500, e);
               }
@@ -25,11 +25,11 @@ module.exports = function() {
 
     app.get('/project/list', function(req,res,next) {
 
-        var currentUserId=req.sessionID;
-        
-        if(currentUserId){
+        var currentUser=req.session.passport.user.id;
 
-            controller.projectList(currentUserId,function(e, list) {
+        if(currentUser){
+
+            controller.projectList(currentUser,function(e, list) {
                 if (e || !list) {
                     return res.send(500, e);
                 }
@@ -43,16 +43,17 @@ module.exports = function() {
     });
 
 
-    app.put('/project/edit/:id/:name/:url', function(req,res,next) {
+    app.put('/project/edit/:id', function(req,res,next) {
 
-        var currentUserId=req.sessionID;
+        var currentUser=req.session.passport.user.id;
         var id=req.params.id;
-        var name=req.params.name;
-        var url=req.params.url;
+        var data = req.body || {};
+        var name=data.name;
+        var url=data.url;
 
-        if(currentUserId){
+        if(currentUser && id && data){
 
-            controller.editProject(currentUserId,id,name,url,function(e, project) {
+            controller.editProject(currentUser,id,name,url,function(e, project) {
                 if (e || !project) {
                     return res.send(500, e);
                 }
