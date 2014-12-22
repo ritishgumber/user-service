@@ -35,7 +35,7 @@ module.exports = function(passport) {
             controller.authenticate(username, password, function(e, user) {
                 if (e) {
                     return callback(null, false, e);
-                }                
+                }
                 return callback(e, user);
             });
         })

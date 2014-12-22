@@ -1,0 +1,33 @@
+{
+  "documentdb":{
+  "databaseId":"cbDatabase",
+  "collectionId":"Session",
+  "host":"https://cbservices.documents.azure.com:443/",
+  "authKey":"fOyECTGXDUU2Ee/qWMKBWIN5BhkerDSOsFhOyC2OaAF7QMWKQgIkjQYceydLhhdts8ayqayybCbhilge1iE0VA=="
+  },
+  "website":{
+    "name":"Azure Starter Site",
+    "baseUrl":"http://localhost:3000"
+    },
+  "google":
+  {"clientID":"670689412728-p8v92o8q8p8cmf3ss299rnnuie12k5kl.apps.googleusercontent.com",
+    "clientSecret":"-chKAzHeqQ-Pns7-m_e2wEMC"
+    },
+  "facebook":
+  {"clientID":"797871776949551",
+    "clientSecret":"4230cf5bc36603e796e6d67382b3932a"
+    },
+  "twitter":{
+    "clientID":"dfrs6seDhmMrH1kg7K9cDONQg",
+    "clientSecret":"9kLrZWFfBu6YVHgXaOxcDpbRrgaJI3Fh94TYXEjJFdU0kNu4Ux"
+    },
+  "github":{
+    "clientID":"504d8616fc4e3a4b9c58",
+    "clientSecret":"2ff5c4b58d4c2d882178f790ec35a4153371481f"
+    },
+  "linkedin":{
+    "clientID":"",
+    "clientSecret":""
+    },
+  "initialized":true
+  }
