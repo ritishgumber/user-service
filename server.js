@@ -21,6 +21,7 @@ app.use(function(req, res, next) {
   next();
 });
 
+app.use(express.favicon());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser('azure ermahgerd'));

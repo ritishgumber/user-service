@@ -95,7 +95,6 @@ module.exports = {
             if (user) {
                 return callback('A user with this email already exists');
             }
-
             data.provider = 'local';
             data.providerId = data.email;
 
@@ -103,7 +102,6 @@ module.exports = {
             if(data.email === 'admin') {
                 data.admin = true;
             }
-
             //create a new user
             self.createUser(data, function (e, user) {
                 callback(e, user);
@@ -118,7 +116,7 @@ module.exports = {
         var user = {
             userId: data.email,
             providers: {},
-            profile: { userId: data.email, name: data.name, email: data.email }
+            profile: { userId: data.email,email: data.email }
         }
 
         user.providers[data.provider] = data.providerId;

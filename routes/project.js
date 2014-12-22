@@ -6,9 +6,11 @@ module.exports = function() {
 
     // routes
     app.post('/project/create', function(req,res,next) {
-
+		
         var data = req.body || {};
-        var currentUser=req.session.passport.user.id;
+		console.log(data);
+        var currentUser=req.session.passport.user.id;		
+		console.log(currentUser);
         if(currentUser && data){
 
           controller.createProject(data,currentUser,function(e, project) {
