@@ -97,7 +97,7 @@ module.exports = function(passport) {
                     provider: 'facebook',
                     providerId: profile.id
                 };
-
+                
                 controller.providerLogin(userinfo, callback);
             }
         ));
