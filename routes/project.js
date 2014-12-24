@@ -6,13 +6,11 @@ module.exports = function() {
 
     // routes
     app.post('/project/create', function(req,res,next) {
-		
-        var data = req.body || {};
-		console.log(data);
-        var currentUser=req.session.passport.user.id;		
-		console.log(currentUser);
-        if(currentUser && data){
 
+        var data = req.body || {};
+        var currentUser=req.session.passport.user.id;
+        console.log(currentUser);
+        if(currentUser && data){
           controller.createProject(data,currentUser,function(e, project) {
               if (e || !project) {
                   return res.send(500, e);
@@ -30,14 +28,11 @@ module.exports = function() {
         var currentUser=req.session.passport.user.id;
 
         if(currentUser){
-
             controller.projectList(currentUser,function(e, list) {
                 if (e || !list) {
                     return res.send(500, e);
                 }
-
                 return res.json(200, list);
-
             });
 
         }

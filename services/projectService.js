@@ -15,6 +15,7 @@ module.exports = {
                 }
 
             var projectSchema = {
+                type:"project",
                 user:currentUser,
                 name:data.name,
                 url:data.url
@@ -30,7 +31,7 @@ module.exports = {
         isUrlUnique: function (url, callback) {
             var self = this;
 
-            docDB.getItem(ProjectCollection,'select * from root r where r.url ="' + url + '"', function(e, url) {
+            docDB.getItem(ProjectCollection,'select * from root r where r.url ="' + url + '" AND r.type="project"', function(e, url) {
                 if(!url) {
                     return callback(e);
                 }
@@ -42,7 +43,7 @@ module.exports = {
         projectList: function (currentUser, callback) {
             var self = this;
 
-            docDB.getItemList(ProjectCollection,'select * from root r where r.user="' + currentUser+ '"', function(e, list) {
+            docDB.getItemList(ProjectCollection,'select * from root r where r.user="' + currentUser+ '" AND r.type="project"', function(e, list) {
                 if(!list) {
                     return callback(e);
                 }

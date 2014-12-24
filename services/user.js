@@ -27,7 +27,19 @@ module.exports = {
     getAccount: function (userId, callback) {
         var self = this;
 
-        docDB.getItem(UserCollection,'select * from root r where r.userId ="' + userId + '"', function(e, user) {
+        docDB.getItem(UserCollection,'select * from root r where r.userId ="' + userId + '" AND r.type ="user"', function(e, user) {
+            if(!user) {
+                return callback(e);
+            }
+
+            return callback(e, user.profile);
+        });
+
+    },
+    getAccountById: function (id, callback) {
+        var self = this;
+
+        docDB.getItem(UserCollection,'select * from root r where r.id ="' + id + '" AND r.type ="user"', function(e, user) {
             if(!user) {
                 return callback(e);
             }
@@ -40,7 +52,7 @@ module.exports = {
     authenticate: function(userId, password, callback) {
         var self = this;
 
-      docDB.getItem(UserCollection,'select * from root r where r.userId="'+userId+'"', function(e, user) {
+      docDB.getItem(UserCollection,'select * from root r where r.userId="'+userId+'" AND r.type ="user"', function(e, user) {
             if (e || !user) {
                 if(!user) {
 
@@ -74,14 +86,14 @@ module.exports = {
     providerLogin: function (userinfo, callback) {
         var self = this;
 
-        docDB.getItem(UserCollection,'select * from root r where r.providers.' + userinfo.provider + ' = "' + userinfo.providerId + '"', function(e, user) {
+        docDB.getItem(UserCollection,'select * from root r where r.providers.' + userinfo.provider + ' = "' + userinfo.providerId + '" AND r.type ="user"', function(e, user) {
             if(user) {
-                return callback(e, user);
+                  return callback(e, user);
             }
 
             //create a new user
             self.createUser(userinfo, function (e, user) {
-                return callback(e, user);
+                    return callback(e, user);
             });
         });
 
@@ -114,9 +126,10 @@ module.exports = {
         var self = this;
 
         var user = {
+            type:"user",
             userId: data.email,
             providers: {},
-            profile: { userId: data.email,email: data.email }
+            profile: { userId: data.email, name: data.name, email: data.email}
         }
 
         user.providers[data.provider] = data.providerId;

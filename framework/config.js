@@ -19,10 +19,18 @@ module.exports = function(passport) {
 
       // Deserialize the login / user object based on a pre-serialized token
       // which is the user id / email
-      passport.deserializeUser(function(id, callback) {
-          controller.getAccount(id.userId, function(e, user) {
-              callback(null, user);
-          });
+      passport.deserializeUser(function(user, callback) {            
+              if(user.userId== undefined){
+                  controller.getAccountById(user.id, function(e, user) {
+                      callback(null, user);
+                  });
+
+              }else{
+                controller.getAccount(user.userId, function(e, user) {
+                    callback(null, user);
+                });
+
+            }
 
       });
 
@@ -73,11 +81,9 @@ module.exports = function(passport) {
             function(token, tokenSecret, profile, callback) {
                 var userinfo = {
                     name: profile.displayName,
-                    email: profile.emails[0].value,
                     provider: 'twitter',
                     providerId: profile.id
                 };
-
                 controller.providerLogin(userinfo, callback);
             }
         ));
@@ -97,7 +103,6 @@ module.exports = function(passport) {
                     provider: 'facebook',
                     providerId: profile.id
                 };
-                
                 controller.providerLogin(userinfo, callback);
             }
         ));
@@ -117,7 +122,6 @@ module.exports = function(passport) {
                     provider: 'github',
                     providerId: profile.id
                 };
-
                 controller.providerLogin(userinfo, callback);
             }
         ));

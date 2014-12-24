@@ -13,7 +13,8 @@ module.exports = function(passport) {
 
     //helpers
     var authCallback = function(req, res) {
-        res.redirect('/');
+        var user=req.user;
+        return res.json(200, user);
     };
 
     var session = function(req, res) {
@@ -73,11 +74,11 @@ module.exports = function(passport) {
     app.post('/signout', function(req, res, next){
         req.logout();
         res.json(200, {});
-    });
+    });  
 
     app.post('/signin', signin);
-
     // Setting the facebook oauth routes
+
     app.get('/facebook', passport.authenticate('facebook', {
         scope: ['email', 'user_about_me'],
         failureRedirect: '/signin'
@@ -85,7 +86,7 @@ module.exports = function(passport) {
 
     app.get('/facebook/callback', passport.authenticate('facebook', {
         failureRedirect: '/signin'
-    }), authCallback);
+    }),authCallback);
 
     // Setting the github oauth routes
     app.get('/github', passport.authenticate('github', {
