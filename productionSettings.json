@@ -7,7 +7,7 @@
   },
   "website":{
     "name":"Azure Starter Site",
-    "baseUrl":"http://localhost:3000"
+    "baseUrl":"http://cbfrontendservices.azurewebsites.net"
     },
   "google":
   {"clientID":"670689412728-p8v92o8q8p8cmf3ss299rnnuie12k5kl.apps.googleusercontent.com",
