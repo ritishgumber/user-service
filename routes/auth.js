@@ -74,7 +74,7 @@ module.exports = function(passport) {
     app.post('/signout', function(req, res, next){
         req.logout();
         res.json(200, {});
-    });  
+    });
 
     app.post('/signin', signin);
     // Setting the facebook oauth routes

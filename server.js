@@ -14,28 +14,21 @@ var siteConfig = require('./config/settings.js')(isDevelopment);
 docDB = null;
 passport = require('passport');
 
-
-if(isDevelopment){
-  app.set('port', process.env.PORT || 3000);
   app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin","http://localhost:1440");
+
+      if(isDevelopment){
+        app.set('port', process.env.PORT || 3000);
+        res.header("Access-Control-Allow-Origin","http://localhost:1440");
+      }else{
+        app.set('port', process.env.PORT);
+        res.header("Access-Control-Allow-Origin","http://www.cloudboost.io");
+      }
+
     res.header('Access-Control-Allow-Credentials', true);
     res.header("Access-Control-Allow-Headers", "Origin,X-Requested-With, Content-Type, Accept");
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
     next();
   });
-
-}else{
-  app.set('port', process.env.PORT);
-  app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin","http://www.cloudboost.io");
-    res.header('Access-Control-Allow-Credentials', true);
-    res.header("Access-Control-Allow-Headers", "Origin,X-Requested-With, Content-Type, Accept");
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    next();
-  });
-
-}
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
