@@ -6,9 +6,9 @@ var fs = require('fs');
 var session = require('express-session');
 var DocumentDBSessionStore = require('express-session-documentdb');
 var DocDB = require('./framework/docDB');
-var siteConfig = require('./config/settings.js');
 var app = express();
-var isDevelopment = true;
+var isDevelopment = false;
+var siteConfig = require('./config/settings.js')(isDevelopment);
 
 //globals
 docDB = null;

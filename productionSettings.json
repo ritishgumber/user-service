@@ -2,8 +2,8 @@
   "documentdb":{
   "databaseId":"productionCbDatabase",
   "collectionId":"Session",
-  "host":"https://cbservices.documents.azure.com:443/",
-  "authKey":"fOyECTGXDUU2Ee/qWMKBWIN5BhkerDSOsFhOyC2OaAF7QMWKQgIkjQYceydLhhdts8ayqayybCbhilge1iE0VA=="
+  "host":"https://productioncbservices.documents.azure.com:443/",
+  "authKey":"K2z8t5Ne+nslWiu+hEwwAqCFbDPOvSaVej9XBb2w7IEBuO3EqLMb5njEgCdgG4UFgrK8wya0H24uCFoEL2xGrw=="
   },
   "website":{
     "name":"Azure Starter Site",
