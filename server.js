@@ -14,8 +14,9 @@ var siteConfig = require('./config/settings.js')(isDevelopment);
 docDB = null;
 passport = require('passport');
 
-app.set('port', process.env.PORT || 3000);
+
 if(isDevelopment){
+  app.set('port', process.env.PORT || 3000);
   app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin","http://localhost:1440");
     res.header('Access-Control-Allow-Credentials', true);
@@ -25,7 +26,7 @@ if(isDevelopment){
   });
 
 }else{
-
+  app.set('port', process.env.PORT);
   app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin","http://www.cloudboost.io");
     res.header('Access-Control-Allow-Credentials', true);
@@ -36,12 +37,9 @@ if(isDevelopment){
 
 }
 
-
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser('azure ermahgerd'));
-
 
 if(siteConfig.initialized) {
     docDB = new DocDB(siteConfig.documentdb);
