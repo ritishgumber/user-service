@@ -1,0 +1,25 @@
+Sat Dec 27 2014 02:17:46 GMT+0530 (India Standard Time):
+{ [Error: Server returned error in RSTR - ErrorCode: NONE : FaultMessage: NONE]
+  stack: [Getter/Setter],
+  __frame: 
+   { name: '__1',
+     line: 39,
+     file: 'C:\\Program Files (x86)\\Microsoft SDKs\\Azure\\CLI\\lib\\commands\\login.js',
+     prev: undefined,
+     active: false,
+     offset: 38,
+     col: 31 },
+  rawStack: [Getter] }
+Error: Server returned error in RSTR - ErrorCode: NONE : FaultMessage: NONE
+    at Logger.createError (C:\Program Files (x86)\Microsoft SDKs\Azure\CLI\node_modules\adal-node\lib\log.js:196:13)
+    at WSTrustResponse.parse (C:\Program Files (x86)\Microsoft SDKs\Azure\CLI\node_modules\adal-node\lib\wstrust-response.js:243:23)
+    at WSTrustRequest._handleRSTR (C:\Program Files (x86)\Microsoft SDKs\Azure\CLI\node_modules\adal-node\lib\wstrust-request.js:150:21)
+    at C:\Program Files (x86)\Microsoft SDKs\Azure\CLI\node_modules\adal-node\lib\wstrust-request.js:183:12
+    at Request._callback (C:\Program Files (x86)\Microsoft SDKs\Azure\CLI\node_modules\adal-node\lib\util.js:116:5)
+    at Request.self.callback (C:\Program Files (x86)\Microsoft SDKs\Azure\CLI\node_modules\request\request.js:129:22)
+    at Request.EventEmitter.emit (events.js:98:17)
+    at Request.<anonymous> (C:\Program Files (x86)\Microsoft SDKs\Azure\CLI\node_modules\request\request.js:873:14)
+    at Request.EventEmitter.emit (events.js:117:20)
+    at IncomingMessage.<anonymous> (C:\Program Files (x86)\Microsoft SDKs\Azure\CLI\node_modules\request\request.js:824:12)
+    at __1 (C:\Program Files (x86)\Microsoft SDKs\Azure\CLI\lib\commands\login.js:77:31)
+
