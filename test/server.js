@@ -5,3 +5,4 @@ var request = require('supertest');
 
 require('./routes/home.js')(request,app);
 require('./routes/subscriber.js')(request,app);
+require('./routes/auth.js')(request,app);

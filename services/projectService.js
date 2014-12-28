@@ -1,96 +1,133 @@
 'use strict';
 
 var async = require('async');
+var Q = require('q');
 
-var ProjectCollection = require('../config/collections.js').project;
+module.exports = function(Project){
 
-module.exports = {
 
-      createProject: function (data,currentUser,callback) {
-            var self = this;
+  return {
 
-            self.isUrlUnique(data.url, function (e,isUnique) {
-                if (isUnique) {
-                    return callback('This URL already Exists');
-                }
+        createProject: function (data,userId) {
 
-            var projectSchema = {
-                type:"project",
-                user:currentUser,
-                name:data.name,
-                url:data.url
-                }
+              var deferred = Q.defer();
 
-            docDB.addItem(ProjectCollection,projectSchema, function(e, project) {
-                return callback(e, project);
-            });
+              var self = this;
 
-          });
-        },
-
-        isUrlUnique: function (url, callback) {
-            var self = this;
-
-            docDB.getItem(ProjectCollection,'select * from root r where r.url ="' + url + '" AND r.type="project"', function(e, url) {
-                if(!url) {
-                    return callback(e);
-                }
-                return callback(e, true);
-
-            });
-
-        },
-        projectList: function (currentUser, callback) {
-            var self = this;
-
-            docDB.getItemList(ProjectCollection,'select * from root r where r.user="' + currentUser+ '" AND r.type="project"', function(e, list) {
-                if(!list) {
-                    return callback(e);
-                }
-
-                return callback(e,list);
-            });
-
-        },
-
-        editProject: function(currentUser,id,name,url, callback) {
-            var self = this;
-
-            self.getProject(id, function (e, project) {
-                if (e || !project) {
-                    return callback('error updating project');
-                }
-                self.isUrlUnique(url,function (e,isUnique) {
-                  if (isUnique) {
-                      return callback('This URL already Exists');
+              self.isUrlUnique(data.url).then(function (isUnique) {
+                  if (!isUnique) {
+                       deferred.reject('This URL already Exists');
                   }
-                  project.user=currentUser;
-                  project.name=name;
-                  project.url= url;
 
-                  //update a new project
-                  docDB.updateItem(project, function(e) {
-                      callback(e,project);
+                  var project = new Project();
+
+                  project._userId=userId;
+                  project.name=data.name;
+                  project.url=data.url;
+                  
+                  project.save(function (err) {
+                          if (err) deferred.reject(err);
+                          else deferred.resolve(project);
                   });
+            },function(error){
+                deferred.reject(error);  
+            });
 
+
+             return deferred.promise;
+          },
+
+          isUrlUnique: function (url) {
+
+              var deferred = Q.defer();
+
+              var self = this;
+
+              Project.findOne({ url: url }, function (err, project) {
+                if (err) deferred.reject(err);
+                else {
+                  if(project){
+                    deferred.resolve(false);
+                  }else{
+                    deferred.resolve(true);
+                  }
+                }
               });
 
+             return deferred.promise;
 
-            });
+          },
 
-        },
 
-        getProject: function (id, callback) {
-            var self = this;
+          projectList: function (userId) {
 
-            docDB.getItem(ProjectCollection,'select * from root r where r.id ="' + id + '"', function(e, project) {
-                if(!project) {
-                    return callback(e);
+             var deferred = Q.defer();
+
+              var self = this;
+
+              Project.find({ _userId: userId }, function (err, list) {
+                if (err) deferred.reject(err);
+                else deferred.resolve(list);
+                 
+              });
+
+             return deferred.promise;
+             
+
+          },
+
+          editProject: function(userId,id,name,url) {
+
+              var deferred = Q.defer();
+              var self = this;
+
+              self.getProject(id).then(function (project) {
+                  if (!project) {
+                      deferred.reject('error updating project');
+                  }
+                  self.isUrlUnique(url).then(function (isUnique) {
+                    if (!isUnique) {
+                        deferred.reject('This URL already Exists');
+                    }
+                    project._userId=userId;
+                    project.name=name;
+                    project.url= url;
+
+                     project.save(function (err) {
+                          if (err) deferred.reject(err);
+                          else deferred.resolve(project);
+                     });
+
+                },function(error){
+                  deferred.reject(error);
+                });
+
+
+              },function(error){
+                deferred.reject(error);
+              });
+
+              return deferred.promise;
+
+
+          },
+
+          getProject: function (id) {
+
+              var deferred = Q.defer();
+
+              var self = this;
+
+              Project.findById(id, function (err, project) {
+                if (err) deferred.reject(err);
+                else {
+                    deferred.resolve(project);
                 }
-                return callback(e,project);
-            });
+              });
 
-        }
+             return deferred.promise;
 
+          }
+    }
 
-}
+};

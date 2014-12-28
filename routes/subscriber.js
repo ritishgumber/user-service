@@ -1,4 +1,7 @@
-﻿module.exports = function(subscriberService,app) {
+﻿var express = require('express');
+var app = express();
+
+module.exports = function(subscriberService) {
 
     // routes
     app.post('/subscribe', function(req,res,next) {
@@ -22,6 +25,8 @@
         });
 
     });
+
+    return app;
 
     
 };
