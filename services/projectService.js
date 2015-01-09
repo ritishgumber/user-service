@@ -17,18 +17,20 @@ module.exports = function(Project){
               self.isUrlUnique(data.url).then(function (isUnique) {
                   if (!isUnique) {
                        deferred.reject('This URL already Exists');
+
+                  }else{
+
+                    var project = new Project();
+
+                    project._userId=userId;
+                    project.name=data.name;
+                    project.url=data.url;
+                    
+                    project.save(function (err) {
+                            if (err) deferred.reject(err);
+                            else deferred.resolve(project);
+                    });
                   }
-
-                  var project = new Project();
-
-                  project._userId=userId;
-                  project.name=data.name;
-                  project.url=data.url;
-                  
-                  project.save(function (err) {
-                          if (err) deferred.reject(err);
-                          else deferred.resolve(project);
-                  });
             },function(error){
                 deferred.reject(error);  
             });

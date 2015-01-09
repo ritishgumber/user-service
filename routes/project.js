@@ -11,12 +11,12 @@ module.exports = function(controller) {
         if(currentUserId && data){
           controller.createProject(data,currentUserId).then(function(project) {
               if (!project) {
-                  return res.send(500, e);
+                  return res.send(400, e);
               }
             return res.json(200, project);
 
           },function(error){
-            return res.send(500, error);
+            return res.send(400, error);
           });
 
         }
