@@ -12,8 +12,6 @@ module.exports = function(mongoose){
 		salt : String,
 	});
 
-	
-
 	return mongoose.model('User', userSchema);
 
 };

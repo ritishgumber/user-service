@@ -5,8 +5,7 @@ module.exports = function(isDevelopment){
     var bodyParser = require('body-parser');
     var app = express();
     var mongoose = require('./config/db.js')(isDevelopment);
-    var passport = require('passport');
-    
+    var passport = require('passport');    
 
     app.use(require('express-session')({
         key: 'session',
@@ -14,11 +13,11 @@ module.exports = function(isDevelopment){
         store: require('mongoose-session')(mongoose)
     }));
 
-
     //models. 
     var Project = require('./model/project.js')(mongoose);
     var Subscriber = require('./model/subscriber.js')(mongoose);
     var User = require('./model/user.js')(mongoose);
+    var Table = require('./model/table.js')(mongoose);
 
     //config
     require('./config/cors.js')(app);
@@ -32,11 +31,13 @@ module.exports = function(isDevelopment){
     //services.
     var SubscriberService  = require('./services/subscriberService.js')(Subscriber);
     var ProjectService  = require('./services/projectService.js')(Project);
+    var TableService  = require('./services/tableService.js')(Table);
 
     //routes. 
     app.use('/auth', require('./routes/auth')(passport,User));
     app.use('/', require('./routes/subscriber.js')(SubscriberService));
     app.use('/', require('./routes/project.js')(ProjectService));
+    app.use('/', require('./routes/table.js')(TableService));
 
 
     app.get('/', function(req, res, next){

@@ -67,6 +67,28 @@ module.exports = function(controller) {
 
     });
 
+     app.get('/project/get/:id', function(req,res,next) {
+
+        var currentUserId=req.session.passport.user.id;
+        var id=req.params.id;                
+
+        if(currentUserId && id){
+
+            controller.getProject(id).then(function(project) {
+                if (!project) {
+                    return res.send(500, e);
+                }
+
+                return res.json(200, project);
+
+            },function(error){
+                return res.send(500, error);
+            });
+
+        }
+
+    });
+
     return app;
 
 }

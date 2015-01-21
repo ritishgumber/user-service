@@ -120,7 +120,7 @@ module.exports = function(Project){
 
               var self = this;
 
-              Project.findById(id, function (err, project) {
+              Project.findOne({_id:id}, function (err, project) {
                 if (err) deferred.reject(err);
                 else {
                     deferred.resolve(project);

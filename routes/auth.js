@@ -59,9 +59,9 @@ module.exports = function(passport,User) {
     });
 
 
-    app.post('/signout', function(req, res, next){
+    app.get('/signout', function(req, res, next){
         req.logout();
-        res.json(200, {});
+       return res.json(200, {});
     });
 
     app.post('/signin', signin);
