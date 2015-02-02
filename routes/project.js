@@ -48,11 +48,11 @@ module.exports = function(controller) {
         var id=req.params.id;
         var data = req.body || {};
         var name=data.name;
-        var url=data.url;
+       
 
         if(currentUserId && id && data){
 
-            controller.editProject(currentUserId,id,name,url).then(function(project) {
+            controller.editProject(currentUserId,id,name).then(function(project) {
                 if (!project) {
                     return res.send(500, e);
                 }

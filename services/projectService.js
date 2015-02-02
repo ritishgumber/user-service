@@ -12,54 +12,19 @@ module.exports = function(Project){
 
               var deferred = Q.defer();
 
-              var self = this;
+              var self = this;             
 
-              self.isUrlUnique(data.url).then(function (isUnique) {
-                  if (!isUnique) {
-                       deferred.reject('This URL already Exists');
-
-                  }else{
-
-                    var project = new Project();
-
-                    project._userId=userId;
-                    project.name=data.name;
-                    project.url=data.url;
-                    
-                    project.save(function (err) {
-                            if (err) deferred.reject(err);
-                            else deferred.resolve(project);
-                    });
-                  }
-            },function(error){
-                deferred.reject(error);  
-            });
-
-
-             return deferred.promise;
-          },
-
-          isUrlUnique: function (url) {
-
-              var deferred = Q.defer();
-
-              var self = this;
-
-              Project.findOne({ url: url }, function (err, project) {
-                if (err) deferred.reject(err);
-                else {
-                  if(project){
-                    deferred.resolve(false);
-                  }else{
-                    deferred.resolve(true);
-                  }
-                }
+              var project = new Project();
+              project._userId=userId;
+              project.name=data.name;          
+              
+              project.save(function (err) {
+                      if (err) deferred.reject(err);
+                      else deferred.resolve(project);
               });
 
-             return deferred.promise;
-
+              return deferred.promise;
           },
-
 
           projectList: function (userId) {
 
@@ -78,7 +43,7 @@ module.exports = function(Project){
 
           },
 
-          editProject: function(userId,id,name,url) {
+          editProject: function(userId,id,name) {
 
               var deferred = Q.defer();
               var self = this;
@@ -87,23 +52,14 @@ module.exports = function(Project){
                   if (!project) {
                       deferred.reject('error updating project');
                   }
-                  self.isUrlUnique(url).then(function (isUnique) {
-                    if (!isUnique) {
-                        deferred.reject('This URL already Exists');
-                    }
+                  
                     project._userId=userId;
-                    project.name=name;
-                    project.url= url;
+                    project.name=name;                 
 
                      project.save(function (err) {
                           if (err) deferred.reject(err);
                           else deferred.resolve(project);
                      });
-
-                },function(error){
-                  deferred.reject(error);
-                });
-
 
               },function(error){
                 deferred.reject(error);
