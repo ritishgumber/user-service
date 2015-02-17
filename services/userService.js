@@ -3,6 +3,7 @@
 var async = require('async');
 var crypto = require('crypto');
 var Q = require('q');
+var util = require('./utilService')();
 
 var LocalStrategy = require('passport-local').Strategy;
 
@@ -42,6 +43,79 @@ module.exports = function(User){
                      return deffered.promise;
                 },
 
+                activate: function (code) {
+
+                     var deffered = Q.defer();
+
+                     User.find({ emailVerificationCode: code }, function (err, user) {
+                          if (err) { return deffered.reject(err); }
+                          if (user.length===0) {
+                            return deffered.reject('Activation Code Invalid.');
+                          }
+
+                          for(var i=0;i<user.length;i++){
+
+                            user[i].emailVerified = true;
+
+                            user[i].save(function (err,user) {
+                              if (err) deffered.reject(err);
+                              else deffered.resolve(user);
+                            });
+
+                          }
+
+                    });
+
+                     return deffered.promise;
+                },
+
+                requestResetPassword : function(email){
+                     var deffered = Q.defer();
+
+                     User.findOne({ email: email }, function (err, user) {
+                          if (err) { return deffered.reject(err); }
+                          if (!user) {
+                            return deffered.reject('Email doesnot belong to any user.');
+                          }
+
+                          user.emailVerificationCode = util.generateRandomString();
+
+                          user.save(function (err,user) {
+                            if (err) deffered.reject(err);
+                            else deffered.resolve(user);
+                          });
+
+                     });
+
+                     return deffered.promise;
+                },
+
+                 resetPassword : function(code, password){
+
+                     var deffered = Q.defer();
+                     var self = this;
+
+                     User.findOne({ emailVerificationCode: code }, function (err, user) {
+                          if (err) { return deffered.reject(err); }
+                          if (!user) {
+                            return deffered.reject('Email doesnot belong to any user.');
+                          }
+
+                          if(password) {
+                            user.salt = self.makeSalt();
+                            user.password = self.encryptPassword(password, user.salt);
+                          }
+
+                          user.save(function (err,user) {
+                            if (err) deffered.reject(err);
+                            else deffered.resolve(user);
+                          });
+
+                     });
+
+                     return deffered.promise;
+                },
+
                 getAccountById: function (id) {
                     
                     var deffered = Q.defer();
@@ -68,7 +142,7 @@ module.exports = function(User){
                     self.getAccountByEmail(data.email).then(function (user) {
 
                         if (user) {
-                            return deffered.reject('A user with this email already exists');
+                            return deffered.reject('A user with this email already exists.');
                         }
 
                         data.provider = 'local';
@@ -95,6 +169,8 @@ module.exports = function(User){
                      var user = new User();
                      user.email = data.email;
                      user.name = data.name;
+                     user.emailVerified  = false;
+                     user.emailVerificationCode = util.generateRandomString();
 
                      if(data.password) {
                         user.salt = self.makeSalt();

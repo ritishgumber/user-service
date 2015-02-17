@@ -11,7 +11,6 @@ module.exports = function(subscriberService) {
           return res.send(204,'No content'); // no content.
         }
 
-
         subscriberService.subscribe(data.email).then(function(subscriber){
             if (!subscriber) {
                return res.send(500,'Server Error');

@@ -1,11 +1,12 @@
 var mongoose = require('mongoose');
+var keys = require('./keys.js');
 
 module.exports = function(isDevelopment){
 
 	if(isDevelopment){
-		mongoose.connect('mongodb://CloudBoost:WhiteHouse123@ds030817.mongolab.com:30817/CloudBoostDevDB');
+		mongoose.connect(keys.devDb);
 	}else{
-		mongoose.connect('mongodb://CloudBoost:WhiteHouse123@ds041177.mongolab.com:41177/CloudBoostProdDB');
+		mongoose.connect(keys.productionDb);
 	}
 
 	return mongoose; 

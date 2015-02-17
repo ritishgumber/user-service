@@ -8,6 +8,8 @@ module.exports = function(mongoose){
 		email: String,
 		password: String,
 		name : String,
+		emailVerified : Boolean,
+		emailVerificationCode : String,
 		provider: String,
 		salt : String,
 	});

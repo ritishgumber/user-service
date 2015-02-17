@@ -1,10 +1,10 @@
-
+var keys = require('./keys.js');
 
 module.exports = function(app){
 
   var cors = require('cors');
 
-  var whitelist = ['http://localhost:1440', 'http://www.cloudboost.io','http://cloudboost.io'];
+  var whitelist = keys.cors;
   var corsOptions = {
     origin: function(origin, callback){
       var originIsWhitelisted = whitelist.indexOf(origin) !== -1;
