@@ -4,8 +4,9 @@ module.exports = function(mongoose){
 
 	var projectSchema = new Schema({
 	  name:  String,
-	  url: String,
-	  _userId: String
+	  appId: String,
+	  _userId: String,
+	  keys : Object
 	});
 
 	return mongoose.model('Project', projectSchema);

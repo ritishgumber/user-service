@@ -35,11 +35,13 @@
     "passport-twitter": "~1.0.2",
     "password-hash": "^1.2.2",
     "q": "^1.1.2",
+    "request": "^2.53.0",
     "session-mongoose": "^0.5.2",
     "should": "^4.4.1",
     "socket.io": ">= 1.0.0",
     "static-favicon": "~1.0.0",
-    "supertest": "^0.15.0"
+    "supertest": "^0.15.0",
+    "underscore": "^1.7.0"
   },
   "keywords": [
     "azure",
