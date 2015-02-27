@@ -42,9 +42,9 @@ module.exports = function(Table){
                     deferred.resolve(table._doc);
 
                     if(originalTable){
-                      deleteDroppedColumns(appId, originalTable._doc, data.columns);
-                      renameRenamedColumns(appId, originalTable._doc, data.columns);
-                      renameRenamedTable(appId, originalTable._doc, data);
+                      deleteDroppedColumns(appId, clone(originalTable._doc), clone(data.columns));
+                      renameRenamedColumns(appId, clone(originalTable._doc), clone(data.columns));
+                      renameRenamedTable(appId, clone(originalTable._doc), clone(data));
                     }
 
                 });
@@ -154,13 +154,13 @@ module.exports = function(Table){
                });
 
 
-            }else
-              console.log('Table '+ originalTable.name+' is not renamed');
+            }
+
           }
 
           function renameRenamedColumns(appId, originalTable, newTable){
               for(var i=0;i<originalTable.columns.length; i++){
-                var newColumn = _.first(_.where(newTable, {id : originalTable.columns.id }));
+                var newColumn = _.first(_.where(newTable, {id : originalTable.columns[i].id }));
 
                 if(newColumn && newColumn.name !== originalTable.columns[i].name){
                    

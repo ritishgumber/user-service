@@ -171,6 +171,7 @@ module.exports = function(User){
                      user.name = data.name;
                      user.emailVerified  = false;
                      user.emailVerificationCode = util.generateRandomString();
+                     user.createdAt = new Date();
 
                      if(data.password) {
                         user.salt = self.makeSalt();
