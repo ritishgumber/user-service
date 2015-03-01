@@ -7,14 +7,14 @@ module.exports = function(isDevelopment){
     var mongoose = require('./config/db.js')(isDevelopment);
     var passport = require('passport');    
 
-    // app.use(require('express-session')({
-    //     key: 'session',
-    //     resave: false, //does not forces session to be saved even when unmodified
-    //         saveUninitialized: true, //forces a session that is "uninitialized"(new but unmodified) to be saved to the store
-    //     secret: 'azuresample',
-    //     store: require('mongoose-session')(mongoose),
-    //     //cookie:{maxAge:60000000}
-    // }));
+    app.use(require('express-session')({
+        key: 'session',
+        resave: false, //does not forces session to be saved even when unmodified
+            saveUninitialized: true, //forces a session that is "uninitialized"(new but unmodified) to be saved to the store
+        secret: 'azuresample',
+        store: require('mongoose-session')(mongoose),
+        //cookie:{maxAge:60000000}
+    }));
 
     // //models. 
     // var Project = require('./model/project.js')(mongoose);
