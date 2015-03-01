@@ -6,7 +6,8 @@ module.exports = function(isDevelopment){
 	if(isDevelopment){
 		mongoose.connect(keys.devDb);
 	}else{
-		mongoose.connect(keys.productionDb);
+		//mongoose.connect(keys.productionDb);
+		mongoose.connect(keys.devDb);
 	}
 
 	return mongoose; 
