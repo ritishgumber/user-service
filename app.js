@@ -16,31 +16,31 @@ module.exports = function(isDevelopment){
         //cookie:{maxAge:60000000}
     }));
 
-    // //models. 
-    // var Project = require('./model/project.js')(mongoose);
-    // var Subscriber = require('./model/subscriber.js')(mongoose);
-    // var User = require('./model/user.js')(mongoose);
-    // var Table = require('./model/table.js')(mongoose);
+    //models. 
+    var Project = require('./model/project.js')(mongoose);
+    var Subscriber = require('./model/subscriber.js')(mongoose);
+    var User = require('./model/user.js')(mongoose);
+    var Table = require('./model/table.js')(mongoose);
 
-    // //config
-    // require('./config/cors.js')(app);
-    // app.use(bodyParser.json());
-    // app.use(bodyParser.urlencoded());
-    // app.use(cookieParser('azuresample'));
-    // app.use(passport.initialize());
-    // app.use(passport.session());
-    // require('./framework/config')(passport, User);
+    //config
+    require('./config/cors.js')(app);
+    app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded());
+    app.use(cookieParser('azuresample'));
+    app.use(passport.initialize());
+    app.use(passport.session());
+    require('./framework/config')(passport, User);
 
-    // //services.
-    // var SubscriberService  = require('./services/subscriberService.js')(Subscriber);
-    // var ProjectService  = require('./services/projectService.js')(Project);
-    // var TableService  = require('./services/tableService.js')(Table);
+    //services.
+    var SubscriberService  = require('./services/subscriberService.js')(Subscriber);
+    var ProjectService  = require('./services/projectService.js')(Project);
+    var TableService  = require('./services/tableService.js')(Table);
 
-    // //routes. 
-    // app.use('/auth', require('./routes/auth')(passport,User));
-    // app.use('/', require('./routes/subscriber.js')(SubscriberService));
-    // app.use('/', require('./routes/project.js')(ProjectService));
-    // app.use('/', require('./routes/table.js')(TableService));
+    //routes. 
+    app.use('/auth', require('./routes/auth')(passport,User));
+    app.use('/', require('./routes/subscriber.js')(SubscriberService));
+    app.use('/', require('./routes/project.js')(ProjectService));
+    app.use('/', require('./routes/table.js')(TableService));
 
 
     app.get('/', function(req, res, next){
