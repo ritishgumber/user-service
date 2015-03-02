@@ -5,6 +5,7 @@ module.exports = {
 	productionDb : 'mongodb://CloudBoost:WhiteHouse123@ds041177.mongolab.com:41177/CloudBoostProdDB',
 	//dataServiceUrl : 'http://localhost',
 	//dataServiceUrlPort : 4730, //fordevelopment
+	
 	dataServiceUrl : 'https://api.cloudboost.io',
 	dataServiceUrlPort : 80,
 	encryptKey: "hackersbay", //for encryption of passwords
