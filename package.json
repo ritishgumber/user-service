@@ -1,7 +1,6 @@
 {
   "name": "CbFrontendServices",
   "description": "CbFrontendServices is a RESTful API to connect to Azure's DocuementDB with Passport.js",
-  "main": "server.min.js",
   "author": {
     "name": "HackerBay"
   },
@@ -40,16 +39,6 @@
     "static-favicon": "~1.0.0",
     "supertest": "^0.15.0",
     "underscore": "^1.7.0"
-  },
-  "keywords": [
-    "azure",
-    "documentdb",
-    "passport",
-    "express",
-    "session"
-  ],
-  "engine": {
-    "node": ">=10.21"
   },
   "devDependencies": {
     "grunt": "^0.4.5",
