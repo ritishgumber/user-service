@@ -5,7 +5,10 @@ module.exports = function(isDevelopment){
     var bodyParser = require('body-parser');
     var app = express();
     var mongoose = require('./config/db.js')(isDevelopment);
-    var passport = require('passport');    
+    var passport = require('passport');
+    var redis = require('redis');  
+
+    global.keys = require('./config/keys.js');  
 
     app.use(require('express-session')({
         key: 'session',
@@ -15,6 +18,13 @@ module.exports = function(isDevelopment){
         store: require('mongoose-session')(mongoose),
         //cookie:{maxAge:60000000}
     }));
+
+    global.redisClient = redis.createClient(global.keys.redisPort,
+        global.keys.redisURL,
+        {
+            auth_pass:global.keys.redisPassword
+        }
+    );
 
     //models. 
     var Project = require('./model/project.js')(mongoose);

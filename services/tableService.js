@@ -34,6 +34,10 @@ module.exports = function(Table){
                 table.type = data.type;
                 table.id = data.id;
 
+                //refresh the cache. 
+                console.log('++++++ Refreshing Redis Cache for table ++++++++');
+                global.redisClient.del(global.keys.cacheSchemaPrefix+'-'+appId+':'+data.name);
+
                 table.save(function(err,table){
 
                   if(err)
@@ -72,6 +76,9 @@ module.exports = function(Table){
                       deferred.reject(err);
 
                       //send a post request to DataServices.
+
+                      //delete table from cache. 
+                      global.redisClient.del(global.keys.cacheSchemaPrefix+'-'+appId+':'+tableName);
 
                       var post_data = "{ \"key\" : \""+keys.cbDataServicesConnectKey+"\"}";
 

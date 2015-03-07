@@ -6,5 +6,10 @@ module.exports = {
 	dataServiceUrl : global.isDevelopment ? 'http://localhost' : 'https://api.cloudboost.io',
 	dataServiceUrlPort :global.isDevelopment ? 4730 : 80,
 	encryptKey: "hackersbay", //for encryption of passwords
-	cbDataServicesConnectKey : 'secret-cookie'
+	cbDataServicesConnectKey : 'secret-cookie',
+	cacheSchemaPrefix : 'schema',
+	schemaExpirationTimeFromCache : 86400,
+	redisURL : global.isDevelopment ? 'cbtest.redis.cache.windows.net' : 'cbredis.redis.cache.windows.net',
+	redisPort : 6379,
+	redisPassword : global.isDevelopment ? 'ClWpbDmFSaJ+RzTvR9tu+aM6MUEK1oh2FcsXCLhh5+Y=' : 'Lu40rnq6AccYY2t9DL0yeldebmth/Uz6pgZceg13eek=',
 };
