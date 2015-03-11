@@ -1,14 +1,15 @@
-module.exports = function(isDevelopment){
+module.exports = function(){
 
     var express = require('express');
     var cookieParser = require('cookie-parser');
     var bodyParser = require('body-parser');
     var app = express();
-    var mongoose = require('./config/db.js')(isDevelopment);
+    var mongoose = require('./config/db.js')();
     var passport = require('passport');
     var redis = require('redis');  
 
-    global.keys = require('./config/keys.js');  
+    global.keys = require('./config/keys.js'); 
+
 
     app.use(require('express-session')({
         key: 'session',

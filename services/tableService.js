@@ -37,6 +37,7 @@ module.exports = function(Table){
                 //refresh the cache. 
                 console.log('++++++ Refreshing Redis Cache for table ++++++++');
                 global.redisClient.del(global.keys.cacheSchemaPrefix+'-'+appId+':'+data.name);
+                console.log(global.keys.cacheSchemaPrefix+'-'+appId+':'+data.name);
 
                 table.save(function(err,table){
 

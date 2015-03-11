@@ -1,8 +1,7 @@
-﻿var isDevelopment = process.env.PORT ? false : true;
-var app = require('./app')(isDevelopment);
-app.set('port', process.env.PORT || 3000);
+﻿global.isDevelopment = process.env.PORT ? false : true;
 
-global.isDevelopment = isDevelopment;
+var app = require('./app')();
+app.set('port', process.env.PORT || 3000);
 
 var server = app.listen(app.get('port'), function() {
 
