@@ -133,8 +133,8 @@ module.exports = function(controller) {
             return res.send(401);
         }
 
-    });
-
+    });    
+    
 
     return app;
 

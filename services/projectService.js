@@ -203,7 +203,6 @@ module.exports = function(Project){
                       url:     keys.dataServiceUrl + ':'+keys.dataServiceUrlPort+"/app/delete/"+appId,
                       body:    post_data
                     }, function(error, response, body){
-
                        if(response.body === 'Success'){
                           deferred.resolve();
                        }else{
@@ -216,6 +215,46 @@ module.exports = function(Project){
 
              return deferred.promise;
 
+          },
+
+          saveProjectSettings: function (data,currentUserId) {
+
+              var _self = this;
+
+              var deferred = Q.defer();
+
+              var self = this;
+
+              Project.findOne({appId : appId}, function (err, project) {
+                if(project)
+                  deferred.reject('AppID already exists');
+                else
+                  var project = new Project();
+                  project._userId=userId;
+                  project.name=name;
+                  project.appId = appId;  
+                  project.keys = {};
+                  project.keys.js = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), keys.encryptKey, 100, 16).toString("base64");
+                  project.keys.master = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), keys.encryptKey, 100, 32).toString("base64");        
+                  
+                  project.save(function (err, project) {
+                          if (err) deferred.reject(err);
+
+                          if(!project)
+                              deferred.reject('Cannot save the app right now.');
+                          else{
+                            _self.projectStatus(appId, userId).then(function(status){
+                              project._doc.status = status;
+                              deferred.resolve(project._doc);
+                            }, function(error){
+                              project._doc.status = {status : 'Unknown'};
+                              deferred.resolve(project._doc);
+                            })
+                          }
+                  });
+              });             
+
+              return deferred.promise;
           }
     }
 

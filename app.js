@@ -32,6 +32,7 @@ module.exports = function(){
     var Subscriber = require('./model/subscriber.js')(mongoose);
     var User = require('./model/user.js')(mongoose);
     var Table = require('./model/table.js')(mongoose);
+    var ProjectDetails = require('./model/projectDetails.js')(mongoose);
 
     //config
     require('./config/cors.js')(app);
@@ -46,12 +47,14 @@ module.exports = function(){
     var SubscriberService  = require('./services/subscriberService.js')(Subscriber);
     var ProjectService  = require('./services/projectService.js')(Project);
     var TableService  = require('./services/tableService.js')(Table);
+    var ProjectDetailsService  = require('./services/projectDetailsService.js')(ProjectDetails);
 
     //routes. 
     app.use('/auth', require('./routes/auth')(passport,User));
     app.use('/', require('./routes/subscriber.js')(SubscriberService));
     app.use('/', require('./routes/project.js')(ProjectService));
     app.use('/', require('./routes/table.js')(TableService));
+    app.use('/', require('./routes/projectDetails.js')(ProjectDetailsService));
 
 
     app.get('/', function(req, res, next){
