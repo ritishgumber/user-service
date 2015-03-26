@@ -37,6 +37,7 @@
     "should": "^4.4.1",
     "socket.io": ">= 1.0.0",
     "static-favicon": "~1.0.0",
+    "stripe": "^3.3.2",
     "supertest": "^0.15.0",
     "underscore": "^1.7.0"
   },

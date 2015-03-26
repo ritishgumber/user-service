@@ -11,4 +11,5 @@ module.exports = {
 	redisURL : global.isDevelopment ? 'cbtest.redis.cache.windows.net' : 'cbredis.redis.cache.windows.net',
 	redisPort : 6379,
 	redisPassword : global.isDevelopment ? 'ClWpbDmFSaJ+RzTvR9tu+aM6MUEK1oh2FcsXCLhh5+Y=' : 'Lu40rnq6AccYY2t9DL0yeldebmth/Uz6pgZceg13eek=',
+	stripeSecretKey : global.isDevelopment ? 'sk_test_9Q1AvvlnCycsAiLlWqAKrfLk' : 'sk_live_1gE5Q11MYtUxjtDSBdS5Ke8u'
 };

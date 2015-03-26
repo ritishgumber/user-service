@@ -150,7 +150,7 @@ module.exports = function(Project){
                             }, function(error){
                               project._doc.status = {status : 'Unknown'};
                               deferred.resolve(project._doc);
-                            })
+                            });
                           }
                   });
 

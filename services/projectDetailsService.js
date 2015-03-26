@@ -20,7 +20,7 @@ module.exports = function(ProjectDetails){
 
               var self = this;
 
-              ProjectDetails.findOne({appId:data.appId}, function (err, projectDet) {
+              ProjectDetails.findOne({appId:data.appId,_userId:userId}, function (err, projectDet) {
                 if(projectDet){                  
                   projectDet.appProductionName = data.appProductionName;  
                   projectDet.isReleasedInProduction=data.isReleasedInProduction;
