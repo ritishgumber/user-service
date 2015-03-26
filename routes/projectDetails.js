@@ -26,13 +26,13 @@ module.exports = function(projectDetailsService) {
 
     });   
 
-    app.get('/projectdetails/get/:appName', function(req,res,next) {
+    app.get('/projectdetails/get/:appId', function(req,res,next) {
         
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
-        var appName=req.params.appName
+        var appId=req.params.appId;
 
-        if(currentUserId && appName){
-          projectDetailsService.getProjectDetails(currentUserId,appName).then(function(projectDet) {
+        if(currentUserId && appId){
+          projectDetailsService.getProjectDetails(currentUserId,appId).then(function(projectDet) {
               if (!projectDet) {
                   return res.send(400, e);
               }

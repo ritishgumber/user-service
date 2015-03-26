@@ -61,7 +61,7 @@ module.exports = function(ProjectDetails){
               return deferred.promise;
           },
 
-           getProjectDetails: function (userId,appName) {
+           getProjectDetails: function (userId,appId) {
 
              var _self = this;
 
@@ -69,7 +69,7 @@ module.exports = function(ProjectDetails){
 
               var self = this;              
 
-              ProjectDetails.find({_userId: userId,appId:appName}, function (err, projectDet) {
+              ProjectDetails.find({_userId: userId,appId:appId}, function (err, projectDet) {
                 if (err){
                     deferred.reject(err);
                 }else{        
