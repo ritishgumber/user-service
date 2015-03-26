@@ -53,6 +53,7 @@ module.exports = function(){
     var ProjectDetailsService  = require('./services/projectDetailsService.js')(ProjectDetails);
     var PaymentService  = require('./services/paymentService.js')(StripeCustomer,CreditCardInfo);
 
+
     //routes. 
     app.use('/auth', require('./routes/auth')(passport,User));
     app.use('/', require('./routes/subscriber.js')(SubscriberService));
@@ -60,6 +61,7 @@ module.exports = function(){
     app.use('/', require('./routes/table.js')(TableService));
     app.use('/', require('./routes/projectDetails.js')(ProjectDetailsService));
     app.use('/', require('./routes/payment.js')(PaymentService));
+
 
     app.get('/', function(req, res, next){
         res.send(200, 'Frontend Service is up and running fine.');
