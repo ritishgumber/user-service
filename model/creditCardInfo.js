@@ -2,8 +2,7 @@ module.exports = function(mongoose){
 
 	var Schema = mongoose.Schema;
 
-	var creditCardInfoSchema = new Schema({	  
-	  appId: String,
+	var creditCardInfoSchema = new Schema({		 
 	  _userId: String,
 	  stripeCardObject:Object
 	});

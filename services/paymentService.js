@@ -15,7 +15,7 @@ module.exports = function(StripeCustomer,CreditCardInfo){
 
   return {
          
-          upsertCreditCard: function (appId,userId,stripeToken,cardInfo) {
+          upsertCreditCard: function (userId,stripeToken,cardInfo) {
 
               var _self = this;
 
@@ -40,14 +40,20 @@ module.exports = function(StripeCustomer,CreditCardInfo){
                               self.stripeApiDeleteCard(customerId,cardId).then(function(confirm){
                                  if(confirm.deleted){
                                      //create Card Stripe
-                                    self.stripeApiCreateCard(customerId,stripeToken).then(function(stripeCardObj){
+                                    self.stripeApiCreateCard(customerId,cardInfo).then(function(stripeCardObj){
                                      if(stripeCardObj){                                       
                                         
-                                        creditCardInfo._doc.stripeCardObject=stripeCardObj;
+                                        creditCardInfo.stripeCardObject=stripeCardObj;
 
                                         //Save Card Info in DB
                                         self.saveCardInfo(creditCardInfo).then(function(serverCardObj){
-                                          deferred.resolve(serverCardObj);
+
+                                          self.stripeApiUpdateCustomer(customerId,cardInfo).then(function(serverCustomerObj){
+                                              deferred.resolve(serverCardObj);
+                                            },function(error){ 
+                                              deferred.reject(error);
+                                            }); 
+
                                         },function(error){ 
                                           deferred.reject(error);
                                         });  
@@ -64,17 +70,65 @@ module.exports = function(StripeCustomer,CreditCardInfo){
                                },function(error){
                                   deferred.reject(error);                        
                               });  
-                          }else{
-                                var card=cardInfo;
-                                delete card.number;
-                                delete card.cvc;
-                                delete card.object;                                                         
+                          }
+ 
+                        }else{
+                          customerId=serverCusObj._doc.stripeCustomerObject.id;
+                          //create Card Stripe
+                          self.stripeApiCreateCard(customerId,cardInfo).then(function(stripeCardObj){
+                           if(stripeCardObj){
 
-                                 //update Card Stripe
-                                 self.stripeApiUpdateCard(customerId,cardId,card).then(function(stripeCardObj){
-                                 if(stripeCardObj){                     
-                                    
-                                    var id=creditCardInfo._doc._id.toString();
+                              var creditCardInfo = new CreditCardInfo();                              
+                              creditCardInfo._userId=userId;
+                              creditCardInfo.stripeCardObject=stripeCardObj;
+
+                              //Save Card Info in DB
+                              self.saveCardInfo(creditCardInfo).then(function(serverCardObj){
+                                
+                                    self.stripeApiUpdateCustomer(customerId,cardInfo).then(function(serverCustomerObj){
+                                      deferred.resolve(serverCardObj);
+                                    },function(error){ 
+                                      deferred.reject(error);
+                                    }); 
+
+                              },function(error){ 
+                                deferred.reject(error);
+                              });  
+
+                           }else{
+                              deferred.reject(null);
+                           }                            
+
+                          },function(error){
+                            deferred.reject(error);                        
+                          });  
+                           
+                        }
+                    },function(error){
+                        
+                    });  
+
+                }else{
+                  var description="Customer for"+userId;
+                  //create Stripe Customer
+                  self.stripeApiCreateCustomer(description,stripeToken).then(function(stripeCustomerObj){
+                    if(stripeCustomerObj){ 
+
+                      var stripeCustomer = new StripeCustomer();                      
+                      stripeCustomer._userId=userId;
+                      stripeCustomer.stripeCustomerObject=stripeCustomerObj;
+
+                      //Save Customer in DB
+                      self.saveCustomer(stripeCustomer).then(function(serverCustomerObj){
+                          if(serverCustomerObj){
+                              var customerId=serverCustomerObj.stripeCustomerObject.id;
+                             
+                                //create Card Stripe
+                                self.stripeApiCreateCard(customerId,cardInfo).then(function(stripeCardObj){
+                                 if(stripeCardObj){
+
+                                    var creditCardInfo = new CreditCardInfo();                                  
+                                    creditCardInfo._userId=userId;
                                     creditCardInfo.stripeCardObject=stripeCardObj;
 
                                     //Save Card Info in DB
@@ -90,78 +144,9 @@ module.exports = function(StripeCustomer,CreditCardInfo){
 
                                 },function(error){
                                   deferred.reject(error);                        
-                                });  
-                          }
-                        }else{
-                          customerId=serverCusObj._doc.stripeCustomerObject.id;
-                          //create Card Stripe
-                          self.stripeApiCreateCard(customerId,stripeToken).then(function(stripeCardObj){
-                           if(stripeCardObj){
-
-                              var creditCardInfo = new CreditCardInfo();
-                              creditCardInfo.appId=appId;
-                              creditCardInfo._userId=userId;
-                              creditCardInfo.stripeCardObject=stripeCardObj;
-
-                              //Save Card Info in DB
-                              self.saveCardInfo(creditCardInfo).then(function(serverCardObj){
-                                deferred.resolve(serverCardObj);
-                              },function(error){ 
-                                deferred.reject(error);
-                              });  
-
-                           }else{
-                              deferred.reject(null);
-                           }                            
-
-                          },function(error){
-                            deferred.reject(error);                        
-                          });  
-                          
-                        }
-                    },function(error){
-                        
-                    });  
-
-                }else{
-                  var description="Customer for"+userId;
-                  //create Stripe Customer
-                  self.stripeApiCreateCustomer(description,stripeToken).then(function(stripeCustomerObj){
-                    if(stripeCustomerObj){ 
-
-                      var stripeCustomer = new StripeCustomer();
-                      stripeCustomer.appId=appId;
-                      stripeCustomer._userId=userId;
-                      stripeCustomer.stripeCustomerObject=stripeCustomerObj;
-
-                      //Save Customer in DB
-                      self.saveCardInfo(stripeCustomer).then(function(serverCustomerObj){
-                          if(serverCustomerObj){
-                              customerId=serverCustomerObj.stripeCustomerObject.id;
-                              //create Card Stripe
-                              self.stripeApiCreateCard(customerId,stripeToken).then(function(stripeCardObj){
-                               if(stripeCardObj){
-
-                                  var creditCardInfo = new CreditCardInfo();
-                                  creditCardInfo.appId=appId;
-                                  creditCardInfo._userId=userId;
-                                  creditCardInfo.stripeCardObject=stripeCardObj;
-
-                                  //Save Card Info in DB
-                                  self.saveCardInfo(creditCardInfo).then(function(serverCardObj){
-                                    deferred.resolve(serverCardObj);
-                                  },function(error){ 
-                                    deferred.reject(error);
-                                  });  
-
-                               }else{
-                                  deferred.reject(null);
-                               }                            
-
-                              },function(error){
-                                deferred.reject(error);                        
-                              }); 
-                          }
+                                }); 
+                                //End of Stripe
+                            }
                       },function(error){ 
                         deferred.reject(error);
                       });  
@@ -244,7 +229,7 @@ module.exports = function(StripeCustomer,CreditCardInfo){
 
             return deferred.promise;
           },
-          stripeApiCreateCard: function (customerId,stripeToken){
+          stripeApiCreateCard: function (customerId,card){
 
              var _self = this;
 
@@ -254,7 +239,7 @@ module.exports = function(StripeCustomer,CreditCardInfo){
 
               stripe.customers.createCard(
                 customerId,
-                {source:stripeToken},
+                {card:card},
                 function(err, card) {
                     if (err){
                       deferred.reject(err);
@@ -322,7 +307,7 @@ module.exports = function(StripeCustomer,CreditCardInfo){
               );
              
              return deferred.promise;
-          },
+          },          
           stripeApiCreateCustomer: function (description,stripeToken){
 
              var _self = this;
@@ -348,6 +333,33 @@ module.exports = function(StripeCustomer,CreditCardInfo){
                 }
               );   
              
+             return deferred.promise;
+          },
+          stripeApiUpdateCustomer: function (customerId,card){
+
+             var _self = this;
+
+             var deferred = Q.defer();
+
+              var self = this; 
+
+              stripe.customers.update(
+                  customerId,
+                  { source: card 
+                },function(err, customer) {
+                    if (err){
+                      deferred.reject(err);
+                    }else{        
+                        if(customer){                          
+                          deferred.resolve(customer);  
+                        }else{
+                          deferred.resolve(null); 
+                        }      
+                                  
+                    }
+                }
+              );
+
              return deferred.promise;
           }
          

@@ -2,8 +2,7 @@ module.exports = function(mongoose){
 
 	var Schema = mongoose.Schema;
 
-	var stripeCustomerSchema = new Schema({	  
-	  appId: String,
+	var stripeCustomerSchema = new Schema({		  
 	  _userId: String,
 	  stripeCustomerObject:Object
 	});

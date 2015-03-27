@@ -10,7 +10,7 @@ module.exports = function(paymentService) {
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
        
         if(currentUserId && data){            
-          paymentService.upsertCreditCard(data.appId,currentUserId,data.stripeToken,data.cardInfo).then(function(cardinfo) {
+          paymentService.upsertCreditCard(currentUserId,data.stripeResponse.id,data.cardInfo).then(function(cardinfo) {
               if (!cardinfo) {
                   return res.send(400, e);
               }
@@ -26,12 +26,12 @@ module.exports = function(paymentService) {
 
     });   
 
-    app.get('/payment/get/cardinfo/:appName', function(req,res,next) {
+    app.get('/payment/get/cardinfo', function(req,res,next) {
         
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
-        var appName=req.params.appName
+        
 
-        if(currentUserId && appName){
+        if(currentUserId){
           paymentService.findCard(currentUserId).then(function(cardinfo) {
               if (!cardinfo) {
                   return res.send(400, e);
