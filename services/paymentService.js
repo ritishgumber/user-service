@@ -164,7 +164,6 @@ module.exports = function(StripeCustomer,CreditCardInfo){
 
               return deferred.promise;
           },
-
           findCard: function(userId) {
 
              var _self = this;

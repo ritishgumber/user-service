@@ -8,11 +8,11 @@ var _ = require('underscore');
 var crypto = require('crypto');
 var request = require('request');
 
-module.exports = function(Project){
+module.exports = function(Project,InvoiceService){
 
   return {
 
-        createProject: function (name, appId ,userId) {
+          createProject: function (name, appId ,userId) {
 
               var _self = this;
 
@@ -38,13 +38,34 @@ module.exports = function(Project){
                           if(!project)
                               deferred.reject('Cannot save the app right now.');
                           else{
-                            _self.projectStatus(appId, userId).then(function(status){
-                              project._doc.status = status;
+
+                            //Create invoice Settings
+                            InvoiceService.createInvoiceSettings(appId, userId).then(function(invoiceSettings){
+                              if(invoiceSettings){
+                                  //Create invoice 
+                                  InvoiceService.createInvoice(appId, userId).then(function(invoice){                                    
+                                    if(invoice){                                        
+                                        //Get Project Status
+                                        _self.projectStatus(appId, userId).then(function(status){
+                                          project._doc.status = status;
+                                          deferred.resolve(project._doc);
+                                        }, function(error){
+                                          project._doc.status = {status : 'Unknown'};
+                                          deferred.resolve(project._doc);
+                                        });
+                                        //End of get Project Status
+                                    }
+
+                                  },function(error){
+                                    deferred.resolve(project._doc);
+                                  });
+                                  //End of create invoice
+                              }
+                            },function(error){
                               deferred.resolve(project._doc);
-                            }, function(error){
-                              project._doc.status = {status : 'Unknown'};
-                              deferred.resolve(project._doc);
-                            })
+                            });
+                            //End of create invoice Settings
+
                           }
                   });
               });             
@@ -204,7 +225,7 @@ module.exports = function(Project){
                       body:    post_data
                     }, function(error, response, body){
 
-                       if(response.body === 'Success'){
+                       if(response && response.body === 'Success'){
                           deferred.resolve();
                        }else{
                           deferred.reject();

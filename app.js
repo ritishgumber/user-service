@@ -35,6 +35,8 @@ module.exports = function(){
     var ProjectDetails = require('./model/projectDetails.js')(mongoose);
     var StripeCustomer = require('./model/stripeCustomer.js')(mongoose);
     var CreditCardInfo = require('./model/creditCardInfo.js')(mongoose);
+    var Invoice = require('./model/invoice.js')(mongoose);
+    var InvoiceSettings = require('./model/invoiceSettings.js')(mongoose);
 
 
     //config
@@ -48,10 +50,11 @@ module.exports = function(){
 
     //services.
     var SubscriberService  = require('./services/subscriberService.js')(Subscriber);
-    var ProjectService  = require('./services/projectService.js')(Project);
+    var InvoiceService  = require('./services/invoiceService.js')(Invoice,InvoiceSettings);
+    var ProjectService  = require('./services/projectService.js')(Project,InvoiceService);
     var TableService  = require('./services/tableService.js')(Table);
     var ProjectDetailsService  = require('./services/projectDetailsService.js')(ProjectDetails);
-    var PaymentService  = require('./services/paymentService.js')(StripeCustomer,CreditCardInfo);
+    var PaymentService  = require('./services/paymentService.js')(StripeCustomer,CreditCardInfo);   
 
 
     //routes. 
@@ -61,6 +64,7 @@ module.exports = function(){
     app.use('/', require('./routes/table.js')(TableService));
     app.use('/', require('./routes/projectDetails.js')(ProjectDetailsService));
     app.use('/', require('./routes/payment.js')(PaymentService));
+    app.use('/', require('./routes/invoice.js')(InvoiceService));
 
 
     app.get('/', function(req, res, next){
