@@ -7,7 +7,8 @@ module.exports = function(mongoose){
 	  _userId: String,
 	  invoiceForMonth: Date,
 	  currentInvoice: Number,
-	  invoiceDetails: Array
+	  invoiceDetails: Array,
+	  charged: Object
 	});
 
 	return mongoose.model('Invoice', invoiceSchema);

@@ -31,7 +31,7 @@ module.exports = function(User){
 
                     var deffered = Q.defer();
 
-                     User.findOne({ email: email }, function (err, user) {
+                    User.findOne({ email: email }, function (err, user) {
                           if (err) { return deffered.reject(err); }
                           if (!user) {
                             return deffered.resolve(null);
@@ -193,6 +193,21 @@ module.exports = function(User){
 
                 removeUser: function(id, callback) {
                    //TODO
+                },
+
+                getUserList: function(){
+                     var deffered = Q.defer();
+
+                     User.find({},function (err, users) {
+                          if (err) { return deffered.reject(err); }
+                          if (users.length==0) {
+                            return deffered.reject(null);
+                          }
+                          
+                          return deffered.resolve(users);
+                    });
+
+                    return deffered.promise;
                 }
         }
 

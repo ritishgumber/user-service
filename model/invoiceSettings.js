@@ -6,7 +6,8 @@ module.exports = function(mongoose){
 	  _appId: String,
 	  _userId: String,
 	  autoScale: Boolean,
-	  spendingLimit: Number
+	  spendingLimit: Number,
+	  blocked: Object
 	});
 
 	return mongoose.model('InvoiceSettings', invoiceSettingsSchema);

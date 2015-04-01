@@ -7,8 +7,10 @@ var keys = require('../config/keys');
 var _ = require('underscore');
 var crypto = require('crypto');
 var request = require('request');
+var mandrill = require('mandrill-api/mandrill');
+var mandrill_client = new mandrill.Mandrill(keys.mandrill);
 
-module.exports = function(Invoice,InvoiceSettings){
+module.exports = function(Invoice,InvoiceSettings,UserService){
 
   return {
 
@@ -27,7 +29,7 @@ module.exports = function(Invoice,InvoiceSettings){
               d.setSeconds(0);
               d=new Date(d);
 
-              Invoice.find({_userId: userId,_appId:appId,invoiceForMonth:{$gte:d}}, function (err, invoice) {
+              Invoice.find({_userId: userId,_appId:appId,invoiceForMonth:{$gte:new Date(d)}}, function (err, invoice) {
                 if (err){
                     deferred.reject(err);
                 }else{        
@@ -217,6 +219,214 @@ module.exports = function(Invoice,InvoiceSettings){
 
                     }else{
                       deferred.reject('There is no Invoice Settings for this App'); 
+                    }      
+                              
+                }
+
+              }, function(error){        
+                  deferred.reject(error);  
+              });     
+
+             return deferred.promise;
+          },
+          getDueInvoiceList: function () {
+
+             var _self = this;
+
+             var deferred = Q.defer();
+
+              var self = this;             
+
+              Invoice.find({charged:null}, function (err, invoiceList) {
+                if (err){
+                    deferred.reject(err);
+                }else{        
+                    if(invoiceList.length>0){                      
+                      deferred.resolve(invoiceList);  
+                    }else{
+                      deferred.resolve(null);
+                    }                              
+                }
+
+              }, function(error){        
+                  deferred.reject(error);  
+              });     
+
+             return deferred.promise;
+          },
+          getDueInvoiceListByUserId: function (userId) {
+            //get invoices where charged:null
+             var _self = this;
+
+             var deferred = Q.defer();
+
+              var self = this;       
+
+              Invoice.find({_userId:userId,charged:null}, function (err, invoiceList) {
+                if (err){
+                    deferred.reject(err);
+                }else{        
+                    if(invoiceList.length>0){
+                      deferred.resolve(invoiceList);  
+                    }else{
+                      deferred.resolve(null);
+                    }                              
+                }
+
+              }, function(error){        
+                  deferred.reject(error);  
+              });     
+
+             return deferred.promise;
+          },
+          blockUser: function (userId,appId) {
+
+             var _self = this;
+
+             var deferred = Q.defer();
+
+              var self = this;             
+
+              InvoiceSettings.find({_userId:userId,_appId:appId,blocked:{$ne: null}}, function (err, invoiceSettings) {
+                if (err){
+                    deferred.reject(err);
+                }else{        
+                    if(invoiceSettings.length>0){
+                     
+                      var blocked={
+                        status : true, 
+                        blockedDateTime: new Date()
+                      };
+                      invoiceSettings[0].blocked=blocked;
+
+                      invoiceSettings[0].save(function (err, invoiceSettings) {
+                          if (err) deferred.reject(err);
+
+                          if(!invoiceSettings)
+                              deferred.reject('Cannot block the User right now.');
+                          else{
+                                var userId=invoiceSettings._userId;
+                                UserService.getAccountById(userId)
+                                .then(function(user){
+                                  if(user){
+
+                                    var userName=user._doc.name;
+                                    var email=user._doc.email;
+                                    var message = {
+                                      "to": [{
+                                              "email":email,
+                                              "name": userName,
+                                              "type": "to"
+                                            }],
+                                      "global_merge_vars": [{
+                                              "name": "name",
+                                              "content": userName
+                                          }],
+                                          "inline_css":true
+                                    };
+                                    //send the invoice failure Mail
+                                    mandrill_client.messages.sendTemplate({"template_name": 'invoicefailure', 
+                                        "message" : message,
+                                        "template_content": [{
+                                              "name": "name",
+                                              "content": userName
+                                          }], "async": true}, function(result){
+                                        if(result.length>0 && result[0].status === 'sent'){
+                                            console.log('++++++Mandrill Email Sent +++++++++++++');
+                                        }else{
+                                            console.log('++++++Mandrill Email Error +++++++++++++');
+                                            console.log(result);
+                                        }
+                                    });
+                                    //end of sending mail
+
+                                  }
+                                },function(error){ 
+                                  console.log(error);
+                                });
+                                  
+                              deferred.resolve(invoiceSettings._doc); 
+                          }
+                      });                      
+
+                    }else{
+                      deferred.resolve(null);
+                    }                              
+                }
+
+              }, function(error){        
+                  deferred.reject(error);  
+              });     
+
+             return deferred.promise;
+          },
+          unblockUser: function (userId,appId) {
+
+             var _self = this;
+
+             var deferred = Q.defer();
+
+              var self = this;              
+
+              InvoiceSettings.find({_userId: userId,_appId:appId,blocked:{$ne: null}}, function (err, invoiceSettings) {
+                if (err){
+                    deferred.reject(err);
+                }else{        
+                    if(invoiceSettings.length>0){
+                      
+                        if(invoiceSettings[0].blocked.status){
+
+                            invoiceSettings[0].blocked=null;
+                            invoiceSettings[0].save(function (err, invoiceSettings) {
+                                if (err) deferred.reject(err);
+
+                                if(!invoiceSettings)
+                                    deferred.reject('Cannot save the Invoice settings now.');
+                                else{                            
+                                  deferred.resolve(invoiceSettings._doc);
+                                }
+                            });
+                        }                    
+
+                    }else{
+                      deferred.reject('There is no Invoice Settings for this App'); 
+                    }      
+                              
+                }
+
+              }, function(error){        
+                  deferred.reject(error);  
+              });     
+
+             return deferred.promise;
+          },
+          updateInvoice: function (userId,appId,charged) {
+
+             var _self = this;
+
+             var deferred = Q.defer();
+
+              var self = this;              
+ 
+              Invoice.find({_userId: userId,_appId:appId}, function (err, invoice) {
+                if (err){
+                    deferred.reject(err);
+                }else{        
+                    if(invoice.length>0){
+                      invoice[0].charged=charged;
+                     
+                      invoice[0].save(function (err, invoice) {
+                          if (err) deferred.reject(err);
+
+                          if(!invoice)
+                              deferred.reject('Cannot update the Invoice right now.');
+                          else{                                     
+                            deferred.resolve(invoice._doc);
+                          }
+                      });
+
+                    }else{
+                      deferred.reject('Cannot find Invoice.'); 
                     }      
                               
                 }

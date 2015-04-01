@@ -7,12 +7,9 @@ var mandrill = require('mandrill-api/mandrill');
 var mandrill_client = new mandrill.Mandrill(keys.mandrill);
 
 //setup passport
-module.exports = function(passport,User) {
-
-    var controller = require('../services/userService')(User);
+module.exports = function(passport,controller) {    
 
     //helpers
-
 
     var sendRequestResetPasswordEmail = function(user){
         var message = {

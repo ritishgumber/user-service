@@ -6,7 +6,9 @@ module.exports = function(){
     var app = express();
     var mongoose = require('./config/db.js')();
     var passport = require('passport');
-    var redis = require('redis');  
+    var redis = require('redis');
+    var CronJob = require('cron').CronJob;
+    var Q = require('q');  
 
     global.keys = require('./config/keys.js'); 
 
@@ -49,16 +51,17 @@ module.exports = function(){
     require('./framework/config')(passport, User);
 
     //services.
+    var UserService = require('./services/userService')(User);
     var SubscriberService  = require('./services/subscriberService.js')(Subscriber);
-    var InvoiceService  = require('./services/invoiceService.js')(Invoice,InvoiceSettings);
+    var InvoiceService  = require('./services/invoiceService.js')(Invoice,InvoiceSettings,UserService);
     var ProjectService  = require('./services/projectService.js')(Project,InvoiceService);
     var TableService  = require('./services/tableService.js')(Table);
     var ProjectDetailsService  = require('./services/projectDetailsService.js')(ProjectDetails);
-    var PaymentService  = require('./services/paymentService.js')(StripeCustomer,CreditCardInfo);   
+    var PaymentService  = require('./services/paymentService.js')(StripeCustomer,CreditCardInfo,InvoiceService,UserService,ProjectService);   
 
 
     //routes. 
-    app.use('/auth', require('./routes/auth')(passport,User));
+    app.use('/auth', require('./routes/auth')(passport,UserService));
     app.use('/', require('./routes/subscriber.js')(SubscriberService));
     app.use('/', require('./routes/project.js')(ProjectService));
     app.use('/', require('./routes/table.js')(TableService));
@@ -70,6 +73,74 @@ module.exports = function(){
     app.get('/', function(req, res, next){
         res.send(200, 'Frontend Service is up and running fine.');
     });
+
+
+
+    /**********CRON JOB**********/
+    try {
+
+        var job = new CronJob('00 30 11 1 * *', function() {
+          /*
+           * 00 30 11 1 * *
+           * Runs every Month 1st day on weekday (Sunday through Saturday)
+           * at 11:30:00 AM. 
+           */
+            
+            InvoiceService.getDueInvoiceList().then(function(invoiceList){                                    
+              if(invoiceList){
+                    
+                    var userIndex=[]; 
+                    var promises=[]; 
+
+                    for(var i=0;i<invoiceList.length;++i){
+
+                      var userId=invoiceList[i]._userId;                    
+
+                      if(!invoiceList[i].charged){//if previously not charged
+                         promises.push(PaymentService.findCard(userId));
+                         userIndex.push(i);
+                      }                      
+                    }
+
+                    Q.allSettled(promises).then(function(creditCardList){                
+                  
+                        for(var i=0;i<creditCardList.length;i++){
+                            var index=userIndex[i];
+                      
+                            if(creditCardList[i].state="fulfilled" && creditCardList[i].value){                               
+                                var index=userIndex[i];
+                                var customerId=creditCardList[i].value.stripeCardObject.customer;
+                               
+                                //make payments
+                                PaymentService.makePayments(invoiceList[index],customerId);                                                                                   
+
+                            }else{//if card not found block the user                                                       
+                                var index=userIndex[i];
+                                InvoiceService.blockUser(invoiceList[index]._userId,invoiceList[index]._appId);
+                            }                   
+                        }             
+
+                    });//end of Q.allSetteled
+
+              }else{
+                console.log("There are no Invoices.");
+              }
+
+            },function(error){
+              console.log(error);              
+            });//end of getting invoice List
+
+          }, function () {
+            /* This function is executed when the job stops */
+          },
+          true /* Start the job right now */           
+        );
+        job.start();
+
+    } catch(ex) {
+        console.log("cron pattern not valid");
+    }   
+    /**********CRON JOB**********/   
 
     return app;
 };

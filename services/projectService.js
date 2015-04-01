@@ -139,7 +139,7 @@ module.exports = function(Project,InvoiceService){
 
                 }, function(error){
                   deferred.reject(error);
-                })
+                });
                  
               });
 
@@ -237,6 +237,43 @@ module.exports = function(Project,InvoiceService){
 
              return deferred.promise;
 
+          },
+
+          allProjectList: function () {
+
+            var _self = this;
+
+             var deferred = Q.defer();
+
+              var self = this;
+
+              Project.find({}, function (err, list) {
+                if (err) deferred.reject(err);
+
+                var promise = [];
+
+                for(var i=0;i<list.length;i++){
+                    promise.push(_self.projectStatus(list[i]._doc.appId, list[i]._doc._userId));
+                }
+
+                Q.all(promise).then(function(statusList){
+                  //merge status with the list
+                  for(var i=0;i<list.length;i++){
+                    var statusObj = _.first(_.where(statusList, {appId : list[i]._doc.appId}));
+                    list[i]._doc.status = statusObj;
+                  }
+
+                 list = _.map(list, function(obj){ return obj._doc});
+
+                  deferred.resolve(list);
+
+                }, function(error){
+                  deferred.reject(error);
+                });
+                 
+              });
+
+             return deferred.promise;
           }
     }
 
