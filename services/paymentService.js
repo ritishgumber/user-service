@@ -10,6 +10,8 @@ var request = require('request');
 var mandrill = require('mandrill-api/mandrill');
 var mandrill_client = new mandrill.Mandrill(keys.mandrill);
 var stripe = require("stripe")(keys.stripeSecretKey);
+var Mixpanel = require('mixpanel');
+var mixpanel = Mixpanel.init(keys.mixpanelToken);
 
 module.exports = function(StripeCustomer,CreditCardInfo,InvoiceService,UserService,ProjectService){
 
@@ -461,8 +463,7 @@ module.exports = function(StripeCustomer,CreditCardInfo,InvoiceService,UserServi
             var userId=invoice._userId;
             var appId=invoice._appId;
                
-            var amount=invoice.currentInvoice;
-                                                                        
+            var amount=invoice.currentInvoice;                                                                        
             amount=amount*100;//convert into CENTS as per stripe requirement
 
             if(amount && amount>=50){//min amount $0.50
@@ -509,11 +510,15 @@ module.exports = function(StripeCustomer,CreditCardInfo,InvoiceService,UserServi
                 UserService.getAccountById(userId)
                 .then(function(user){
                   if(user){                
+                    var userId=user._doc._id.toString();
                     var userName=user._doc.name;
                     var email=user._doc.email;
-                    var appName=project._doc.name;
+                    var appName=project._doc.name;                  
                     var invoiceDate=invoice.invoiceForMonth;
                     var currentInvoice=invoice.currentInvoice;
+
+                    // record a transaction for revenue analytics
+                    mixpanel.people.track_charge(userId, currentInvoice);
 
                     var html="";
                     var sno=0;
