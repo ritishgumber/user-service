@@ -87,6 +87,7 @@ module.exports = function(){
            */
             
             InvoiceService.getDueInvoiceList().then(function(invoiceList){                                    
+              
               if(invoiceList){
                     
                     var userIndex=[]; 
