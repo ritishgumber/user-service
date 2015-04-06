@@ -36,9 +36,7 @@ module.exports = function(controller) {
 
         if(currentUserId && projectId && name){
 
-            controller.deleteTable(projectId,name).then(function() {
-
-                
+            controller.deleteTable(projectId,name).then(function() {                
 
                 return res.json(200);
 

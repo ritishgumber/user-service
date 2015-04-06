@@ -12,7 +12,7 @@ module.exports = function(projectDetailsService) {
         if(currentUserId && data){
           projectDetailsService.saveProjectDetails(data,currentUserId).then(function(projectDet) {
               if (!projectDet) {
-                  return res.send(400, e);
+                  return res.send(400, "Error: Settings not saved");
               }
             return res.json(200, projectDet);
 
@@ -34,7 +34,7 @@ module.exports = function(projectDetailsService) {
         if(currentUserId && appId){
           projectDetailsService.getProjectDetails(currentUserId,appId).then(function(projectDet) {
               if (!projectDet) {
-                  return res.send(400, e);
+                  return res.send(400, "Error: Settings not found");
               }
             return res.json(200, projectDet);
 

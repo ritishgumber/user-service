@@ -12,14 +12,14 @@ module.exports = function(){
 
     global.keys = require('./config/keys.js'); 
 
-
+    app.use(cookieParser());
     app.use(require('express-session')({
         key: 'session',
         resave: false, //does not forces session to be saved even when unmodified
         saveUninitialized: true, //forces a session that is "uninitialized"(new but unmodified) to be saved to the store
         secret: 'azuresample',
         store: require('mongoose-session')(mongoose),
-        //cookie:{maxAge:60000000}
+        cookie:{expires: new Date(Date.now() + 8640000)}// for 1 day
     }));
 
     global.redisClient = redis.createClient(global.keys.redisPort,
@@ -104,8 +104,7 @@ module.exports = function(){
 
                     Q.allSettled(promises).then(function(creditCardList){                
                   
-                        for(var i=0;i<creditCardList.length;i++){
-                            var index=userIndex[i];
+                        for(var i=0;i<creditCardList.length;i++){                            
                       
                             if(creditCardList[i].state="fulfilled" && creditCardList[i].value){                               
                                 var index=userIndex[i];

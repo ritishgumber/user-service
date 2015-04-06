@@ -12,7 +12,7 @@ module.exports = function(controller) {
         if(currentUserId && data){
           controller.createProject(data.name, data.appId,currentUserId).then(function(project) {
               if (!project) {
-                  return res.send(400, e);
+                  return res.send(400, 'Error : Project not created');
               }
             return res.json(200, project);
 
@@ -29,11 +29,11 @@ module.exports = function(controller) {
     app.get('/project/list', function(req,res,next) {
 
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
-
+        console.log(req.session.cookie.maxAge);        
         if(currentUserId){
             controller.projectList(currentUserId).then(function(list) {
                 if (!list) {
-                    return res.send(500, e);
+                    return res.send(500, 'Error: Something Went Wrong');
                 }
                 return res.json(200, list);
             },function(error){
@@ -76,7 +76,7 @@ module.exports = function(controller) {
 
             controller.editProject(currentUserId,appId,name).then(function(project) {
                 if (!project) {
-                    return res.send(500, e);
+                    return res.send(500, "Error: Project didn't get edited");
                 }
 
                 return res.json(200, project);
@@ -100,7 +100,7 @@ module.exports = function(controller) {
 
             controller.getProject(id).then(function(project) {
                 if (!project) {
-                    return res.send(500, e);
+                    return res.send(500, 'Error: Project not found');
                 }
 
                 return res.json(200, project);
