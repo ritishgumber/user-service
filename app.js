@@ -19,7 +19,7 @@ module.exports = function(){
         saveUninitialized: true, //forces a session that is "uninitialized"(new but unmodified) to be saved to the store
         secret: 'azuresample',
         store: require('mongoose-session')(mongoose),
-        cookie:{expires: new Date(Date.now() + 8640000)}// for 1 day
+        cookie:{maxAge:8640000}// for 1 day
     }));
 
     global.redisClient = redis.createClient(global.keys.redisPort,
