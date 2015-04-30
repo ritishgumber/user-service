@@ -13,7 +13,7 @@ var mandrill_client = new mandrill.Mandrill(keys.mandrill);
 module.exports = function(Invoice,InvoiceSettings,UserService){
 
   return {
-
+    
           getInvoice: function (userId,appId) {
 
              var _self = this;
