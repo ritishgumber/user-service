@@ -159,7 +159,7 @@ module.exports = function(passport,controller) {
         controller.register(data).then(function(user) {
             if (!user) {
                 console.log('++++++ User Registration Failed +++++++++++++');
-                return res.send(500, e);
+                return res.send(500, "Error: Something went wrong");
             }
 
             console.log('++++++ User Registration Success +++++++++++++');

@@ -12,7 +12,7 @@ module.exports = function(invoiceService) {
         if(currentUserId && appId){
           invoiceService.getInvoice(currentUserId,appId).then(function(invoice) {
               if (!invoice) {
-                  return res.send(400, e);
+                  return res.send(400, "Error: Invoice not found");
               }
             return res.json(200, invoice);
 
@@ -34,7 +34,7 @@ module.exports = function(invoiceService) {
         if(currentUserId && appId){
           invoiceService.getInvoiceSettings(currentUserId,appId).then(function(invoiceSettings) {
               if (!invoiceSettings) {
-                  return res.send(400, e);
+                  return res.send(400, "Error: invoice settings not found.");
               }
             return res.json(200, invoiceSettings);
 
@@ -61,7 +61,7 @@ module.exports = function(invoiceService) {
 
             invoiceService.upsertInvoiceSettings(currentUserId,appId,spendingLimit).then(function(invoiceSettings) {
                 if (!invoiceSettings) {
-                    return res.send(500, e);
+                    return res.send(500, "Error: Something went wrong while updating");
                 }
 
                 return res.json(200, invoiceSettings);

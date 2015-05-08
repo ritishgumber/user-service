@@ -429,7 +429,7 @@ module.exports = function(StripeCustomer,CreditCardInfo,InvoiceService,UserServi
             var _self = this;
 
             var deferred = Q.defer();
- 
+  
             var self = this; 
 
             var customerId=card.stripeCardObject.customer;
