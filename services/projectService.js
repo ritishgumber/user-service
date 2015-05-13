@@ -21,9 +21,9 @@ module.exports = function(Project,InvoiceService){
               var self = this;
 
               Project.findOne({appId : appId}, function (err, project) {
-                if(project)
+                if(project){
                   deferred.reject('AppID already exists');
-                else
+                }else{
                   var project = new Project();
                   project._userId=userId;
                   project.name=name;
@@ -68,6 +68,8 @@ module.exports = function(Project,InvoiceService){
 
                           }
                   });
+
+                }//end of else of if project is there
               });             
 
               return deferred.promise;
