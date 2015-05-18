@@ -12,7 +12,23 @@ module.exports = function(){
 
     global.keys = require('./config/keys.js'); 
 
+
+    app.use(function(req, res, next) {
+        res.header('Access-Control-Allow-Credentials', true);
+        res.header('Access-Control-Allow-Origin', req.headers.origin);
+        res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+        res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
+        if ('OPTIONS' == req.method) {
+             res.send(200);
+         } else {
+             next();
+         }
+    });
+
+
     app.use(cookieParser());
+
+    
     app.use(require('express-session')({
         key: 'session',
         resave: false, //does not forces session to be saved even when unmodified
@@ -42,7 +58,9 @@ module.exports = function(){
 
 
     //config
-    require('./config/cors.js')(app);
+    
+
+
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded());
     app.use(cookieParser('azuresample'));
