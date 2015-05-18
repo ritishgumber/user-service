@@ -4,10 +4,15 @@ module.exports = function(){
     var cookieParser = require('cookie-parser');
     var bodyParser = require('body-parser');
     var app = express();
+     require('./config/cors.js')(app);
     var mongoose = require('./config/db.js')();
+	//console.log(mongoose);
     var passport = require('passport');
+	//console.log(passport);
     var redis = require('redis');
+	//console.log(redis);
     var CronJob = require('cron').CronJob;
+	//console.log(CronJob);
     var Q = require('q');  
 
     global.keys = require('./config/keys.js'); 
@@ -34,19 +39,21 @@ module.exports = function(){
         resave: false, //does not forces session to be saved even when unmodified
         saveUninitialized: true, //forces a session that is "uninitialized"(new but unmodified) to be saved to the store
         secret: 'azuresample',
-        store: require('mongoose-session')(mongoose),
+        //store: require('mongoose-session')(mongoose),
         cookie:{maxAge:8640000}// for 1 day
     }));
-
+	console.log("creating redis client..");
     global.redisClient = redis.createClient(global.keys.redisPort,
         global.keys.redisURL,
         {
             auth_pass:global.keys.redisPassword
         }
     );
-
+	console.log("redis client created..");
     //models. 
+	console.log("creating models..");
     var Project = require('./model/project.js')(mongoose);
+	//console.log(Project);
     var Subscriber = require('./model/subscriber.js')(mongoose);
     var User = require('./model/user.js')(mongoose);
     var Table = require('./model/table.js')(mongoose);
@@ -56,11 +63,9 @@ module.exports = function(){
     var Invoice = require('./model/invoice.js')(mongoose);
     var InvoiceSettings = require('./model/invoiceSettings.js')(mongoose);
 
-
+	console.log("models created..");
     //config
     
-
-
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded());
     app.use(cookieParser('azuresample'));
@@ -69,15 +74,17 @@ module.exports = function(){
     require('./framework/config')(passport, User);
 
     //services.
+	console.log("starting services..");
     var UserService = require('./services/userService')(User);
+	console.log("UserService : " + UserService);
     var SubscriberService  = require('./services/subscriberService.js')(Subscriber);
     var InvoiceService  = require('./services/invoiceService.js')(Invoice,InvoiceSettings,UserService);
     var ProjectService  = require('./services/projectService.js')(Project,InvoiceService);
     var TableService  = require('./services/tableService.js')(Table);
     var ProjectDetailsService  = require('./services/projectDetailsService.js')(ProjectDetails);
     var PaymentService  = require('./services/paymentService.js')(StripeCustomer,CreditCardInfo,InvoiceService,UserService,ProjectService);   
-
-
+	console.log("All services started..");
+	console.log("routes..");
     //routes. 
     app.use('/auth', require('./routes/auth')(passport,UserService));
     app.use('/', require('./routes/subscriber.js')(SubscriberService));
@@ -95,22 +102,24 @@ module.exports = function(){
 
 
     /**********CRON JOB**********/
-    try {
-
+   try{
+	console.log("cron job initializing...");
         var job = new CronJob('00 30 11 1 * *', function() {
           /*
            * 00 30 11 1 * *
            * Runs every Month 1st day on weekday (Sunday through Saturday)
            * at 11:30:00 AM. 
            */
-            
+       	console.log("cron initialized..");    
             InvoiceService.getDueInvoiceList().then(function(invoiceList){                                    
               
               if(invoiceList){
-                    
+			console.log("Invoice Service..");                    
                     var userIndex=[]; 
                     var promises=[]; 
-
+			if(!invoiceList.length ){
+				console.log("undefine length");
+			}
                     for(var i=0;i<invoiceList.length;++i){
 
                       var userId=invoiceList[i]._userId;                    
@@ -159,7 +168,6 @@ module.exports = function(){
         console.log("cron pattern not valid");
     }   
     /**********CRON JOB**********/   
-
     return app;
 };
 

@@ -1,7 +1,7 @@
 module.exports = function(mongoose){
 
 	var Schema = mongoose.Schema;
-
+	//console.log("Schema : "+Schema);
 	var projectSchema = new Schema({
 	  name:  String,
 	  appId: String,
