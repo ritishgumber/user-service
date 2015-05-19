@@ -4,7 +4,7 @@ module.exports = function(){
     var cookieParser = require('cookie-parser');
     var bodyParser = require('body-parser');
     var app = express();
-     require('./config/cors.js')(app);
+    // require('./config/cors.js')(app);
     var mongoose = require('./config/db.js')();
 	//console.log(mongoose);
     var passport = require('passport');
