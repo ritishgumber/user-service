@@ -13,9 +13,9 @@ var mandrill_client = new mandrill.Mandrill(keys.mandrill);
 module.exports = function(Invoice,InvoiceSettings,UserService){
 
   return {
-
+    
           getInvoice: function (userId,appId) {
-
+		console.log("--------------------Get Invoice Service-------------------");
              var _self = this;
 
              var deferred = Q.defer();
@@ -231,8 +231,9 @@ module.exports = function(Invoice,InvoiceSettings,UserService){
           },
           getDueInvoiceList: function () {
 
+		console.log("---Get Due Invoice List---");
              var _self = this;
-
+	
              var deferred = Q.defer();
 
               var self = this;             
