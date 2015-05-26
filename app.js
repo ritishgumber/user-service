@@ -4,15 +4,10 @@ module.exports = function(){
     var cookieParser = require('cookie-parser');
     var bodyParser = require('body-parser');
     var app = express();
-     require('./config/cors.js')(app);
     var mongoose = require('./config/db.js')();
-	//console.log(mongoose);
     var passport = require('passport');
-	//console.log(passport);
     var redis = require('redis');
-	//console.log(redis);
     var CronJob = require('cron').CronJob;
-	//console.log(CronJob);
     var Q = require('q');  
 
     global.keys = require('./config/keys.js'); 
@@ -110,7 +105,6 @@ module.exports = function(){
            * Runs every Month 1st day on weekday (Sunday through Saturday)
            * at 11:30:00 AM. 
            */
-       	console.log("cron initialized..");    
             InvoiceService.getDueInvoiceList().then(function(invoiceList){                                    
               
               if(invoiceList){
