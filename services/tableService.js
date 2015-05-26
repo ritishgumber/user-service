@@ -13,7 +13,6 @@ module.exports = function(Table){
         upsertTable: function (appId,data) {
 
               var deferred = Q.defer();
-
               var self = this;              
 
               Table.findOne({appId: appId, id : data.id}, function(err, table){
@@ -34,6 +33,8 @@ module.exports = function(Table){
                 table.type = data.type;
                 table.id = data.id;
 
+                  createIndex(table.appId,table.name,table.columns);
+
                 //refresh the cache. 
                 console.log('++++++ Refreshing Redis Cache for table ++++++++');
                 global.redisClient.del(global.keys.cacheSchemaPrefix+'-'+appId+':'+data.name);
@@ -43,7 +44,7 @@ module.exports = function(Table){
 
                   if(err)
                     deferred.reject(err);
-
+                  else
                     deferred.resolve(table._doc);
 
                     if(originalTable){
@@ -273,5 +274,31 @@ module.exports = function(Table){
 
             throw new Error("Unable to copy obj! Its type isn't supported.");
         }
+    function createIndex(appId,tableName,columns)
+    {
+        for(var i in columns)
+        {
+            if(columns[i].dataType === 'GeoPoint')
+            {
+                var post_data = "{ \"key\" : \""+keys.cbDataServicesConnectKey+"\",\"collectionName\" :  \""+tableName+"\",\"columnName\" :  \""+columns[i].name+"\"}";
+                request.post({
+                    headers: {
+                        'content-type' : 'application/json',
+                        'content-length' : post_data.length
+                    },
+                    url:     keys.dataServiceUrl + ':'+keys.dataServiceUrlPort+"/api/createIndex/"+appId,
+                    body:    post_data
+                }, function(error, response, body){
+
+                    if(response.body === 'Success'){
+                        console.log('Index Created');
+                    }else{
+                        console.log('Index cant be created');
+                    }
+
+                });
+            }
+        }
+    }
 
 };
