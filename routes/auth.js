@@ -194,10 +194,10 @@ module.exports = function(passport,controller) {
 
         controller.activate(data.code).then(function(user) {
 
-                console.log('++++++ Activation Successful +++++++++++++');
-                //send activated email.
-                sendActivatedEmail(user);
-                return res.send(200);
+            console.log('++++++ Activation Successful +++++++++++++');
+            //send activated email.
+            sendActivatedEmail(user);
+            return res.send(200);
         },function(error){
             console.log('++++++ Activation Failed +++++++++++++');
             console.log(error);
