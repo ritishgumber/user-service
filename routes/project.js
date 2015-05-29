@@ -29,7 +29,7 @@ module.exports = function(controller) {
     app.get('/project/list', function(req,res,next) {
 
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
-        console.log(req.session.cookie.maxAge);        
+        console.log(req.session.cookie.expires);        
         if(currentUserId){
             controller.projectList(currentUserId).then(function(list) {
                 if (!list) {

@@ -4,15 +4,10 @@ module.exports = function(){
     var cookieParser = require('cookie-parser');
     var bodyParser = require('body-parser');
     var app = express();
-    // require('./config/cors.js')(app);
     var mongoose = require('./config/db.js')();
-	//console.log(mongoose);
     var passport = require('passport');
-	//console.log(passport);
     var redis = require('redis');
-	//console.log(redis);
     var CronJob = require('cron').CronJob;
-	//console.log(CronJob);
     var Q = require('q');  
 
     global.keys = require('./config/keys.js'); 
@@ -32,16 +27,16 @@ module.exports = function(){
 
 
     app.use(cookieParser());
-
     
-    app.use(require('express-session')({
+    app.use(require('express-session')({        
         key: 'session',
         resave: false, //does not forces session to be saved even when unmodified
         saveUninitialized: true, //forces a session that is "uninitialized"(new but unmodified) to be saved to the store
         secret: 'azuresample',
-        //store: require('mongoose-session')(mongoose),
-        cookie:{maxAge:8640000}// for 1 day
+        store: require('mongoose-session')(mongoose),
+        cookie:{expires: new Date(Date.now() + (3600000*24*30))}// for 1 month
     }));
+
 	console.log("creating redis client..");
     global.redisClient = redis.createClient(global.keys.redisPort,
         global.keys.redisURL,
@@ -101,7 +96,7 @@ module.exports = function(){
 
 
 
-    /**********CRON JOB**********/
+   /**********CRON JOB**********/
    try{
 	console.log("cron job initializing...");
         var job = new CronJob('00 30 11 1 * *', function() {
@@ -110,7 +105,6 @@ module.exports = function(){
            * Runs every Month 1st day on weekday (Sunday through Saturday)
            * at 11:30:00 AM. 
            */
-       	console.log("cron initialized..");    
             InvoiceService.getDueInvoiceList().then(function(invoiceList){                                    
               
               if(invoiceList){
