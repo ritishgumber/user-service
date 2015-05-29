@@ -2,10 +2,7 @@ module.exports = {
 	mandrill : 'qiDZR_J-NKKKfg6ieTPSYw',
 	cors : ['http://localhost:1440','http://localhost:1444','http://localhost:1441','https://www.cloudboost.io', 'http://www.cloudboost.io','http://dashboard.cloudboost.io','https://dashboard.cloudboost.io','http://cloudboost.io','https://cloudboost.io'],
 	db : global.isVM ? 'mongodb://127.0.0.1/CloudBoostProdDB' : (global.isDevelopment ? 'mongodb://CloudBoost:WhiteHouse123@ds030817.mongolab.com:30817/CloudBoostDevDB' : 'mongodb://CloudBoost:WhiteHouse123@ds041177.mongolab.com:41177/CloudBoostProdDB'),
-	//dataServiceUrl : global.isDevelopment ? 'http://localhost' : 'https://api.cloudboost.io',
-    dataServiceUrl : 'https://api.cloudboost.io',
-	//dataServiceUrlPort :global.isDevelopment ? 4730 : 80,
-	dataServiceUrlPort : 80,
+	dataServiceUrl : global.isDevelopment ? 'http://localhost:4730' : 'https://api.cloudboost.io',
     encryptKey: "hackersbay", //for encryption of passwords
 	cbDataServicesConnectKey : 'secret-cookie',
 	cacheSchemaPrefix : 'schema',
