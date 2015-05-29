@@ -289,11 +289,15 @@ module.exports = function(Table){
                     url:     keys.dataServiceUrl + ':'+keys.dataServiceUrlPort+"/api/createIndex/"+appId,
                     body:    post_data
                 }, function(error, response, body){
-
-                    if(response.body === 'Success'){
-                        console.log('Index Created');
-                    }else{
-                        console.log('Index cant be created');
+                    if(error)
+                    {
+                        console.log(error);
+                    }else {
+                        if (response.body === 'Success') {
+                            console.log('Index Created');
+                        } else {
+                            console.log('Index cant be created');
+                        }
                     }
 
                 });
