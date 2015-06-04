@@ -223,12 +223,13 @@ module.exports = function(Project,InvoiceService){
                                   'content-type' : 'application/json', 
                                   'content-length' : post_data.length
                                },
-                      url:     keys.dataServiceUrl + ':'+keys.dataServiceUrlPort+"/app/delete/"+appId,
+                      url:     keys.dataServiceUrl +"/app/delete/"+appId,
                       body:    post_data
                     }, function(error, response, body){
 
                        if(response && response.body === 'Success'){
-                          deferred.resolve();
+                          console.log('successfully deleted');
+                           deferred.resolve();
                        }else{
                           deferred.reject();
                        }

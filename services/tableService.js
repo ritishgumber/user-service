@@ -89,7 +89,7 @@ module.exports = function(Table){
                                     'content-type' : 'application/json', 
                                     'content-length' : post_data.length
                                  },
-                        url:     keys.dataServiceUrl + ':'+keys.dataServiceUrlPort+"/app/"+appId+"/delete/"+tableName,
+                        url:     keys.dataServiceUrl + "/app/"+appId+"/delete/"+tableName,
                         body:    post_data
                       }, function(error, response, body){
 
@@ -151,7 +151,7 @@ module.exports = function(Table){
                             'content-type' : 'application/json', 
                             'content-length' : post_data.length
                          },
-                url:     keys.dataServiceUrl + ':'+keys.dataServiceUrlPort+"/app/"+appId+"/rename/"+originalTable.name,
+                url:     keys.dataServiceUrl +"/app/"+appId+"/rename/"+originalTable.name,
                 body:    post_data
               }, function(error, response, body){
                  if(response.body === 'Success'){
@@ -184,7 +184,7 @@ module.exports = function(Table){
                                   'content-length' : post_data.length
                                },
 
-                      url:     keys.dataServiceUrl + ':'+keys.dataServiceUrlPort+"/app/"+appId+"/"+originalTable.name+"/rename/"+originalTable.columns[i].name,
+                      url:     keys.dataServiceUrl +"/app/"+appId+"/"+originalTable.name+"/rename/"+originalTable.columns[i].name,
                       body:    post_data
                     }, function(error, response, body){
 
@@ -223,18 +223,21 @@ module.exports = function(Table){
                                       'content-type' : 'application/json', 
                                       'content-length' : post_data.length
                                    },
-                          url:     keys.dataServiceUrl + ':'+keys.dataServiceUrlPort+"/app/"+appId+"/"+table.name+"/delete/"+originalColumns[i].name,
+                          url:     keys.dataServiceUrl + "/app/"+appId+"/"+table.name+"/delete/"+originalColumns[i].name,
                           body:    post_data
                         }, function(error, response, body){
 
                            console.log(body);
-                           
-                           if(response.body === 'Success'){
-                             console.log("Column Sucessfully deleted");
-                           }else{
-                              console.log("Column Delete Error");
-                           }
-
+                        if(!error) {
+                            if (response.body === 'Success') {
+                                console.log("Column Sucessfully deleted");
+                            } else {
+                                console.log("Column Delete Error");
+                            }
+                        }else
+                        {
+                            console.log("error");
+                        }
                          });
 
                     }
@@ -285,15 +288,21 @@ module.exports = function(Table){
                     headers: {
                         'content-type' : 'application/json',
                         'content-length' : post_data.length
+                       // 'user-agent' : 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0.1) Gecko/20100101 Firefox/10.0.1'
+                        //'host' : 'localhost:80'
                     },
-                    url:     keys.dataServiceUrl + ':'+keys.dataServiceUrlPort+"/api/createIndex/"+appId,
+                    url:     keys.dataServiceUrl +"/api/createIndex/"+appId,
                     body:    post_data
                 }, function(error, response, body){
-
-                    if(response.body === 'Success'){
-                        console.log('Index Created');
-                    }else{
-                        console.log('Index cant be created');
+                    if(error)
+                    {
+                        console.log(error);
+                    }else {
+                        if (response.body === 'Success') {
+                            console.log('Index Created');
+                        } else {
+                            console.log('Index cant be created');
+                        }
                     }
 
                 });
