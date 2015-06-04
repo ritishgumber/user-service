@@ -63,19 +63,19 @@ module.exports = function(ProjectDetails){
 
            getProjectDetails: function (userId,appId) {
 
-             var _self = this;
+              var _self = this;
 
-             var deferred = Q.defer();
+              var deferred = Q.defer();
 
               var self = this;              
 
               ProjectDetails.find({_userId: userId,appId:appId}, function (err, projectDet) {
                 if (err){
-                    deferred.reject(err);
+                    deferred.reject(err);                    
                 }else{        
                     if(projectDet.length>0){
                       deferred.resolve(projectDet[0]._doc);  
-                    }else{
+                    }else{                      
                       deferred.resolve(null); 
                     }      
                               

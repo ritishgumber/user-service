@@ -12,7 +12,7 @@ module.exports = function(paymentService) {
         if(currentUserId && data){            
           paymentService.upsertCreditCard(currentUserId,data.stripeResponse.id,data.cardInfo).then(function(cardinfo) {
               if (!cardinfo) {
-                  return res.send(400, "Error: Something went wrong");
+                return res.send(400, "Error: Something went wrong");
               }
             return res.json(200, cardinfo);
 
@@ -34,7 +34,7 @@ module.exports = function(paymentService) {
         if(currentUserId){
           paymentService.findCard(currentUserId).then(function(cardinfo) {
               if (!cardinfo) {
-                  return res.send(400, "Error: Card not found");
+                  return res.send(200, null);
               }
             return res.json(200, cardinfo);
 

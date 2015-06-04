@@ -34,7 +34,7 @@ module.exports = function(projectDetailsService) {
         if(currentUserId && appId){
           projectDetailsService.getProjectDetails(currentUserId,appId).then(function(projectDet) {
               if (!projectDet) {
-                  return res.send(400, "Error: Settings not found");
+                  return res.send(200, null);
               }
             return res.json(200, projectDet);
 

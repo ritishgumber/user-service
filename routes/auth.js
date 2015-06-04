@@ -24,7 +24,7 @@ module.exports = function(passport,controller) {
                             "content": user.name
                         },{
                             "name": "link",
-                            "content": "<a href='https://cloudboost.io/#/forgotpassword?code='"+user.emailVerificationCode+" class='btn-primary'>Reset your password</a>"
+                            "content": "<a href='https://dashboard.cloudboost.io/accounts/#/forgotpassword?code='"+user.emailVerificationCode+" class='btn-primary'>Reset your password</a>"
                         }]
                 };
 
@@ -34,7 +34,7 @@ module.exports = function(passport,controller) {
                 "message" : message,
                 "template_content": [
                     {name:'name',content:user.name},
-                    {name:'link',content:"<a href='https://cloudboost.io/#/activate?code="+user.emailVerificationCode+"' class='btn-primary'>Activate your account</a>"}
+                    {name:'link',content:"<a href='https://dashboard.cloudboost.io/accounts/#/forgotpassword?code="+user.emailVerificationCode+"' class='btn-primary'>Reset your password</a>"}
                 ], "async": true}, function(result){
                 if(result.length>0 && result[0].status === 'sent'){
                     console.log('++++++Mandrill Email Sent +++++++++++++');
@@ -88,17 +88,16 @@ module.exports = function(passport,controller) {
                             "content": user.name
                         },{
                             "name": "link",
-                            "content": "<a href='https://cloudboost.io/#/activate?code='"+user.emailVerificationCode+" class='btn-primary'>Activate your account</a>"
+                            "content": "<a href='https://dashboard.cloudboost.io/accounts/#/activate?code='"+user.emailVerificationCode+" class='btn-primary'>Activate your account</a>"
                         }]
                 };
-
 
             //send the verification email.
             mandrill_client.messages.sendTemplate({"template_name": 'signupwelcome', 
                 "message" : message,
                 "template_content": [
                     {name:'name',content:user.name},
-                    {name:'link',content:"<a href='https://cloudboost.io/#/activate?code="+user.emailVerificationCode+"' class='btn-primary'>Activate your account</a>"}
+                    {name:'link',content:"<a href='https://dashboard.cloudboost.io/accounts/#/activate?code="+user.emailVerificationCode+"' class='btn-primary'>Activate your account</a>"}
                 ], "async": true}, function(result){
                 if(result.length>0 && result[0].status === 'sent'){
                     console.log('++++++Mandrill Email Sent +++++++++++++');
