@@ -76,6 +76,7 @@ module.exports = function(passport,controller) {
     };
 
     var sendSignupEmail = function(user){
+        console.log(user.emailVerificationCode);
         var message = {
                     "to": [{
                             "email": user.email,
@@ -190,7 +191,7 @@ module.exports = function(passport,controller) {
     app.post('/activate', function(req, res, next) {
 
         var data = req.body || {};
-
+       
         controller.activate(data.code).then(function(user) {
 
             console.log('++++++ Activation Successful +++++++++++++');

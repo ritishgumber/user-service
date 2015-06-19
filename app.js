@@ -12,7 +12,6 @@ module.exports = function(){
 
     global.keys = require('./config/keys.js'); 
 
-
     app.use(function(req, res, next) {
         res.header('Access-Control-Allow-Credentials', true);
         res.header('Access-Control-Allow-Origin', req.headers.origin);
@@ -24,7 +23,6 @@ module.exports = function(){
              next();
          }
     });
-
 
     app.use(cookieParser());
     
