@@ -32,6 +32,7 @@ module.exports = function(Table){
                 table.columns = data.columns;
                 table.type = data.type;
                 table.id = data.id;
+                table.tableColor=data.tableColor;
 
                 createIndex(table.appId,table.name,table.columns);
 
@@ -49,7 +50,6 @@ module.exports = function(Table){
                     if(!originalTable){
                         createClass(appId,table.name,table.columns);
                     }
-
                     if(originalTable){
                       createProperty(appId,table.name,table.columns);
                       deleteDroppedColumns(appId, clone(originalTable._doc), clone(data.columns));
@@ -131,6 +131,26 @@ module.exports = function(Table){
                     deferred.resolve(null);
                   }
                 }
+              });
+
+             return deferred.promise;
+          },
+
+          getTableByTableId: function (tableId) {
+
+              var deferred = Q.defer();
+
+              var self = this;
+
+              Table.findOne({ id: tableId }, function (err, table) {
+                if (err) {
+                  deferred.reject(err);
+                }else if(table){
+                  deferred.resolve(table._doc);                  
+                }else{
+                  deferred.resolve(null);
+                }
+
               });
 
              return deferred.promise;

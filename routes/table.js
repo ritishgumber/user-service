@@ -51,7 +51,7 @@ module.exports = function(controller) {
     });
 
 
-     app.get('/table/get/:appId', function(req,res,next) {
+    app.get('/table/get/:appId', function(req,res,next) {
 
          var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
         var projectId=req.params.appId;                          
@@ -60,6 +60,26 @@ module.exports = function(controller) {
 
             controller.getTablesByProject(projectId).then(function(tables) {
                 return res.json(200, tables);
+
+            },function(error){
+                return res.send(500, error);
+            });
+
+        }else{
+            return res.send(401);
+        }
+
+    });
+
+    app.get('/table/:tableId', function(req,res,next) {
+
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+        var tableId=req.params.tableId;                          
+
+        if(currentUserId && tableId){
+
+            controller.getTableByTableId(tableId).then(function(table) {
+                return res.json(200, table);
 
             },function(error){
                 return res.send(500, error);
