@@ -33,7 +33,7 @@ module.exports = function(Table){
                 table.type = data.type;
                 table.id = data.id;
 
-                  createIndex(table.appId,table.name,table.columns);
+                createIndex(table.appId,table.name,table.columns);
 
                 //refresh the cache. 
                 console.log('++++++ Refreshing Redis Cache for table ++++++++');
@@ -46,8 +46,12 @@ module.exports = function(Table){
                     deferred.reject(err);
                   else
                     deferred.resolve(table._doc);
+                    if(!originalTable){
+                        createClass(appId,table.name,table.columns);
+                    }
 
                     if(originalTable){
+                      createProperty(appId,table.name,table.columns);
                       deleteDroppedColumns(appId, clone(originalTable._doc), clone(data.columns));
                       renameRenamedColumns(appId, clone(originalTable._doc), clone(data.columns));
                       renameRenamedTable(appId, clone(originalTable._doc), clone(data));
@@ -308,6 +312,56 @@ module.exports = function(Table){
                 });
             }
         }
+    }
+
+    function createClass(appId,tableName,schema){
+        schema = JSON.stringify(schema);
+        var post_data = "{ \"key\" : \""+keys.cbDataServicesConnectKey+"\",\"schema\" : "+schema+"}";
+        request.post({
+            headers: {
+                'content-type' : 'application/json',
+                'content-length' : post_data.length
+            },
+            url:     keys.dataServiceUrl +"/app/"+appId+"/"+tableName+"/createClass",
+            body:    post_data
+        }, function(error, response, body){
+            if(error)
+            {
+                console.log(error);
+            }else {
+                if (response.body === 'Success') {
+                    console.log('Class Created');
+                } else {
+                    console.log('Class cant be created');
+                }
+            }
+
+        });
+    }
+
+    function createProperty(appId,tableName,column){
+        column = JSON.stringify(column);
+        var post_data = "{ \"key\" : \""+keys.cbDataServicesConnectKey+"\",\"column\" : "+column+"}";
+        request.post({
+            headers: {
+                'content-type' : 'application/json',
+                'content-length' : post_data.length
+            },
+            url:     keys.dataServiceUrl +"/app/"+appId+"/"+tableName+"/addProperty",
+            body:    post_data
+        }, function(error, response, body){
+            if(error)
+            {
+                console.log(error);
+            }else {
+                if (response.body === 'Success') {
+                    console.log('Property Created');
+                } else {
+                    console.log('Property cant be created');
+                }
+            }
+
+        });
     }
 
 };

@@ -436,10 +436,17 @@ module.exports = function(StripeCustomer,CreditCardInfo,InvoiceService,UserServi
             InvoiceService.getDueInvoiceListByUserId(userId)
             .then(function(invoiceList){
               if(invoiceList.length>0){         
-              
+                var promises=[];
                 for(var i=0;i<invoiceList.length;++i){
-                    self.makePayments(invoiceList[i],customerId);                   
+                    promises.push(self.makePayments(invoiceList[i],customerId));                   
                 }
+
+                Q.all(promises).then(function(list){
+                  deferred.resolve(list);
+
+                }, function(error){
+                  deferred.reject(error);
+                });
 
               }else{
                 deferred.resolve(null);
@@ -476,17 +483,22 @@ module.exports = function(StripeCustomer,CreditCardInfo,InvoiceService,UserServi
                         if(updatedInvoice){
                             self.emailInvoice(updatedInvoice);
                             InvoiceService.unblockUser(userId,appId);
+
                         }
                       });
-
+                      deferred.resolve(null);
                   }else{
                     InvoiceService.blockUser(userId,appId);
+                    deferred.resolve(null);
                   }                 
 
                 },function(error){ 
                   console.log(error);
                   InvoiceService.blockUser(userId,appId);
+                  deferred.reject(error);
                 });                             
+            }else{
+              deferred.resolve(null);
             }
 
             return deferred.promise;
