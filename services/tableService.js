@@ -13,52 +13,35 @@ module.exports = function(Table){
         upsertTable: function (appId,data) {
 
               var deferred = Q.defer();
-              var self = this;              
+              var self = this; 
+              var originalTable=null;             
 
-              Table.findOne({appId: appId, id : data.id}, function(err, table){
-
-                if(table)
-                  var originalTable = clone(table); //copy the object.
-
-                if(err)
+              Table.findOne({appId: appId, name : data.name}, function(err, table){
+                
+                if(err){
                   deferred.reject(err);
+                }else if(table && !data._id){
+                  deferred.reject("Table already exists.");                 
+                }else{
 
-                if(!table)
+                  if(data._id)
+                  originalTable = clone(table); //copy the object.
+
+                  if(!table)
                   table = new Table();
 
-
-                table.appId = appId;
-                table.name = data.name;
-                table.columns = data.columns;
-                table.type = data.type;
-                table.id = data.id;
-                table.tableColor=data.tableColor;
-
-                  createIndex(table.appId,table.name,table.columns);
-
-                //refresh the cache. 
-                console.log('++++++ Refreshing Redis Cache for table ++++++++');
-                global.redisClient.del(global.keys.cacheSchemaPrefix+'-'+appId+':'+data.name);
-                console.log(global.keys.cacheSchemaPrefix+'-'+appId+':'+data.name);
-
-                table.save(function(err,table){
-
-                  if(err)
-                    deferred.reject(err);
-                  else
-                    deferred.resolve(table._doc);
-                   
-                    if(originalTable){
-                      deleteDroppedColumns(appId, clone(originalTable._doc), clone(data.columns));
-                      renameRenamedColumns(appId, clone(originalTable._doc), clone(data.columns));
-                      renameRenamedTable(appId, clone(originalTable._doc), clone(data));
-                    }
-
-                });
+                  setAndSaveTable(appId,data,table,originalTable)
+                  .then(function(savedTable){
+                    deferred.resolve(savedTable);
+                  },function(error){ 
+                    deferred.reject(error);
+                  });                 
+             
+                }  
 
               });
 
-              return deferred.promise;
+            return deferred.promise;
           },
 
           deleteTable: function (appId,tableName) {
@@ -133,16 +116,16 @@ module.exports = function(Table){
              return deferred.promise;
           },
 
-          getTableByTableId: function (tableId) {
+          getTableByTableName: function (appId,tableName) {
 
               var deferred = Q.defer();
 
               var self = this;
-
-              Table.findOne({ id: tableId }, function (err, table) {
+            
+              Table.findOne({appId:appId, name: tableName }, function (err, table) {
                 if (err) {
                   deferred.reject(err);
-                }else if(table){
+                }else if(table){                 
                   deferred.resolve(table._doc);                  
                 }else{
                   deferred.resolve(null);
@@ -157,6 +140,40 @@ module.exports = function(Table){
 
 
     /* Private Functions */
+
+    function setAndSaveTable(appId,data,table,originalTable){
+      var deferred = Q.defer();
+
+      table.appId = appId;
+      table.name = data.name;
+      table.columns = data.columns;
+      table.type = data.type;
+      table.id = data.id;               
+
+      createIndex(table.appId,table.name,table.columns);
+
+      //refresh the cache. 
+      console.log('++++++ Refreshing Redis Cache for table ++++++++');
+      global.redisClient.del(global.keys.cacheSchemaPrefix+'-'+appId+':'+data.name);
+      console.log(global.keys.cacheSchemaPrefix+'-'+appId+':'+data.name);
+
+      table.save(function(err,table){
+
+        if(err)
+          deferred.reject(err);
+        else
+          deferred.resolve(table._doc);
+         
+          if(originalTable){
+            deleteDroppedColumns(appId, clone(originalTable._doc), clone(data.columns));
+            renameRenamedColumns(appId, clone(originalTable._doc), clone(data.columns));
+            renameRenamedTable(appId, clone(originalTable._doc), clone(data));
+          }
+
+      });
+
+      return deferred.promise;
+    }
 
     function renameRenamedTable(appId, originalTable, newTable){
             if(originalTable.name !== newTable.name){

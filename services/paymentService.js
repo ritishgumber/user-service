@@ -25,7 +25,7 @@ module.exports = function(StripeCustomer,CreditCardInfo,InvoiceService,UserServi
               var self = this;                            
 
               self.upsertCustomer(userId,stripeToken)
-               .then(function(serverCustomerObj){
+              .then(function(serverCustomerObj){
 
                     var customerId=serverCustomerObj._doc.stripeCustomerObject.id;
 

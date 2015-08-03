@@ -71,14 +71,15 @@ module.exports = function(controller) {
 
     });
 
-    app.get('/table/:tableId', function(req,res,next) {
+    app.put('/table/:tableName', function(req,res,next) {
 
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
-        var tableId=req.params.tableId;                          
+        var tableName=req.params.tableName; 
+        var appId = req.body.appId || {};                          
 
-        if(currentUserId && tableId){
+        if(currentUserId && tableName && appId){
 
-            controller.getTableByTableId(tableId).then(function(table) {
+            controller.getTableByTableName(appId,tableName).then(function(table) {
                 return res.json(200, table);
 
             },function(error){
@@ -94,3 +95,4 @@ module.exports = function(controller) {
     return app;
 
 }
+
