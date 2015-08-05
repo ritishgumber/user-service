@@ -5,7 +5,6 @@ var Q = require('q');
 var _ = require('underscore');
 var request = require('request');
 var keys = require('../config/keys');
-
 module.exports = function(Table){
 
   return {
@@ -23,20 +22,80 @@ module.exports = function(Table){
                 }else if(table && !data._id){
                   deferred.reject("Table already exists.");                 
                 }else{
+					//check if table name is renamed 
+					if(data._id){
+						Table.findOne({appId: appId, _id : data._id}, function(err, table){
+							var flag = 0;
+							var defaultColumn;
+							if(table){
+								if(table._id == data._id && table.name != data.name){
+									deferred.reject("Cannot Rename a Table.");   
+									flag++;
+								}
+								
+								if(table._id == data._id && table.type != data.type){
+									deferred.reject("Cannot Change Table's Type Property."); 
+									flag++;
+								}
+								
+								if(!checkDefaultColumns(data.columns, table.type)){
+									deferred.reject("Cannot Delete Default Column(s) of a Table.");   
+									flag++;
+								}
+								
+								defaultColumn = getDefaultColumnList(table.type);
+								//check if any column's property is changed 
+								for(var i=0; i<table.columns.length; i++){
+									var column = _.where(data.columns, {id:table.columns[i].id})[0];
+									if(column){
+										
+										if(column.name.toLowerCase() != table.columns[i].name.toLowerCase() || column.dataType != table.columns[i].dataType || column.relatedTo != table.columns[i].relatedTo || column.relationType != table.columns[i].relationType || column.relatedToType != table.columns[i].relatedToType || column.relatedTo != table.columns[i].relatedTo || column.isDeletable != table.columns[i].isDeletable || column.isEditable != table.columns[i].isEditable || column.isRenamable != table.columns[i].isRenamable){
+										deferred.reject("Cannot Change Column's Property. Only Required and Unique Field are Changable"); 
+										flag++;
+										}
+										
+										if(column.unique != table.columns[i].unique){
+											if(defaultColumn.indexOf(column.name.toLowerCase()) >= 0){
+												deferred.reject("Cannot Change Unique Field of a Default Column.");   
+												flag++;
+											}
+										}
+										
+										if(column.required != table.columns[i].required){
+											if(defaultColumn.indexOf(column.name.toLowerCase()) >= 0){
+												deferred.reject("Cannot Change Reqiured Field of a Default Column.");   
+												flag++;
+											}
+										}
+									}
+								}
+							}else{
+								if(!table)
+                  					table = new Table();
+							}
+							if(flag == 0){
+								originalTable = clone(table);
+								
+								setAndSaveTable(appId,data,table,originalTable)
+								.then(function(savedTable){
+								   	deferred.resolve(savedTable);
+								},function(error){ 
+								   	deferred.reject(error);
+								});
+							}
+						});
+					}else{
+					
+						if(!table)
+                  		table = new Table();
 
-                  if(data._id)
-                  originalTable = clone(table); //copy the object.
-
-                  if(!table)
-                  table = new Table();
-
-                  setAndSaveTable(appId,data,table,originalTable)
-                  .then(function(savedTable){
-                    deferred.resolve(savedTable);
-                  },function(error){ 
-                    deferred.reject(error);
-                  });                 
-             
+		              	setAndSaveTable(appId,data,table,originalTable)
+		              	.then(function(savedTable){
+		                	deferred.resolve(savedTable);
+		              	},function(error){ 
+		                	deferred.reject(error);
+		              	});   							
+					}              
                 }  
 
               });
@@ -346,6 +405,39 @@ module.exports = function(Table){
                 });
             }
         }
+    }
+    
+    function checkDefaultColumns(columns, type){
+    
+    	var defaultColumn = getDefaultColumnList(type);
+    	
+    	var index;
+    	
+		columns = _.pluck(columns, 'name');
+		
+		for(var i=0; i<columns.length; i++){
+			if(columns[i])
+    			columns[i] = columns[i].toLowerCase();
+    	}
+    	
+    	for(var i=0; i<defaultColumn.length; i++){
+    		index = columns.indexOf(defaultColumn[i].toLowerCase());
+    		if(index < 0)
+    			return false;
+    	}
+    	return true;
+    }
+    
+    function getDefaultColumnList(type){
+    	var defaultColumn = ['id', 'issearchable', 'createdat', 'updatedat', 'acl'];
+    	var index;
+    	
+		if(type == 'user'){
+			defaultColumn.concat(['username', 'email', 'password', 'roles']);
+		}else if(type == 'role'){
+			defaultColumn.push('name');
+		}
+		return defaultColumn;
     }
 
 };

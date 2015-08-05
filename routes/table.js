@@ -105,12 +105,33 @@ module.exports = function(controller, project) {
     });
 
 
-    app.get('/table/get/:appId', function(req,res,next) {
+    app.put('/table/get/:appId', function(req,res,next) {
 
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
         var projectId=req.params.appId;                          
-		
-        if(currentUserId && projectId){
+		if(req.text){
+        	req.body = JSON.parse(req.text);
+        }
+        var key = req.body.key;
+        
+        if(key && projectId){
+        	project.getProject(projectId).then(function(project){
+        		if (!project) {
+                    return res.send(500, 'Error: Project not found');
+                }else{
+                	if(key == project.keys.master){
+                		  controller.getTablesByProject(projectId).then(function(tables) {
+								return res.json(200, tables);
+
+							},function(error){
+								return res.send(500, error);
+							});
+                	}else{
+                		return res.sendStatus(401);
+                	}
+                }
+        	});
+        }else if(currentUserId && projectId){
 
             controller.getTablesByProject(projectId).then(function(tables) {
                 return res.json(200, tables);
@@ -129,9 +150,29 @@ module.exports = function(controller, project) {
 
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
         var tableName=req.params.tableName; 
+        if(req.text){
+        	req.body = JSON.parse(req.text);
+        }
         var appId = req.body.appId || {};                          
+		var key = req.body.key;
+		if(key && tableName && appId){
+			project.getProject(appId).then(function(project){
+        		if (!project) {
+                    return res.send(500, 'Error: Project not found');
+                }else{
+                	if(key == project.keys.master){
+                		 controller.getTableByTableName(appId,tableName).then(function(table) {
+						    return res.json(200, table);
 
-        if(currentUserId && tableName && appId){
+						},function(error){
+						    return res.send(500, error);
+						});
+                	}else{
+                		return res.sendStatus(401);
+                	}
+                }
+        	});
+		}else if(currentUserId && tableName && appId){
 
             controller.getTableByTableName(appId,tableName).then(function(table) {
                 return res.json(200, table);
