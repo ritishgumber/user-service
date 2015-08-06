@@ -50,7 +50,7 @@ module.exports = function(Table){
 									if(column){
 										
 										if(column.name.toLowerCase() != table.columns[i].name.toLowerCase() || column.dataType != table.columns[i].dataType || column.relatedTo != table.columns[i].relatedTo || column.relationType != table.columns[i].relationType || column.relatedToType != table.columns[i].relatedToType || column.relatedTo != table.columns[i].relatedTo || column.isDeletable != table.columns[i].isDeletable || column.isEditable != table.columns[i].isEditable || column.isRenamable != table.columns[i].isRenamable){
-										deferred.reject("Cannot Change Column's Property. Only Required and Unique Field are Changable"); 
+										deferred.reject("Cannot Change Column's Property. Only Required and Unique Field can be edited."); 
 										flag++;
 										}
 										
@@ -87,7 +87,7 @@ module.exports = function(Table){
 					}else{
 					
 						if(!table)
-                  		table = new Table();
+                  	table = new Table();
 
 		              	setAndSaveTable(appId,data,table,originalTable)
 		              	.then(function(savedTable){
@@ -225,8 +225,6 @@ module.exports = function(Table){
          
           if(originalTable){
             deleteDroppedColumns(appId, clone(originalTable._doc), clone(data.columns));
-            renameRenamedColumns(appId, clone(originalTable._doc), clone(data.columns));
-            renameRenamedTable(appId, clone(originalTable._doc), clone(data));
           }
 
       });
@@ -234,177 +232,121 @@ module.exports = function(Table){
       return deferred.promise;
     }
 
-    function renameRenamedTable(appId, originalTable, newTable){
-            if(originalTable.name !== newTable.name){
-              //this table is renamed. 
+    function deleteDroppedColumns(appId, table, newColumns){
+
+      var originalColumns  = table.columns;
+
+      for(var i=0;i<newColumns.length; i++){
+          var column = _.first(_.where(originalColumns, {id :newColumns[i].id }));
+          originalColumns.splice(originalColumns.indexOf(column),1);
+      }
+
+      if(originalColumns.length>0){
+        //these columns need to be dropped. 
+        for(var i=0;i<originalColumns.length; i++){
+            
+            //send a post request. 
+            var post_data = "{ \"key\" : \""+keys.cbDataServicesConnectKey+"\"}";
+
+            request.post({
+              headers: {
+                          'content-type' : 'application/json', 
+                          'content-length' : post_data.length
+                       },
+              url:     keys.dataServiceUrl + "/app/"+appId+"/"+table.name+"/delete/"+originalColumns[i].name,
+              body:    post_data
+            }, function(error, response, body){
+               console.log(body);
+               if(!error) {
+                    if (response.body === 'Success') {
+                        console.log("Column Sucessfully deleted");
+                    } else {
+                        console.log("Column Delete Error");
+                    }
+                }else{
+                    console.log("error");
+                }
+             });
+        }
+      }
+    }
+
+    function createNewColumns(appId, table, newColumns){
+
+      var originalColumns  = table.columns;
+
+      var addedColumns = [];
+
+      for(var i=0;i<newColumns.length; i++){
+          var column = _.first(_.where(originalColumns, {id :newColumns[i].id }));
+          if(!column){
+            addedColumns.push(newColumns[i]);
+          }
               
-              console.log('Table '+ originalTable.name+' is renamed to '+newTable.name);
-              //send a post request. 
+      }
 
-              var post_data = "{ \"key\" : \""+keys.cbDataServicesConnectKey+"\" , \"newCollectionName\" :  \""+newTable.name+"\"  }";
-
-              request.post({
-                headers: {
-                            'content-type' : 'application/json', 
-                            'content-length' : post_data.length
-                         },
-                url:     keys.dataServiceUrl +"/app/"+appId+"/rename/"+originalTable.name,
-                body:    post_data
-              }, function(error, response, body){
-                 if(response.body === 'Success'){
-                   console.log('Collection '+newTable.name + "Sucessfully Renamed");
-                 }else{
-                    console.log('Collection '+newTable.name + " Rename Error.");
-                 }
-
-               });
-
-
-            }
-
-          }
-
-          function renameRenamedColumns(appId, originalTable, newTable){
-              for(var i=0;i<originalTable.columns.length; i++){
-                var newColumn = _.first(_.where(newTable, {id : originalTable.columns[i].id }));
-
-                if(newColumn && newColumn.name !== originalTable.columns[i].name){
-                   
-                   //shoot a post request to rename a column in CbDataServices. 
-
-                   var post_data = "{ \"key\" : \""+keys.cbDataServicesConnectKey+"\" , \"newColumnName\" :  \""+newColumn.name+"\"  }";
-
-                    request.post({
-
-                      headers: {
-                                  'content-type' : 'application/json', 
-                                  'content-length' : post_data.length
-                               },
-
-                      url:     keys.dataServiceUrl +"/app/"+appId+"/"+originalTable.name+"/rename/"+originalTable.columns[i].name,
-                      body:    post_data
-                    }, function(error, response, body){
-
-                       if(response.body === 'Success'){
-                         console.log('Collection '+newTable.name + "Sucessfully Renamed");
-                       }else{
-                          console.log('Collection '+newTable.name + " Rename Error.");
-                       }
-
-                     });
+      if(addedColumns.length>0){
+        //these columns need to be created in DataServices. 
+        for(var i=0;i<addedColumns.length; i++){
+            //send a post request. 
+            var post_data = "{ \"key\" : \""+keys.cbDataServicesConnectKey+"\",  \"column\" : \""+JSON.stringify(addedColumns[i])+"\"}";
+            request.post({
+              headers: {
+                          'content-type' : 'application/json', 
+                          'content-length' : post_data.length
+                       },
+              url:     keys.dataServiceUrl + "/app/"+appId+"/"+table.name+"/create/"+originalColumns[i].name,
+              body:    post_data
+            }, function(error, response, body){
+               console.log(body);
+            if(!error) {
+                if (response.body === 'Success') {
+                    console.log("Column Sucessfully deleted");
+                } else {
+                    console.log("Column Delete Error");
                 }
-              }
-          }
-
-          function deleteDroppedColumns(appId, table, newColumns){
-
-                  var originalColumns  = table.columns;
-
-                  for(var i=0;i<newColumns.length; i++){
-
-                      var column = _.first(_.where(originalColumns, {id :newColumns[i].id }));
-                      originalColumns.splice(originalColumns.indexOf(column),1);
-
-                  }
-
-                  if(originalColumns.length>0){
-                    //these columns need to be dropped. 
-                    for(var i=0;i<originalColumns.length; i++){
-                        
-                        //send a post request. 
-
-                        var post_data = "{ \"key\" : \""+keys.cbDataServicesConnectKey+"\"}";
-
-                        request.post({
-                          headers: {
-                                      'content-type' : 'application/json', 
-                                      'content-length' : post_data.length
-                                   },
-                          url:     keys.dataServiceUrl + "/app/"+appId+"/"+table.name+"/delete/"+originalColumns[i].name,
-                          body:    post_data
-                        }, function(error, response, body){
-
-                           console.log(body);
-                        if(!error) {
-                            if (response.body === 'Success') {
-                                console.log("Column Sucessfully deleted");
-                            } else {
-                                console.log("Column Delete Error");
-                            }
-                        }else
-                        {
-                            console.log("error");
-                        }
-                         });
-
-                    }
-                  }
-          }
-
-          function clone(obj) {
-            var copy;
-
-            // Handle the 3 simple types, and null or undefined
-            if (null == obj || "object" != typeof obj) return obj;
-
-            // Handle Date
-            if (obj instanceof Date) {
-                copy = new Date();
-                copy.setTime(obj.getTime());
-                return copy;
-            }
-
-            // Handle Array
-            if (obj instanceof Array) {
-                copy = [];
-                for (var i = 0, len = obj.length; i < len; i++) {
-                    copy[i] = clone(obj[i]);
-                }
-                return copy;
-            }
-
-            // Handle Object
-            if (obj instanceof Object) {
-                copy = {};
-                for (var attr in obj) {
-                    if (obj.hasOwnProperty(attr)) copy[attr] = clone(obj[attr]);
-                }
-                return copy;
-            }
-
-            throw new Error("Unable to copy obj! Its type isn't supported.");
-        }
-    function createIndex(appId,tableName,columns)
-    {
-        for(var i in columns)
-        {
-            if(columns[i].dataType === 'GeoPoint')
+            }else
             {
-                var post_data = "{ \"key\" : \""+keys.cbDataServicesConnectKey+"\",\"collectionName\" :  \""+tableName+"\",\"columnName\" :  \""+columns[i].name+"\"}";
-                request.post({
-                    headers: {
-                        'content-type' : 'application/json',
-                        'content-length' : post_data.length
-                       // 'user-agent' : 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0.1) Gecko/20100101 Firefox/10.0.1'
-                        //'host' : 'localhost:80'
-                    },
-                    url:     keys.dataServiceUrl +"/api/createIndex/"+appId,
-                    body:    post_data
-                }, function(error, response, body){
-                    if(error)
-                    {
-                        console.log(error);
-                    }else {
-                        if (response.body === 'Success') {
-                            console.log('Index Created');
-                        } else {
-                            console.log('Index cant be created');
-                        }
-                    }
-
-                });
+                console.log("error");
             }
+             });
+
         }
+      }
+    }
+
+    function clone(obj) {
+        var copy;
+
+        // Handle the 3 simple types, and null or undefined
+        if (null == obj || "object" != typeof obj) return obj;
+
+        // Handle Date
+        if (obj instanceof Date) {
+            copy = new Date();
+            copy.setTime(obj.getTime());
+            return copy;
+        }
+
+        // Handle Array
+        if (obj instanceof Array) {
+            copy = [];
+            for (var i = 0, len = obj.length; i < len; i++) {
+                copy[i] = clone(obj[i]);
+            }
+            return copy;
+        }
+
+        // Handle Object
+        if (obj instanceof Object) {
+            copy = {};
+            for (var attr in obj) {
+                if (obj.hasOwnProperty(attr)) copy[attr] = clone(obj[attr]);
+            }
+            return copy;
+        }
+
+        throw new Error("Unable to copy obj! Its type isn't supported.");
     }
     
     function checkDefaultColumns(columns, type){
@@ -413,11 +355,11 @@ module.exports = function(Table){
     	
     	var index;
     	
-		columns = _.pluck(columns, 'name');
+		  columns = _.pluck(columns, 'name');
 		
-		for(var i=0; i<columns.length; i++){
-			if(columns[i])
-    			columns[i] = columns[i].toLowerCase();
+		  for(var i=0; i<columns.length; i++){
+			  if(columns[i])
+    			 columns[i] = columns[i].toLowerCase();
     	}
     	
     	for(var i=0; i<defaultColumn.length; i++){
@@ -425,6 +367,7 @@ module.exports = function(Table){
     		if(index < 0)
     			return false;
     	}
+
     	return true;
     }
     
@@ -432,12 +375,12 @@ module.exports = function(Table){
     	var defaultColumn = ['id', 'issearchable', 'createdat', 'updatedat', 'acl'];
     	var index;
     	
-		if(type == 'user'){
-			defaultColumn.concat(['username', 'email', 'password', 'roles']);
-		}else if(type == 'role'){
-			defaultColumn.push('name');
-		}
-		return defaultColumn;
+  		if(type == 'user'){
+  			defaultColumn.concat(['username', 'email', 'password', 'roles']);
+  		}else if(type == 'role'){
+  			defaultColumn.push('name');
+  		}
+  		return defaultColumn;
     }
 
 };

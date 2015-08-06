@@ -154,6 +154,8 @@ module.exports = function(passport,controller) {
     // routes
     app.post('/register', function(req, res, next) {
 
+        console.log(req);
+
         var data = req.body || {};
 
         controller.register(data).then(function(user) {
@@ -259,6 +261,10 @@ module.exports = function(passport,controller) {
     });
 
     app.post('/signin', function(req, res, next) {
+
+         console.log(req);
+
+         
         passport.authenticate('local',  function(err, user, info) {
             if (err || !user) {
                 return res.send(500, info);
