@@ -1,4 +1,12 @@
-﻿global.isDevelopment = process.env.PORT ? false : true;
+﻿if (!process.env.PORT) {
+    global.isDevelopment = true;
+} else {
+    if (process.env.PORT === "3000") {
+        global.isDevelopment = true;
+    } else {
+        global.isDevelopment = false;
+    }
+}
 global.isVM = false;
 var app = require('./app')();
 

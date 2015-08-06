@@ -9,11 +9,6 @@ module.exports = function(grunt) {
       options: {
         //places a timestamp on top of our minified file
         banner: '/*! <%= pkg.name %> <%= grunt.template.today("dd-mm-yyyy") %> */\n'
-      },
-      build: {
-        //specifies source file(s) and destination.
-        src: 'server.js',
-        dest: 'server.min.js'
       }
     },
 
@@ -37,6 +32,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-mocha-test');
 
-  grunt.registerTask('default', ['uglify','mochaTest']);
+  grunt.registerTask('default', ['mochaTest']);
 
 };
