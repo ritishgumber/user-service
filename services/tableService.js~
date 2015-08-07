@@ -5,7 +5,6 @@ var Q = require('q');
 var _ = require('underscore');
 var request = require('request');
 var keys = require('../config/keys');
-
 module.exports = function(Table){
 
   return {
@@ -170,11 +169,9 @@ module.exports = function(Table){
 					}              
                 }  
 
+              });
 
-            });
-            
             return deferred.promise;
-
           },
 
           deleteTable: function (appId,tableName) {
@@ -231,228 +228,284 @@ module.exports = function(Table){
 
               Table.find({ appId: appId }, function (err, tables) {
                 if (err) {
-                    deferred.reject(err);
+                  deferred.reject(err);
                 }
                 else {
-                    if (tables) {
-                        var tables = _.map(tables, function (obj) { return obj._doc });
-                        deferred.resolve(tables);
-                    } else {
-                        deferred.resolve(null);
-                    }
-                }
-            });
-            
-            return deferred.promise;
-        },
-        
-        getTableByTableName: function (appId, tableName) {
-            
-            var deferred = Q.defer();
-            
-            var self = this;
-            
-            Table.findOne({ appId: appId, name: tableName }, function (err, table) {
-                if (err) {
-                    deferred.reject(err);
-                } else if (table) {
-                    deferred.resolve(table._doc);
-                } else {
+                  if(tables){
+                    var tables = _.map(tables, function(obj){ return obj._doc});
+                    deferred.resolve(tables);
+                  }else{
                     deferred.resolve(null);
+                  }
+                }
+              });
+
+             return deferred.promise;
+          },
+
+          getTableByTableName: function (appId,tableName) {
+
+              var deferred = Q.defer();
+
+              var self = this;
+            
+              Table.findOne({appId:appId, name: tableName }, function (err, table) {
+                if (err) {
+                  deferred.reject(err);
+                }else if(table){                 
+                  deferred.resolve(table._doc);                  
+                }else{
+                  deferred.resolve(null);
                 }
 
-            });
-            
-            return deferred.promise;
-        }
+              });
+
+             return deferred.promise;
+          }
 
     };
-    
-    
+
+
     /* Private Functions */
-    
-    function setAndSaveTable(appId, data, table, originalTable) {
-        var deferred = Q.defer();
-        
-        table.appId = appId;
-        table.name = data.name;
-        table.columns = data.columns;
-        table.type = data.type;
-        table.id = data.id;
-        
-        createIndex(table.appId, table.name, table.columns);
-        
-        //refresh the cache. 
-        console.log('++++++ Refreshing Redis Cache for table ++++++++');
-        global.redisClient.del(global.keys.cacheSchemaPrefix + '-' + appId + ':' + data.name);
-        console.log(global.keys.cacheSchemaPrefix + '-' + appId + ':' + data.name);
-        
-        table.save(function (err, table) {
-            
-            if (err)
-                deferred.reject(err);
-            else
-                deferred.resolve(table._doc);
-            
-            if (originalTable) {
-                deleteDroppedColumns(appId, clone(originalTable._doc), clone(data.columns));
-            }
 
-        });
-        
-        return deferred.promise;
+    function setAndSaveTable(appId,data,table,originalTable){
+      var deferred = Q.defer();
+
+      table.appId = appId;
+      table.name = data.name;
+      table.columns = data.columns;
+      table.type = data.type;
+      table.id = data.id;               
+
+      createIndex(table.appId,table.name,table.columns);
+
+      //refresh the cache. 
+      console.log('++++++ Refreshing Redis Cache for table ++++++++');
+      global.redisClient.del(global.keys.cacheSchemaPrefix+'-'+appId+':'+data.name);
+      console.log(global.keys.cacheSchemaPrefix+'-'+appId+':'+data.name);
+
+      table.save(function(err,table){
+
+        if(err)
+          deferred.reject(err);
+        else
+          deferred.resolve(table._doc);
+         
+          if(originalTable){
+            deleteDroppedColumns(appId, clone(originalTable._doc), clone(data.columns));
+            renameRenamedColumns(appId, clone(originalTable._doc), clone(data.columns));
+            renameRenamedTable(appId, clone(originalTable._doc), clone(data));
+          }
+
+      });
+
+      return deferred.promise;
     }
-    
-    function deleteDroppedColumns(appId, table, newColumns) {
-        
-        var originalColumns = table.columns;
-        
-        for (var i = 0; i < newColumns.length; i++) {
-            var column = _.first(_.where(originalColumns, { id : newColumns[i].id }));
-            originalColumns.splice(originalColumns.indexOf(column), 1);
-        }
-        
-        if (originalColumns.length > 0) {
-            //these columns need to be dropped. 
-            for (var i = 0; i < originalColumns.length; i++) {
-                
-                //send a post request. 
-                var post_data = "{ \"key\" : \"" + keys.cbDataServicesConnectKey + "\"}";
-                
-                request.post({
-                    headers: {
-                        'content-type' : 'application/json', 
-                        'content-length' : post_data.length
-                    },
-                    url: keys.dataServiceUrl + "/app/" + appId + "/" + table.name + "/delete/" + originalColumns[i].name,
-                    body: post_data
-                }, function (error, response, body) {
-                    console.log(body);
-                    if (!error) {
-                        if (response.body === 'Success') {
-                            console.log("Column Sucessfully deleted");
-                        } else {
-                            console.log("Column Delete Error");
-                        }
-                    } else {
-                        console.log("error");
-                    }
-                });
-            }
-        }
-    }
-    
-    function createNewColumns(appId, table, newColumns) {
-        
-        var deferred = Q.defer();
-        
-        var originalColumns = table.columns;
-        
-        var addedColumns = [];
-        
-        for (var i = 0; i < newColumns.length; i++) {
-            var column = _.first(_.where(originalColumns, { id : newColumns[i].id }));
-            if (!column) {
-                addedColumns.push(newColumns[i]);
-            }
+
+    function renameRenamedTable(appId, originalTable, newTable){
+            if(originalTable.name !== newTable.name){
+              //this table is renamed. 
               
-        }
-        
-        if (addedColumns.length > 0) {
-            //these columns need to be created in DataServices. 
-            for (var i = 0; i < addedColumns.length; i++) {
-                //send a post request. 
-                var post_data = "{ \"key\" : \"" + keys.cbDataServicesConnectKey + "\",  \"column\" : \"" + JSON.stringify(addedColumns[i]) + "\"}";
-                request.post({
-                    headers: {
-                        'content-type' : 'application/json', 
-                        'content-length' : post_data.length
-                    },
-                    url: keys.dataServiceUrl + "/app/" + appId + "/" + table.name + "/create/" + originalColumns[i].name,
-                    body: post_data
-                }, function (error, response, body) {
-                    deferred.reject(error);
-                    if (!error) {
-                        if (response.body === 'Success') {
-                            deferred.resolve(200);
-                        } else {
-                            deferred.reject('Cannot create column');
-                        }
-                    } else {
-                        console.log("error");
-                    }
-                });
+              console.log('Table '+ originalTable.name+' is renamed to '+newTable.name);
+              //send a post request. 
+
+              var post_data = "{ \"key\" : \""+keys.cbDataServicesConnectKey+"\" , \"newCollectionName\" :  \""+newTable.name+"\"  }";
+
+              request.post({
+                headers: {
+                            'content-type' : 'application/json', 
+                            'content-length' : post_data.length
+                         },
+                url:     keys.dataServiceUrl +"/app/"+appId+"/rename/"+originalTable.name,
+                body:    post_data
+              }, function(error, response, body){
+                 if(response.body === 'Success'){
+                   console.log('Collection '+newTable.name + "Sucessfully Renamed");
+                 }else{
+                    console.log('Collection '+newTable.name + " Rename Error.");
+                 }
+
+               });
+
 
             }
-        }
-    }
-    
-    function clone(obj) {
-        var copy;
-        
-        // Handle the 3 simple types, and null or undefined
-        if (null == obj || "object" != typeof obj) return obj;
-        
-        // Handle Date
-        if (obj instanceof Date) {
-            copy = new Date();
-            copy.setTime(obj.getTime());
-            return copy;
-        }
-        
-        // Handle Array
-        if (obj instanceof Array) {
-            copy = [];
-            for (var i = 0, len = obj.length; i < len; i++) {
-                copy[i] = clone(obj[i]);
+
+          }
+
+          function renameRenamedColumns(appId, originalTable, newTable){
+              for(var i=0;i<originalTable.columns.length; i++){
+                var newColumn = _.first(_.where(newTable, {id : originalTable.columns[i].id }));
+
+                if(newColumn && newColumn.name !== originalTable.columns[i].name){
+                   
+                   //shoot a post request to rename a column in CbDataServices. 
+
+                   var post_data = "{ \"key\" : \""+keys.cbDataServicesConnectKey+"\" , \"newColumnName\" :  \""+newColumn.name+"\"  }";
+
+                    request.post({
+
+                      headers: {
+                                  'content-type' : 'application/json', 
+                                  'content-length' : post_data.length
+                               },
+
+                      url:     keys.dataServiceUrl +"/app/"+appId+"/"+originalTable.name+"/rename/"+originalTable.columns[i].name,
+                      body:    post_data
+                    }, function(error, response, body){
+
+                       if(response.body === 'Success'){
+                         console.log('Collection '+newTable.name + "Sucessfully Renamed");
+                       }else{
+                          console.log('Collection '+newTable.name + " Rename Error.");
+                       }
+
+                     });
+                }
+              }
+          }
+
+          function deleteDroppedColumns(appId, table, newColumns){
+
+                  var originalColumns  = table.columns;
+
+                  for(var i=0;i<newColumns.length; i++){
+
+                      var column = _.first(_.where(originalColumns, {id :newColumns[i].id }));
+                      originalColumns.splice(originalColumns.indexOf(column),1);
+
+                  }
+
+                  if(originalColumns.length>0){
+                    //these columns need to be dropped. 
+                    for(var i=0;i<originalColumns.length; i++){
+                        
+                        //send a post request. 
+
+                        var post_data = "{ \"key\" : \""+keys.cbDataServicesConnectKey+"\"}";
+
+                        request.post({
+                          headers: {
+                                      'content-type' : 'application/json', 
+                                      'content-length' : post_data.length
+                                   },
+                          url:     keys.dataServiceUrl + "/app/"+appId+"/"+table.name+"/delete/"+originalColumns[i].name,
+                          body:    post_data
+                        }, function(error, response, body){
+
+                           console.log(body);
+                        if(!error) {
+                            if (response.body === 'Success') {
+                                console.log("Column Sucessfully deleted");
+                            } else {
+                                console.log("Column Delete Error");
+                            }
+                        }else
+                        {
+                            console.log("error");
+                        }
+                         });
+
+                    }
+                  }
+          }
+
+          function clone(obj) {
+            var copy;
+
+            // Handle the 3 simple types, and null or undefined
+            if (null == obj || "object" != typeof obj) return obj;
+
+            // Handle Date
+            if (obj instanceof Date) {
+                copy = new Date();
+                copy.setTime(obj.getTime());
+                return copy;
             }
-            return copy;
-        }
-        
-        // Handle Object
-        if (obj instanceof Object) {
-            copy = {};
-            for (var attr in obj) {
-                if (obj.hasOwnProperty(attr)) copy[attr] = clone(obj[attr]);
+
+            // Handle Array
+            if (obj instanceof Array) {
+                copy = [];
+                for (var i = 0, len = obj.length; i < len; i++) {
+                    copy[i] = clone(obj[i]);
+                }
+                return copy;
             }
-            return copy;
+
+            // Handle Object
+            if (obj instanceof Object) {
+                copy = {};
+                for (var attr in obj) {
+                    if (obj.hasOwnProperty(attr)) copy[attr] = clone(obj[attr]);
+                }
+                return copy;
+            }
+
+            throw new Error("Unable to copy obj! Its type isn't supported.");
         }
-        
-        throw new Error("Unable to copy obj! Its type isn't supported.");
+    function createIndex(appId,tableName,columns)
+    {
+        for(var i in columns)
+        {
+            if(columns[i].dataType === 'GeoPoint')
+            {
+                var post_data = "{ \"key\" : \""+keys.cbDataServicesConnectKey+"\",\"collectionName\" :  \""+tableName+"\",\"columnName\" :  \""+columns[i].name+"\"}";
+                request.post({
+                    headers: {
+                        'content-type' : 'application/json',
+                        'content-length' : post_data.length
+                       // 'user-agent' : 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0.1) Gecko/20100101 Firefox/10.0.1'
+                        //'host' : 'localhost:80'
+                    },
+                    url:     keys.dataServiceUrl +"/api/createIndex/"+appId,
+                    body:    post_data
+                }, function(error, response, body){
+                    if(error)
+                    {
+                        console.log(error);
+                    }else {
+                        if (response.body === 'Success') {
+                            console.log('Index Created');
+                        } else {
+                            console.log('Index cant be created');
+                        }
+                    }
+
+                });
+            }
+        }
     }
     
-    function checkDefaultColumns(columns, type) {
-        
-        var defaultColumn = getDefaultColumnList(type);
-        
-        var index;
-        
-        columns = _.pluck(columns, 'name');
-        
-        for (var i = 0; i < columns.length; i++) {
-            if (columns[i])
-                columns[i] = columns[i].toLowerCase();
-        }
-        
-        for (var i = 0; i < defaultColumn.length; i++) {
-            index = columns.indexOf(defaultColumn[i].toLowerCase());
-            if (index < 0)
-                return false;
-        }
-        
-        return true;
+    function checkDefaultColumns(columns, type){
+    
+    	var defaultColumn = getDefaultColumnList(type);
+    	
+    	var index;
+    	
+		columns = _.pluck(columns, 'name');
+		
+		for(var i=0; i<columns.length; i++){
+			if(columns[i])
+    			columns[i] = columns[i].toLowerCase();
+    	}
+    	
+    	for(var i=0; i<defaultColumn.length; i++){
+    		index = columns.indexOf(defaultColumn[i].toLowerCase());
+    		if(index < 0)
+    			return false;
+    	}
+    	return true;
     }
     
-    function getDefaultColumnList(type) {
-        var defaultColumn = ['id', 'issearchable', 'createdat', 'updatedat', 'acl'];
-        var index;
-        
-        if (type == 'user') {
-            defaultColumn.concat(['username', 'email', 'password', 'roles']);
-        } else if (type == 'role') {
-            defaultColumn.push('name');
-        }
-        return defaultColumn;
+    function getDefaultColumnList(type){
+    	var defaultColumn = ['id', 'issearchable', 'createdat', 'updatedat', 'acl'];
+    	var index;
+    	
+		if(type == 'user'){
+			defaultColumn.concat(['username', 'email', 'password', 'roles']);
+		}else if(type == 'role'){
+			defaultColumn.push('name');
+		}
+		return defaultColumn;
     }
     
     function getDefaultColumnWithDataType(type){
@@ -500,8 +553,7 @@ module.exports = function(Table){
    		
    		//console.log(JSON.stringify(columns) + "   "+ JSON.stringify(deafultDataType));
    		//check for default column & respective properties 
-   		var coloumnDataType = _.pluck(columns, 'dataType');
-   		coloumnDataType = _.filter(coloumnDataType, Boolean); 	
+   		var coloumnDataType = _.pluck(columns, 'dataType')   	
     	for (var key in deafultDataType){
     		console.log(key);
     		index = coloumnDataType.indexOf(deafultDataType[key]);
@@ -598,18 +650,14 @@ module.exports = function(Table){
 		return true;
     }
     
-        //generate a unique Id
-    	function makeId(){
-    	  //creates a random string of 8 char long.
-    	  var text = "";
-    	  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    	  for( var i=0; i < 8; i++ )
-    		text += possible.charAt(Math.floor(Math.random() * possible.length));
-    		return 'x'+text; //should start with char.
-    	}
+    //generate a unique Id
+	function makeId(){
+	  //creates a random string of 8 char long.
+	  var text = "";
+	  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	  for( var i=0; i < 8; i++ )
+		text += possible.charAt(Math.floor(Math.random() * possible.length));
+		return 'x'+text; //should start with char.
+	}
 
-        });
-        
-        return deferred.promise;
-    }
 };

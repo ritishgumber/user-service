@@ -7,6 +7,7 @@ module.exports = function(){
     var mongoose = require('./config/db.js')();
     var passport = require('passport');
     var redis = require('redis');
+
     var CronJob = require('cron').CronJob;
     var Q = require('q');  
 
