@@ -8,13 +8,47 @@ var keys = require('../config/keys');
 module.exports = function(Table){
 
   return {
-
         upsertTable: function (appId,data) {
 
               var deferred = Q.defer();
               var self = this; 
-              var originalTable=null;             
-
+              var originalTable=null;  
+          
+          	  if(!data.name){
+              	deferred.reject("Invalid Table Table Name");
+              	return deferred.promise;
+              }
+              
+              if(!data.type){
+              	deferred.reject("Invalid Table Type");
+              	return deferred.promise;
+              }
+              
+              console.log("type check " + data.type);
+              var index = ["custom", "user", "role"].indexOf(data.type.toString());
+              console.log(index);
+              if( index < 0){
+				 deferred.reject("Invalid Table Type");
+				 return deferred.promise; 
+			  }       
+			  
+			 console.log("duplicate check " + data.name);
+			  //duplicate column value varification
+			  if(!checkDuplicateColumns(data.columns)){
+				deferred.reject("Duplicate Column or Invalid Column Found"); 
+				return deferred.promise;
+				
+			  }
+			  
+			  console.log("datatype check " + data.name);
+			  //default datatypes varification
+			  var deafultDataType = getDefaultColumnWithDataType(data.type);
+			  if(!checkValidDataType(data.columns, deafultDataType)){
+				deferred.reject("Invalid DataType Found");		
+				return deferred.promise;		
+			  }
+			  
+			  
               Table.findOne({appId: appId, name : data.name}, function(err, table){
                 
                 if(err){
@@ -28,6 +62,9 @@ module.exports = function(Table){
 							var flag = 0;
 							var defaultColumn;
 							if(table){
+								if(!table.id)
+									table.id = makeId();
+																
 								if(table._id == data._id && table.name != data.name){
 									deferred.reject("Cannot Rename a Table.");   
 									flag++;
@@ -43,21 +80,47 @@ module.exports = function(Table){
 									flag++;
 								}
 								
+								//check duplicate columns
+								var tableColumn = _.pluck(table.columns, 'name');
+								var tableColumn = _.filter(tableColumn, function(value){ return value.toLowerCase();});
+								for(var i=0; i<data.columns.length; i++){
+									var index = tableColumn.indexOf(data.columns[i].name.toLowerCase());
+									if( index >= 0 ){
+										if(data.columns[i].id && data.columns[i].id != table.columns[index].id){
+											deferred.reject("Cannot Create Duplicate Column"); 
+											flag++;
+											break;
+										}else if(!data.columns[i].id){
+											deferred.reject("Cannot Create Duplicate Column"); 
+											flag++;
+											break;
+										}
+									}
+									
+									if(!data.columns[i].id){
+										
+										data.columns[i].id = makeId();																				
+									}
+								}
+								
 								defaultColumn = getDefaultColumnList(table.type);
 								//check if any column's property is changed 
 								for(var i=0; i<table.columns.length; i++){
+									
 									var column = _.where(data.columns, {id:table.columns[i].id})[0];
 									if(column){
 										
 										if(column.name.toLowerCase() != table.columns[i].name.toLowerCase() || column.dataType != table.columns[i].dataType || column.relatedTo != table.columns[i].relatedTo || column.relationType != table.columns[i].relationType || column.relatedToType != table.columns[i].relatedToType || column.relatedTo != table.columns[i].relatedTo || column.isDeletable != table.columns[i].isDeletable || column.isEditable != table.columns[i].isEditable || column.isRenamable != table.columns[i].isRenamable){
 										deferred.reject("Cannot Change Column's Property. Only Required and Unique Field are Changable"); 
 										flag++;
+										break;
 										}
 										
 										if(column.unique != table.columns[i].unique){
 											if(defaultColumn.indexOf(column.name.toLowerCase()) >= 0){
 												deferred.reject("Cannot Change Unique Field of a Default Column.");   
 												flag++;
+												break;
 											}
 										}
 										
@@ -65,6 +128,7 @@ module.exports = function(Table){
 											if(defaultColumn.indexOf(column.name.toLowerCase()) >= 0){
 												deferred.reject("Cannot Change Reqiured Field of a Default Column.");   
 												flag++;
+												break;
 											}
 										}
 									}
@@ -85,16 +149,23 @@ module.exports = function(Table){
 							}
 						});
 					}else{
-					
+						var flag = 0;
 						if(!table)
-                  		table = new Table();
+                  			table = new Table();
 
-		              	setAndSaveTable(appId,data,table,originalTable)
-		              	.then(function(savedTable){
-		                	deferred.resolve(savedTable);
-		              	},function(error){ 
-		                	deferred.reject(error);
-		              	});   							
+						if(flag == 0){
+							table.id = makeId();
+							for(var i=0; i<data.columns.length; i++){
+								data.columns[i].id = makeId();
+							}
+							setAndSaveTable(appId,data,table,originalTable)
+						      	.then(function(savedTable){
+						        	deferred.resolve(savedTable);
+						      	},function(error){ 
+						        	deferred.reject(error);
+						      	});
+						}
+		              	   							
 					}              
                 }  
 
@@ -115,38 +186,35 @@ module.exports = function(Table){
                   deferred.reject(err);
 
                 if(table){
-                   table.remove(function(err){
+		               table.remove(function(err){
+		                 if(err)
+		                  deferred.reject(err);
 
-                     if(err)
-                      deferred.reject(err);
+		                  //send a post request to DataServices.
 
-                      //send a post request to DataServices.
+		                  //delete table from cache. 
+		                  global.redisClient.del(global.keys.cacheSchemaPrefix+'-'+appId+':'+tableName);
 
-                      //delete table from cache. 
-                      global.redisClient.del(global.keys.cacheSchemaPrefix+'-'+appId+':'+tableName);
+		                  var post_data = "{ \"key\" : \""+keys.cbDataServicesConnectKey+"\"}";
 
-                      var post_data = "{ \"key\" : \""+keys.cbDataServicesConnectKey+"\"}";
+		                  request.post({
+		                    headers: {
+		                                'content-type' : 'application/json', 
+		                                'content-length' : post_data.length
+		                             },
+		                    url:     keys.dataServiceUrl + "/app/"+appId+"/delete/"+tableName,
+		                    body:    post_data
+		                  }, function(error, response, body){
 
-                      request.post({
-                        headers: {
-                                    'content-type' : 'application/json', 
-                                    'content-length' : post_data.length
-                                 },
-                        url:     keys.dataServiceUrl + "/app/"+appId+"/delete/"+tableName,
-                        body:    post_data
-                      }, function(error, response, body){
+		                     if(response.body === 'Success'){
+		                        deferred.resolve(true);
+		                     }else{
+		                        deferred.reject();
+		                     }
 
-                         if(response.body === 'Success'){
-                            deferred.resolve(true);
-                         }else{
-                            deferred.reject();
-                         }
-
-                       });
-                   });
+		                   });
+		               });
                  }
-
-
               });
 
               return deferred.promise;
@@ -439,5 +507,157 @@ module.exports = function(Table){
 		}
 		return defaultColumn;
     }
+    
+    function getDefaultColumnWithDataType(type){
+    	var defaultColumn = new Object();
+    	defaultColumn['id'] ='Id';
+    	defaultColumn['isSearchable']='Boolean';
+    	defaultColumn['createdAt'] = 'DateTime';
+    	defaultColumn['updatedAt'] ='DateTime'; 
+    	defaultColumn['ACL'] = 'ACL';
+    	var index;
+    	
+		if(type == 'user'){
+			defaultColumn['username'] = 'Text';
+			defaultColumn['email'] = 'Email';
+			defaultColumn['password'] = 'Password'
+			defaultColumn['roles'] = 'List';
+		}else if(type == 'role'){
+			defaultColumn['name'] = 'Text';
+		}
+		return defaultColumn;
+    }
+    
+    //check for duplicate column
+    function checkDuplicateColumns(columns){
+    	var length = columns.length;
+    	columns = _.pluck(columns, 'name');
+    	//columns = _.filter(columns, function(value){ return value != ""});
+    	//columns = _.filter(columns, function(value){ return value != null});
+    	columns = _.filter(columns, Boolean);
+    	columns = _.filter(columns, function(value){ return value.toLowerCase();});
+    	columns = _.uniq(columns);
+    	if(length != columns.length)
+    		return false;
+    	
+    	return true;
+    }
+    
+    //datatype varification
+    function checkValidDataType(columns, deafultDataType){
+    	var index;
+    	var defaultColumns=[];
+   		if(columns.length <= 0){
+   			return false;
+   		}
+   		
+   		//console.log(JSON.stringify(columns) + "   "+ JSON.stringify(deafultDataType));
+   		//check for default column & respective properties 
+   		var coloumnDataType = _.pluck(columns, 'dataType')   	
+    	for (var key in deafultDataType){
+    		console.log(key);
+    		index = coloumnDataType.indexOf(deafultDataType[key]);
+    		if(index < 0)
+    			return false;
+    		
+    		//id property for every table
+    		//console.log(JSON.stringify(columns[index]));
+    		if(key === 'id'){
+    			if(columns[index].relatedToType != null || columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Id')
+    				return false;
+    		}
+    		
+    		//is searchable for every table
+    		if(key === 'isSearchable'){
+    			if(columns[index].relatedToType != null || columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Boolean')
+    				return false;
+    		}
+    		
+    		//createdAt for every table
+    		if(key === 'createdAt'){
+    			if(columns[index].relatedToType != null || columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'DateTime')
+    				return false;
+    		}
+    		
+    		//updatedAt for every table
+    		if(key === 'updatedAt'){
+    			if(columns[index].relatedToType != null || columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'DateTime')
+    				return false;
+    		}
+    		
+    		//ACL for every table
+    		if(key === 'ACL'){
+    			if(columns[index].relatedToType != null || columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'ACL')
+    				return false;
+    		}
+    		
+    		//username for user table
+    		if(key === 'username'){
+    			if(columns[index].relatedToType != null || columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Text')
+    				return false;
+    		}
+    		
+    		//email for user table
+    		if(key === 'email'){
+    			if(columns[index].relatedToType != null || columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Email')
+    				return false;
+    		}
+    		
+    		//password for user table
+    		if(key === 'password'){
+    			if(columns[index].relatedToType != null || columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Password')
+    				return false;
+    		}
+    		
+    		//roles property for user table
+    		if(key === 'roles'){
+    			if(columns[index].relatedToType != 'role' || columns[index].relationType != 'table' || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'List')
+    				return false;
+    		}
+    		
+    		//name for role table
+    		if(key === 'name'){
+    			if(columns[index].relatedToType != null || columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Text')
+    				return false;
+    		}
+    		
+    		if(columns[index].isRenamable != false || columns[index].isEditable != false || columns[index].isDeletable != false || columns[index].relatedTo != null){
+    			return false;
+    		}
+    		defaultColumns.push(key);    
+    		console.log(defaultColumns);		
+    	}//end of for-loop
+    	
+    	//check for userdefined column & its properties
+    	var validDataTypeForUser = ['Text', 'Email', 'URL', 'Number', 'Boolean', 'DateTime', 'GeoPoint', 'File', 'List', 'Relation', 'Object'];
+    	//console.log(defaultColumns);
+    	for(var i=0; i<columns.length; i++){
+    		if(defaultColumns.indexOf(columns[i].name) < 0){
+    			//console.log(columns[i].dataType);
+    			var index = validDataTypeForUser.indexOf(columns[i].dataType);
+    			//console.log(index);
+				if(index < 0)
+					return false;
+
+				if(columns[i].dataType === 'List' || columns[i].dataType === 'Relation'){
+					if(!columns[i].relatedTo)
+						return false;
+				}
+				
+    		}
+    	}
+			
+		return true;
+    }
+    
+    //generate a unique Id
+	function makeId(){
+	  //creates a random string of 8 char long.
+	  var text = "";
+	  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	  for( var i=0; i < 8; i++ )
+		text += possible.charAt(Math.floor(Math.random() * possible.length));
+		return 'x'+text; //should start with char.
+	}
 
 };
