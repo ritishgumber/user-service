@@ -18,8 +18,8 @@ module.exports = function(){
         res.header('Access-Control-Allow-Origin', req.headers.origin);
         res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
         res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
-        if ('OPTIONS' == req.method) {
-             res.send(200);
+        if ('OPTIONS' === req.method) {
+             res.sendStatus(200);
          } else {
              next();
          }

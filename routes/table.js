@@ -90,8 +90,7 @@ module.exports = function(controller, project) {
                 }else{
                 	if(key === project.keys.master){
                 		  controller.getTablesByProject(projectId).then(function(tables) {
-								return res.status(200).send(JSON.parse(tables));
-
+								return res.status(200).send(tables);
 							},function(error){
 								return res.status(500).send(error);
 							});
