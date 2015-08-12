@@ -7,7 +7,7 @@ module.exports = function(mongoose){
 	  name: String, 
 	  columns : Array,
 	  type: String,
-	  id : String,
+	  _id : String,
 	  tableColor: String
 
 	});

@@ -24,25 +24,24 @@ module.exports = function(controller, project) {
 		if(data.key && projectId ){
 			project.getProject(projectId).then(function(project) {
                 if (!project) {
-                    return res.send(400, 'Error: Project not found');
+                    return res.status(400).send('Error: Project not found');
                 }else{
                 	if(data.key === project.keys.master){
                 		controller.upsertTable(projectId,data).then(function(done) {
 							if (!done) {
-								return res.send(500);
+								return res.status(500).send("Unable to create table");
 							}
-
-							return res.json(200, done);
+							return res.status(200).send(done);
 
 							},function(error){
-								return res.send(500, error);
+								return res.status(500).send(error);
 							});
                 	}else{
-                		return res.sendStatus(401, {message: "Invalid Key"});
+                		return res.satus(401).send({message: "Invalid Key"});
                 	}
                 }
             },function(error){
-                return res.send(500, error);
+                return res.status(500).send(error);
             });
 		}
 
@@ -59,16 +58,16 @@ module.exports = function(controller, project) {
         if(key && projectId && name){            
         	project.getProject(projectId).then(function(project){
         		if (!project) {
-                    return res.send(400, 'Error: Project not found');
+                    return res.status(400).send('Error: Project not found');
                 }else{
                 	if(key === project.keys.master){
                 		 controller.deleteTable(projectId,name).then(function() {                
-						    return res.json(200);
+						    return res.status(200).send("Success");
 						},function(error){
-						    return res.send(500, error);
+						    return res.status(500).send(error);
 						});
                 	}else{
-                		return res.send(401, {message: "Invalid Key"});
+                		return res.status(401).send({message: "Invalid Key"});
                 	}
                 }
         	});
@@ -87,17 +86,17 @@ module.exports = function(controller, project) {
         if(key && projectId){
         	project.getProject(projectId).then(function(project){
         		if (!project) {
-                    return res.send(400, 'Error: Project not found');
+                    return res.status(400).send('Error: Project not found');
                 }else{
                 	if(key === project.keys.master){
                 		  controller.getTablesByProject(projectId).then(function(tables) {
-								return res.json(200, tables);
+								return res.status(200).send(JSON.parse(tables));
 
 							},function(error){
-								return res.send(500, error);
+								return res.status(500).send(error);
 							});
                 	}else{
-                		return res.send(401, {message: "Invalid Key"});
+                		return res.status(401).send({message: "Invalid Key"});
                 	}
                 }
         	});
