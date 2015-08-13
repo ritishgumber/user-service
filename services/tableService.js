@@ -27,7 +27,11 @@ module.exports = function(Table) {
 
             console.log("type check " + data.type);
             var index = ["custom", "user", "role"].indexOf(data.type.toString());
-            console.log(index);
+            if(data.type === 'user' || data.type === 'role'){
+                if(data.maxCount !== 1){
+                    deferred.reject("User and Role can't be added twice");
+                }
+            }
             if (index < 0) {
                 deferred.reject("Invalid Table Type");
                 return deferred.promise;
@@ -41,10 +45,10 @@ module.exports = function(Table) {
 
             }
 
-            console.log("datatype check " + data.name);
-            //default datatypes varification
-            var deafultDataType = getDefaultColumnWithDataType(data.type);
-            if (!checkValidDataType(data.columns, deafultDataType)) {
+            console.log("dataType check " + data.name);
+            //default dataTypes verification
+            var defaultDataType = getDefaultColumnWithDataType(data.type);
+            if (!checkValidDataType(data.columns, defaultDataType)) {
                 deferred.reject("Invalid DataType Found");
                 return deferred.promise;
             }
@@ -190,7 +194,7 @@ module.exports = function(Table) {
                     deferred.reject(err);
 
                 if (table) {
-                    table.remove(function (err) {
+                    table.remove(function (err,res) {
                         if (err)
                             deferred.reject(err);
 
@@ -342,11 +346,11 @@ module.exports = function(Table) {
                     console.log(body);
                     if (!error) {
                         if (response.body === 'Success') {
-                            console.log("Table Created ");
-                            deferred.resolve("Table Created ");
+                            console.log("Table Created In DS");
+                            deferred.resolve("Table Created in DS");
                         } else {
-                            console.log("Table Create Error");
-                            deferred.reject("Table Create Error");
+                            console.log("Table Create Error in DS");
+                            deferred.reject("Table Create Error in DS");
                         }
                     } else {
                         console.log("error");
@@ -616,7 +620,7 @@ module.exports = function(Table) {
 
             //roles property for user table
             if (key === 'roles') {
-                if (columns[index].relatedToType != 'role' || columns[index].relationType != 'table' || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'List')
+                if (columns[index].relatedToType != 'role' || columns[index].relationType != 'table' || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'List' || columns[index].dataType === 'Role')
                     return false;
             }
 
@@ -626,7 +630,7 @@ module.exports = function(Table) {
                     return false;
             }
 
-            if (columns[index].isRenamable != false || columns[index].isEditable != false || columns[index].isDeletable != false || columns[index].relatedTo != null) {
+            if (columns[index].isRenamable != false || columns[index].isEditable != false || columns[index].isDeletable != false) {
                 return false;
             }
             defaultColumns.push(key);
