@@ -198,6 +198,7 @@ module.exports = function(Table) {
                         if (err)
                             deferred.reject(err);
 
+                        console.log("Table Found and Deleted From FS");
                         //send a post request to DataServices.
 
                         //delete table from cache.
@@ -214,16 +215,18 @@ module.exports = function(Table) {
                             body: post_data
                         }, function (error, response, body) {
                             if (response.body === 'Success') {
-                                console.log("Table Deleted");
+                                console.log("Table Deleted From DS");
                                 deferred.resolve(true);
                             } else {
-                                console.log("Error Deleting Table");
+                                console.log("Error Deleting Table In DS");
                                 deferred.reject(error);
                             }
 
                         });
                     });
                 }else{
+                    console.log("Table Not Found");
+                        
                     var post_data = "{ \"key\" : \"" + keys.cbDataServicesConnectKey + "\"}";
 
                     request.post({
@@ -235,10 +238,10 @@ module.exports = function(Table) {
                         body: post_data
                     }, function (error, response, body) {
                         if (response.body === 'Success') {
-                            console.log("Table Deleted");
+                            console.log("Table Deleted in DS");
                             deferred.resolve(true);
                         } else {
-                            console.log("Error Deleting Table");
+                            console.log("Error Deleting Table in DS");
                             deferred.reject(error);
                         }
 
