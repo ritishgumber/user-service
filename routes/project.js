@@ -91,8 +91,8 @@ module.exports = function(controller) {
 
     });
 
-     app.get('/project/get/:id', function(req,res,next) {
-		console.log(req.body);
+    app.get('/project/get/:id', function(req,res,next) {
+		//console.log(req.body);
         //var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
         var id=req.params.id;       
                  
