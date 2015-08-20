@@ -8,7 +8,7 @@ var util = require('./utilService')();
 var LocalStrategy = require('passport-local').Strategy;
 
 
-module.exports = function(User){
+module.exports = function(User,BeaconService){
 
     return {
                 makeSalt: function () {
@@ -150,6 +150,11 @@ module.exports = function(User){
                         //create a new user
                         self.createUser(data).then(function(user){
                             deffered.resolve(user);
+
+                            //Create Beacons For New Users
+                            if(user){
+                              BeaconService.createBeacon(user._doc._id.toString());
+                            }                            
                         },function(error){
                             deffered.reject(error);
                         });

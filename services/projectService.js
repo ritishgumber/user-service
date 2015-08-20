@@ -65,7 +65,7 @@ module.exports = function(Project,InvoiceService){
                               deferred.resolve(project._doc);
                             });
                             //End of create invoice Settings
-
+                           
                           }
                   });
 
@@ -115,9 +115,9 @@ module.exports = function(Project,InvoiceService){
 
             var _self = this;
 
-             var deferred = Q.defer();
+            var deferred = Q.defer();
 
-              var self = this;
+            var self = this;
 
               Project.find({ _userId: userId }, function (err, list) {
                 if (err) deferred.reject(err);
@@ -157,25 +157,27 @@ module.exports = function(Project,InvoiceService){
                   if (!project) {
                       deferred.reject('error updating project');
                   }
-                  
-                    project._userId=userId;
-                    project.name=name;                 
+                  if(project && project._userId==userId){                      
+                      project.name=name;                 
 
-                     project.save(function (err, project) {
-                          if (err) deferred.reject(err);
+                      project.save(function (err, project) {
+                              if (err) deferred.reject(err);
 
-                          if(!project)
-                              deferred.reject('Cannot save the app right now.');
-                          else{
-                            _self.projectStatus(id, userId).then(function(status){
-                              project._doc.status = status;
-                              deferred.resolve(project._doc);
-                            }, function(error){
-                              project._doc.status = {status : 'Unknown'};
-                              deferred.resolve(project._doc);
-                            });
-                          }
-                  });
+                              if(!project)
+                                  deferred.reject('Cannot save the app right now.');
+                              else{
+                                _self.projectStatus(id, userId).then(function(status){
+                                  project._doc.status = status;
+                                  deferred.resolve(project._doc);
+                                }, function(error){
+                                  project._doc.status = {status : 'Unknown'};
+                                  deferred.resolve(project._doc);
+                                });
+                              }
+                      });
+                  }else{
+                    deferred.reject("Unauthorized");
+                  }                 
 
               },function(error){
                 deferred.reject(error);
@@ -241,7 +243,6 @@ module.exports = function(Project,InvoiceService){
              return deferred.promise;
 
           },
-
           allProjectList: function () {
 
             var _self = this;

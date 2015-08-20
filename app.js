@@ -67,6 +67,7 @@ module.exports = function(){
     var CreditCardInfo = require('./model/creditCardInfo.js')(mongoose);
     var Invoice = require('./model/invoice.js')(mongoose);
     var InvoiceSettings = require('./model/invoiceSettings.js')(mongoose);
+    var Beacon = require('./model/beacon.js')(mongoose);
 
 	console.log("models created..");
     //config
@@ -80,14 +81,16 @@ module.exports = function(){
 
     //services.
 	console.log("starting services..");
-    var UserService = require('./services/userService')(User);
-	console.log("UserService : " + UserService);
+    var BeaconService  = require('./services/beaconService.js')(Beacon);  
+    var UserService = require('./services/userService')(User,BeaconService);
+	console.log("UserService : " + UserService);    
     var SubscriberService  = require('./services/subscriberService.js')(Subscriber);
     var InvoiceService  = require('./services/invoiceService.js')(Invoice,InvoiceSettings,UserService);
     var ProjectService  = require('./services/projectService.js')(Project,InvoiceService);
     var TableService  = require('./services/tableService.js')(Table);
     var ProjectDetailsService  = require('./services/projectDetailsService.js')(ProjectDetails);
-    var PaymentService  = require('./services/paymentService.js')(StripeCustomer,CreditCardInfo,InvoiceService,UserService,ProjectService);   
+    var PaymentService  = require('./services/paymentService.js')(StripeCustomer,CreditCardInfo,InvoiceService,UserService,ProjectService); 
+
 	console.log("All services started..");
 	console.log("routes..");
     //routes. 
@@ -98,6 +101,7 @@ module.exports = function(){
     app.use('/', require('./routes/projectDetails.js')(ProjectDetailsService));
     app.use('/', require('./routes/payment.js')(PaymentService));
     app.use('/', require('./routes/invoice.js')(InvoiceService));
+    app.use('/', require('./routes/beacon.js')(BeaconService));
 
 
     app.get('/', function(req, res, next){

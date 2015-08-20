@@ -91,10 +91,10 @@ module.exports = function(controller) {
 
     });
 
-     app.get('/app/:appid', function(req,res,next) {
+     app.get('/app/:appId', function(req,res,next) {
 		console.log(req.body);
         //var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
-        var id=req.params.appid;
+        var id=req.params.appId;
                  
 		controller.getProject(id).then(function(project) {
 		
