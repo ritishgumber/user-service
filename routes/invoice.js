@@ -4,7 +4,7 @@ var app = express();
 module.exports = function(invoiceService) {
 
     // routes
-    app.get('/invoice/get/:appId', function(req,res,next) {
+    app.get('/:appId/invoice', function(req,res,next) {
         
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
         var appId=req.params.appId;
@@ -26,7 +26,7 @@ module.exports = function(invoiceService) {
 
     }); 
 
-    app.get('/invoice/get/settings/:appId', function(req,res,next) {
+    app.get('/:appId/invoice/settings', function(req,res,next) {
         
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
         var appId=req.params.appId;
@@ -49,7 +49,7 @@ module.exports = function(invoiceService) {
     });
 
 
-    app.put('/invoice/update/settings/:appId', function(req,res,next) {
+    app.put('/:appId/invoice/settings', function(req,res,next) {
 
        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
         var appId=req.params.appId;

@@ -4,7 +4,7 @@ var app = express();
 module.exports = function(controller) {
 
     // routes
-    app.post('/project/create', function(req,res,next) {
+    app.post('/app/create', function(req,res,next) {
 
         var data = req.body || {};
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
@@ -26,7 +26,7 @@ module.exports = function(controller) {
 
     });
 
-    app.get('/project/list', function(req,res,next) {
+    app.get('/app', function(req,res,next) {
 
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
         console.log(req.session.cookie.expires);        
@@ -46,7 +46,7 @@ module.exports = function(controller) {
 
     });
 
-    app.get('/project/status/:appId', function(req,res,next) {
+    app.get('/:appId/status', function(req,res,next) {
 
        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
 
@@ -64,7 +64,7 @@ module.exports = function(controller) {
     });
 
 
-    app.put('/project/edit/:appId', function(req,res,next) {
+    app.put('/app/:appId', function(req,res,next) {
 
        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
         var appId=req.params.appId;
@@ -91,10 +91,10 @@ module.exports = function(controller) {
 
     });
 
-     app.get('/project/get/:id', function(req,res,next) {
+     app.get('/app/:appid', function(req,res,next) {
 		console.log(req.body);
         //var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
-        var id=req.params.id;       
+        var id=req.params.appid;
                  
 		controller.getProject(id).then(function(project) {
 		
@@ -109,10 +109,10 @@ module.exports = function(controller) {
          });    
     });
     
-    app.get('/project/getKey/:id', function(req,res,next) {
+    app.get('/app/:appId/masterkey', function(req,res,next) {
 
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
-        var id = req.params.id;                
+        var id = req.params.appId;
 		var key = req.body.key;
         if(key && id){
             controller.getProject(id).then(function(project) {
@@ -120,10 +120,10 @@ module.exports = function(controller) {
                     return res.send(500, 'Error: Project not found');
                 }
 
-                return res.json(200, project.keys.master);
+                return res.status(200).send(project.keys.master);
 
             },function(error){
-                return res.send(500, error);
+                return res.satus(500).send(error);
             });
 
         }else{
@@ -131,7 +131,7 @@ module.exports = function(controller) {
         }
     });
 
-    app.post('/project/delete/:appId', function(req,res,next) {
+    app.delete('/app/:appId', function(req,res,next) {
 
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
 
