@@ -4,7 +4,7 @@ var app = express();
 module.exports = function(paymentService) {
 
     // routes
-    app.post('/payment/upsert/card', function(req,res,next) {
+    app.put('/user/card', function(req,res,next) {
 
         var data = req.body || {};
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
@@ -26,7 +26,7 @@ module.exports = function(paymentService) {
 
     });   
 
-    app.get('/payment/get/cardinfo', function(req,res,next) {
+    app.get('/user/card', function(req,res,next) {
         
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
         

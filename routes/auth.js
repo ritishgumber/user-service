@@ -152,7 +152,7 @@ module.exports = function(passport,controller) {
     };
 
     // routes
-    app.post('/register', function(req, res, next) {
+    app.post('/user/signup', function(req, res, next) {
 
         console.log(req);
 
@@ -190,7 +190,7 @@ module.exports = function(passport,controller) {
         });
     });
 
-    app.post('/activate', function(req, res, next) {
+    app.post('/user/activate', function(req, res, next) {
 
         var data = req.body || {};
        
@@ -207,7 +207,7 @@ module.exports = function(passport,controller) {
         });
     });
 
-    app.post('/requestResetPassword', function(req, res, next) {
+    app.post('/user/ResetPassword', function(req, res, next) {
 
         var data = req.body || {};
 
@@ -224,7 +224,7 @@ module.exports = function(passport,controller) {
         });
     });
 
-    app.post('/resetPassword', function(req, res, next) {
+    app.post('/user/updatePassword', function(req, res, next) {
 
         var data = req.body || {};
 
@@ -255,13 +255,13 @@ module.exports = function(passport,controller) {
     });
 
 
-    app.get('/signout', function(req, res, next){
+    app.post('/user/logout', function(req, res, next){
         req.logout();
        return res.json(200, {});
     });
 
-    app.post('/signin', function(req, res, next) {
-        //console.log(req);         
+
+    app.post('/user/signin', function(req, res, next) {
         passport.authenticate('local',  function(err, user, info) {
             if (err || !user) {
                 return res.send(500, info);

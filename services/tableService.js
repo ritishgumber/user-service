@@ -148,6 +148,7 @@ module.exports = function(Table) {
                                 originalTable = clone(table._doc);
                                 setAndSaveTable(appId, data, table, originalTable)
                                     .then(function (savedTable) {
+                                        savedTable = _deserialize(savedTable);
                                         deferred.resolve(savedTable);
                                     }, function (error) {
                                         deferred.reject(error);
@@ -166,6 +167,7 @@ module.exports = function(Table) {
                             }
                             setAndSaveTable(appId, data, table, originalTable)
                                 .then(function (savedTable) {
+                                    savedTable = _deserialize(savedTable);
                                     deferred.resolve(savedTable);
                                 }, function (error) {
                                     deferred.reject(error);
@@ -206,12 +208,12 @@ module.exports = function(Table) {
 
                         var post_data = "{ \"key\" : \"" + keys.cbDataServicesConnectKey + "\"}";
 
-                        request.post({
+                        request.del({
                             headers: {
                                 'content-type': 'application/json',
                                 'content-length': post_data.length
                             },
-                            url: keys.dataServiceUrl + "/app/" + appId + "/delete/" + tableName,
+                            url: keys.dataServiceUrl + "/app/" + appId + '/'+ tableName,
                             body: post_data
                         }, function (error, response, body) {
                             if (response.body === 'Success') {
@@ -229,12 +231,12 @@ module.exports = function(Table) {
                         
                     var post_data = "{ \"key\" : \"" + keys.cbDataServicesConnectKey + "\"}";
 
-                    request.post({
+                    request.del({
                         headers: {
                             'content-type': 'application/json',
                             'content-length': post_data.length
                         },
-                        url: keys.dataServiceUrl + "/app/" + appId + "/delete/" + tableName,
+                        url: keys.dataServiceUrl + "/app/" + appId + "/" + tableName,
                         body: post_data
                     }, function (error, response, body) {
                         if (response.body === 'Success') {
@@ -265,6 +267,7 @@ module.exports = function(Table) {
                 else {
                     if (tables) {
                         var tables = _.map(tables, function (obj) {
+                            obj._doc._type = 'table';
                             return obj._doc
                         });
                         deferred.resolve(tables);
@@ -322,16 +325,27 @@ module.exports = function(Table) {
         }else {
             promises.push(createTable(appId, table.name, table.columns));
         }
-        Q.all(promises).then(function(table){
-            if (originalTable) {
-                deleteDroppedColumns(appId, originalTable, data.columns);
+        Q.allSettled(promises).then(function(res) {
+            if (res[0].state === 'fulfilled' && res[1].state === 'fulfilled') {
+                if (originalTable) {
+                    deleteDroppedColumns(appId, originalTable, data.columns);
+                }
+                deferred.resolve(res[0].value._doc);
+            }else{
+                if(res[0].state === 'fulfilled') {
+                    if(!originalTable)
+                        table.remove();
+                    else{
+                        _columnRollback(originalTable,table);
+                    }
+                }
+                deferred.reject("Unable to create table right now");
             }
-            deferred.resolve(table[0]._doc);
-        },function(err){
-            deferred.reject(err);
         });
+
         return deferred.promise;
     }
+
 
     function createTable(appId, tableName, schema){
         var deferred = Q.defer();
@@ -343,7 +357,7 @@ module.exports = function(Table) {
                         'content-type': 'application/json',
                         'content-length': post_data.length
                     },
-                    url: keys.dataServiceUrl + "/app/" + appId + "/create/" + tableName,
+                    url: keys.dataServiceUrl + "/app/" + appId + '/'+ tableName,
                     body: post_data
                 }, function (error, response, body) {
                     console.log(body);
@@ -379,12 +393,12 @@ module.exports = function(Table) {
                 //send a post request. 
                 var post_data = "{ \"key\" : \"" + keys.cbDataServicesConnectKey + "\"}";
 
-                request.post({
+                request.del({
                     headers: {
                         'content-type': 'application/json',
                         'content-length': post_data.length
                     },
-                    url: keys.dataServiceUrl + "/app/" + appId + "/" + table.name + "/delete/" + originalColumns[i].name,
+                    url: keys.dataServiceUrl + "/app/" + appId + "/" + table.name + "/" + originalColumns[i].name,
                     body: post_data
                 }, function (error, response, body) {
                     console.log(body);
@@ -428,7 +442,7 @@ module.exports = function(Table) {
                         'content-type': 'application/json',
                         'content-length': post_data.length
                     },
-                    url: keys.dataServiceUrl + "/app/" + appId + "/" + table.name + "/createColumn/",
+                    url: keys.dataServiceUrl + "/app/" + appId + "/" + table.name + addedColumns[i].name,
                     body: post_data
                 }, function (error, response, body) {
                     if (!error) {
@@ -506,7 +520,7 @@ module.exports = function(Table) {
     }
 
     function getDefaultColumnList(type) {
-        var defaultColumn = ['id', 'issearchable', 'createdat', 'updatedat', 'acl'];
+        var defaultColumn = ['id', 'expires' ,'createdAt', 'updatedAt', 'ACL'];
         var index;
 
         if (type == 'user') {
@@ -520,7 +534,6 @@ module.exports = function(Table) {
     function getDefaultColumnWithDataType(type) {
         var defaultColumn = new Object();
         defaultColumn['id'] = 'Id';
-        defaultColumn['isSearchable'] = 'Boolean';
         defaultColumn['createdAt'] = 'DateTime';
         defaultColumn['updatedAt'] = 'DateTime';
         defaultColumn['ACL'] = 'ACL';
@@ -662,6 +675,18 @@ module.exports = function(Table) {
         return true;
     }
 
+function _columnRollback(originalTable,table){
+    var columns = [];
+    for(var i=0;i<table.columns.length;i++) {
+        for (var k = 0; k < originalTable.columns; k++) {
+            if (originalTable.columns.name === table.columns[i].name)
+                columns.push(originalTable.columns[k]);
+        }
+    }
+    table.columns = columns;
+    table.save();
+}
+
     //generate a unique Id
     function makeId() {
         //creates a random string of 8 char long.
@@ -673,4 +698,10 @@ module.exports = function(Table) {
     }
 
         
+function _deserialize(table){
+    if(table)
+        table._type = 'table';
+    return table;
+
+}
 

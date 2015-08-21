@@ -4,7 +4,7 @@ var app = express();
 module.exports = function(projectDetailsService) {
 
     // routes
-    app.post('/projectdetails/save', function(req,res,next) {
+    app.put('/app/:appId/details', function(req,res,next) {
 
         var data = req.body || {};
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
@@ -26,7 +26,7 @@ module.exports = function(projectDetailsService) {
 
     });   
 
-    app.get('/projectdetails/get/:appId', function(req,res,next) {
+    app.get('/app/:appId/details', function(req,res,next) {
         
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
         var appId=req.params.appId;

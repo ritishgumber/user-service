@@ -7,11 +7,21 @@ module.exports = function(){
     var mongoose = require('./config/db.js')();
     var passport = require('passport');
     var redis = require('redis');
-
     var CronJob = require('cron').CronJob;
-    var Q = require('q');  
+    var Q = require('q'); 
 
-    global.keys = require('./config/keys.js');    
+    global.keys = require('./config/keys.js');  
+
+    app.use(function(req, res, next){
+        if (req.is('text/*')) {
+            req.text = '';
+            req.setEncoding('utf8');
+            req.on('data', function(chunk){ req.text += chunk });
+            req.on('end', next);
+        } else {
+            next();
+        }
+    });
 
     app.use(function(req, res, next) {
         res.header('Access-Control-Allow-Credentials', true);
@@ -23,18 +33,7 @@ module.exports = function(){
          } else {
              next();
          }
-    });
-
-    /*app.use(cookieParser());
-    
-    app.use(require('express-session')({        
-        key: 'session',
-        resave: false, //does not forces session to be saved even when unmodified
-        saveUninitialized: true, //forces a session that is "uninitialized"(new but unmodified) to be saved to the store
-        secret: 'azuresample',
-        store: require('mongoose-session')(mongoose),
-        cookie:{expires: new Date(Date.now() + (3600000*24*30))}// for 1 month
-    }));*/
+    });   
 
 	console.log("creating redis client..");
     global.redisClient = redis.createClient(global.keys.redisPort,
@@ -91,7 +90,7 @@ module.exports = function(){
 	console.log("All services started..");
 	console.log("routes..");
     //routes. 
-    app.use('/auth', require('./routes/auth')(passport,UserService));
+    app.use('/', require('./routes/auth')(passport,UserService));
     app.use('/', require('./routes/subscriber.js')(SubscriberService));
     app.use('/', require('./routes/project.js')(ProjectService));
     app.use('/', require('./routes/table.js')(TableService, ProjectService));
