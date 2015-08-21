@@ -81,7 +81,7 @@ module.exports = function(controller, project) {
 		if(req.text){
         	req.body = JSON.parse(req.text);
         }
-        var key = req.body.key;
+        var key = req.body.key;        
         
         if(key && projectId){
         	project.getProject(projectId).then(function(project){

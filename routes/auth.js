@@ -261,20 +261,15 @@ module.exports = function(passport,controller) {
     });
 
     app.post('/signin', function(req, res, next) {
-
-         console.log(req);
-
-         
+        //console.log(req);         
         passport.authenticate('local',  function(err, user, info) {
             if (err || !user) {
                 return res.send(500, info);
             }
-
             req.login(user, function(err) {
                 if (err) {
                     return next(err);
                 }
-
                 delete user.emailVerificationCode;
                 delete user.password; //delete this code form response for security
 

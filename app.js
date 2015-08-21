@@ -11,7 +11,7 @@ module.exports = function(){
     var CronJob = require('cron').CronJob;
     var Q = require('q');  
 
-    global.keys = require('./config/keys.js'); 
+    global.keys = require('./config/keys.js');    
 
     app.use(function(req, res, next) {
         res.header('Access-Control-Allow-Credentials', true);
@@ -25,7 +25,7 @@ module.exports = function(){
          }
     });
 
-    app.use(cookieParser());
+    /*app.use(cookieParser());
     
     app.use(require('express-session')({        
         key: 'session',
@@ -34,7 +34,7 @@ module.exports = function(){
         secret: 'azuresample',
         store: require('mongoose-session')(mongoose),
         cookie:{expires: new Date(Date.now() + (3600000*24*30))}// for 1 month
-    }));
+    }));*/
 
 	console.log("creating redis client..");
     global.redisClient = redis.createClient(global.keys.redisPort,
@@ -62,8 +62,16 @@ module.exports = function(){
     //config
     
     app.use(bodyParser.json());
-    app.use(bodyParser.urlencoded());
-    app.use(cookieParser('azuresample'));
+    app.use(bodyParser.urlencoded({extended: true}));
+    //app.use(cookieParser('azuresample'));
+    app.use(require('express-session')({        
+        key: 'session',
+        resave: false, //does not forces session to be saved even when unmodified
+        saveUninitialized: false, //doesnt forces a session that is "uninitialized"(new but unmodified) to be saved to the store
+        secret: 'azuresample',
+        store: require('mongoose-session')(mongoose),
+        cookie:{maxAge: (3600000*24*30*3)}// for 3 month
+    }));
     app.use(passport.initialize());
     app.use(passport.session());
     require('./framework/config')(passport, User);

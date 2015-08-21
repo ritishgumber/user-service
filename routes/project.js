@@ -29,12 +29,12 @@ module.exports = function(controller) {
     app.get('/project/list', function(req,res,next) {
 
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
-        console.log(req.session.cookie.expires);        
+              
         if(currentUserId){
             controller.projectList(currentUserId).then(function(list) {
                 if (!list) {
                     return res.send(500, 'Error: Something Went Wrong');
-                }
+                }                
                 return res.json(200, list);
             },function(error){
                 return res.send(500, error);
