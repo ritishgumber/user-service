@@ -11,13 +11,13 @@ module.exports = function(controller) {
        
         if(currentUserId && data){
           controller.createProject(data.name, data.appId,currentUserId).then(function(project) {
-              if (!project) {
-                  return res.send(400, 'Error : Project not created');
-              }
-            return res.json(200, project);
+              if (!project) {                  
+                  return res.status(400).send('Error : Project not created'); 
+              }            
+            return res.status(200).json(project);
 
-          },function(error){
-            return res.send(400, error);
+          },function(error){            
+            return res.status(500).send(error); 
           });
 
         }else{
@@ -34,8 +34,8 @@ module.exports = function(controller) {
             controller.projectList(currentUserId).then(function(list) {
                 if (!list) {
                     return res.send(500, 'Error: Something Went Wrong');
-                }                
-                return res.json(200, list);
+                }               
+                return res.status(200).json(list);
             },function(error){
                 return res.send(500, error);
             });
@@ -74,14 +74,13 @@ module.exports = function(controller) {
         if(currentUserId && appId && data){
 
             controller.editProject(currentUserId,appId,name).then(function(project) {
-                if (!project) {
-                    return res.send(500, "Error: Project didn't get edited");
-                }
+                if (!project) {                    
+                    return res.status(500).send("Error: Project didn't get edited");  
+                }               
+                return res.status(200).json(project);
 
-                return res.json(200, project);
-
-            },function(error){
-                return res.send(500, error);
+            },function(error){ 
+                return res.status(500).send(error);    
             });
 
         }else{

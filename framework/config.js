@@ -13,7 +13,7 @@ module.exports = function(passport, User) {
       User.findOne({ email: username }, function (err, user) {
         if (err) { return done(err); }
         if (!user) {
-          return done(null, false, { message: 'Incorrect username.' });
+          return done(null, false, { message: 'Incorrect email.' });
         }
         if (!UserService.validatePassword(password,user.password,user.salt)) {
           return done(null, false, { message: 'Incorrect password.' });
