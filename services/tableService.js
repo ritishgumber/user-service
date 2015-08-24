@@ -115,7 +115,7 @@ module.exports = function(Table) {
 
                                         if (column.name.toLowerCase() != table._doc.columns[i].name.toLowerCase() || column.dataType != table._doc.columns[i].dataType
                                             || column.relatedTo != table._doc.columns[i].relatedTo || column.relationType != table._doc.columns[i].relationType
-                                            || column.relatedToType != table._doc.columns[i].relatedToType || column.relatedTo != table._doc.columns[i].relatedTo
+                                            || column.relatedTo != table._doc.columns[i].relatedTo
                                             || column.isDeletable != table._doc.columns[i].isDeletable || column.isEditable != table._doc.columns[i].isEditable
                                             || column.isRenamable != table._doc.columns[i].isRenamable) {
                                             deferred.reject("Cannot Change Column's Property. Only Required and Unique Field are Changable");
@@ -290,6 +290,7 @@ module.exports = function(Table) {
                 if (err) {
                     deferred.reject(err);
                 } else if (table) {
+                    table._doc._type = 'table';
                     deferred.resolve(table._doc);
                 } else {
                     deferred.resolve(null);
@@ -442,7 +443,7 @@ module.exports = function(Table) {
                         'content-type': 'application/json',
                         'content-length': post_data.length
                     },
-                    url: keys.dataServiceUrl + "/app/" + appId + "/" + table.name + addedColumns[i].name,
+                    url: keys.dataServiceUrl + "/app/" + appId + "/" + table.name + '/'+ addedColumns[i].name,
                     body: post_data
                 }, function (error, response, body) {
                     if (!error) {
@@ -537,6 +538,7 @@ module.exports = function(Table) {
         defaultColumn['createdAt'] = 'DateTime';
         defaultColumn['updatedAt'] = 'DateTime';
         defaultColumn['ACL'] = 'ACL';
+        defaultColumn['expires'] = 'Number';
         var index;
 
         if (type == 'user') {
@@ -588,65 +590,59 @@ module.exports = function(Table) {
             //id property for every table
             //console.log(JSON.stringify(columns[index]));
             if (key === 'id') {
-                if (columns[index].relatedToType != null || columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Id')
-                    return false;
-            }
-
-            //is searchable for every table
-            if (key === 'isSearchable') {
-                if (columns[index].relatedToType != null || columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Boolean')
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Id')
                     return false;
             }
 
             //createdAt for every table
             if (key === 'createdAt') {
-                if (columns[index].relatedToType != null || columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'DateTime')
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'DateTime')
                     return false;
             }
 
             //updatedAt for every table
             if (key === 'updatedAt') {
-                if (columns[index].relatedToType != null || columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'DateTime')
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'DateTime')
                     return false;
             }
 
             //ACL for every table
             if (key === 'ACL') {
-                if (columns[index].relatedToType != null || columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'ACL')
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'ACL')
                     return false;
             }
 
             //username for user table
             if (key === 'username') {
-                if (columns[index].relatedToType != null || columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Text')
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Text')
                     return false;
             }
 
             //email for user table
             if (key === 'email') {
-                if (columns[index].relatedToType != null || columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Email')
+                if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != true || columns[index].dataType != 'Email')
                     return false;
             }
 
             //password for user table
             if (key === 'password') {
-                if (columns[index].relatedToType != null || columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Password')
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Password')
                     return false;
             }
 
             //roles property for user table
             if (key === 'roles') {
-                if (columns[index].relatedToType != 'role' || columns[index].relationType != 'table' || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'List' || columns[index].dataType === 'Role')
+                if (columns[index].relationType != 'table' || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'List' || columns[index].relatedTo !== 'Role')
                     return false;
             }
 
             //name for role table
             if (key === 'name') {
-                if (columns[index].relatedToType != null || columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Text')
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Text')
                     return false;
             }
 
-            if (columns[index].isRenamable != false || columns[index].isEditable != false || columns[index].isDeletable != false) {
+            if (columns[index].isRenamable !== false || columns[index].isEditable !== false || columns[index].isDeletable !== false) {
                 return false;
             }
             defaultColumns.push(key);
