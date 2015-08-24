@@ -69,8 +69,7 @@ module.exports = function(controller) {
        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
         var appId=req.params.appId;
         var data = req.body || {};
-        var name=data.name;
-       
+        var name=data.name;       
 
         if(currentUserId && appId && data){
 
@@ -91,7 +90,7 @@ module.exports = function(controller) {
 
     });
 
-     app.get('/app/:appId', function(req,res,next) {
+    app.get('/app/:appId', function(req,res,next) {
 		console.log(req.body);
         //var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
         var id=req.params.appId;
@@ -100,9 +99,9 @@ module.exports = function(controller) {
 		
             if (!project) {
                  return res.send(500, 'Error: Project not found');
-             }
+            }
              
-             return res.json(200, project);
+            return res.json(200, project);
 
             },function(error){
                 return res.send(500, error);

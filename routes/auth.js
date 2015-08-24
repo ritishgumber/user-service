@@ -152,9 +152,7 @@ module.exports = function(passport,controller) {
     };
 
     // routes
-    app.post('/user/signup', function(req, res, next) {
-
-        console.log(req);
+    app.post('/user/signup', function(req, res, next) {       
 
         var data = req.body || {};
 

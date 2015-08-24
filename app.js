@@ -118,12 +118,13 @@ module.exports = function(){
             InvoiceService.getDueInvoiceList().then(function(invoiceList){                                    
               
               if(invoiceList){
-			console.log("Invoice Service..");                    
+    			    console.log("Invoice Service..");                    
                     var userIndex=[]; 
-                    var promises=[]; 
-			if(!invoiceList.length ){
-				console.log("undefine length");
-			}
+                    var promises=[];
+                 
+        			if(!invoiceList.length ){
+        				console.log("undefine length");
+        			}
                     for(var i=0;i<invoiceList.length;++i){
 
                       var userId=invoiceList[i]._userId;                    
