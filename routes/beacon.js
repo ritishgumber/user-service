@@ -8,8 +8,8 @@ module.exports = function(beaconService) {
 	
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
                         
-		beaconService.getBeaconByUserId(currentUserId).then(function(beaconObj) {		
-            return res.json(200, beaconObj);
+		beaconService.getBeaconByUserId(currentUserId).then(function(beaconObj) {            
+            return res.status(200).json(beaconObj);
         },function(error){
             return res.send(500, error);
         });    
@@ -25,8 +25,8 @@ module.exports = function(beaconService) {
         		beaconService.updateBeacon(currentUserId,data).then(function(beaconObj) {
 	              if (!beaconObj) {
 	                return res.send(400, 'Error : Beacon not found');
-	              }
-	              return res.json(200, beaconObj);
+	              }	              
+                  return res.status(200).json(beaconObj);
 
 	            },function(error){
 	              return res.send(400, error);

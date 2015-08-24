@@ -152,9 +152,7 @@ module.exports = function(passport,controller) {
     };
 
     // routes
-    app.post('/user/signup', function(req, res, next) {
-
-        console.log(req);
+    app.post('/user/signup', function(req, res, next) {       
 
         var data = req.body || {};
 
@@ -260,21 +258,16 @@ module.exports = function(passport,controller) {
        return res.json(200, {});
     });
 
+
     app.post('/user/signin', function(req, res, next) {
-
-         console.log(req);
-
-         
         passport.authenticate('local',  function(err, user, info) {
             if (err || !user) {
                 return res.send(500, info);
             }
-
             req.login(user, function(err) {
                 if (err) {
                     return next(err);
                 }
-
                 delete user.emailVerificationCode;
                 delete user.password; //delete this code form response for security
 

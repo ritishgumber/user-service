@@ -107,12 +107,13 @@ module.exports = function(controller, project) {
         if(req.text){
             req.body = JSON.parse(req.text);
         }
+        /////
         var appId = req.body.appId || {};
-        var key = req.body.key;
+        var key = req.body.key; 
         if(key && tableName && appId){
             project.getProject(appId).then(function(project){
                 if (!project) {
-                    return res.send(400, 'Error: Project not found');
+                    return res.status(400).send('Error: Project not found');
                 }else{
                     if(key === project.keys.master){
                         controller.getTableByTableName(appId,tableName).then(function(table) {

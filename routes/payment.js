@@ -34,7 +34,7 @@ module.exports = function(paymentService) {
         if(currentUserId){
           paymentService.findCard(currentUserId).then(function(cardinfo) {
               if (!cardinfo) {
-                  return res.send(200, null);
+                return res.send(200, null);
               }
             return res.json(200, cardinfo);
 

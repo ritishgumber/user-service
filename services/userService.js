@@ -90,7 +90,7 @@ module.exports = function(User,BeaconService){
                      return deffered.promise;
                 },
 
-                 resetPassword : function(code, password){
+                resetPassword : function(code, password){
 
                      var deffered = Q.defer();
                      var self = this;

@@ -24,51 +24,56 @@ module.exports = function(Project,InvoiceService){
                 if(project){
                   deferred.reject('AppID already exists');
                 }else{
-                  var project = new Project();
-                  project._userId=userId;
-                  project.name=name;
-                  project.appId = appId;  
-                  project.keys = {};
-                  project.keys.js = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), keys.encryptKey, 100, 16).toString("base64");
-                  project.keys.master = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), keys.encryptKey, 100, 32).toString("base64");        
-                  
-                  project.save(function (err, project) {
-                          if (err) deferred.reject(err);
+                  Project.findOne({_userId:userId,name:name}, function (err, projectSameName) {
+                    if(projectSameName){
+                      deferred.reject('AppName already exists');
+                    }else{
+                        var project = new Project();
+                        project._userId=userId;
+                        project.name=name;
+                        project.appId = appId;  
+                        project.keys = {};
+                        project.keys.js = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), keys.encryptKey, 100, 16).toString("base64");
+                        project.keys.master = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), keys.encryptKey, 100, 32).toString("base64");        
+                        
+                        project.save(function (err, project) {
+                                if (err) deferred.reject(err);
 
-                          if(!project)
-                              deferred.reject('Cannot save the app right now.');
-                          else{
+                                if(!project)
+                                    deferred.reject('Cannot save the app right now.');
+                                else{
 
-                            //Create invoice Settings
-                            InvoiceService.createInvoiceSettings(appId, userId).then(function(invoiceSettings){
-                              if(invoiceSettings){
-                                  //Create invoice 
-                                  InvoiceService.createInvoice(appId, userId).then(function(invoice){                                    
-                                    if(invoice){                                        
-                                        //Get Project Status
-                                        _self.projectStatus(appId, userId).then(function(status){
-                                          project._doc.status = status;
-                                          deferred.resolve(project._doc);
-                                        }, function(error){
-                                          project._doc.status = {status : 'Unknown'};
+                                  //Create invoice Settings
+                                  InvoiceService.createInvoiceSettings(appId, userId).then(function(invoiceSettings){
+                                    if(invoiceSettings){
+                                        //Create invoice 
+                                        InvoiceService.createInvoice(appId, userId).then(function(invoice){                                    
+                                          if(invoice){                                        
+                                              //Get Project Status
+                                              _self.projectStatus(appId, userId).then(function(status){
+                                                project._doc.status = status;
+                                                deferred.resolve(project._doc);
+                                              }, function(error){
+                                                project._doc.status = {status : 'Unknown'};
+                                                deferred.resolve(project._doc);
+                                              });
+                                              //End of get Project Status
+                                          }
+
+                                        },function(error){
                                           deferred.resolve(project._doc);
                                         });
-                                        //End of get Project Status
+                                        //End of create invoice
                                     }
-
                                   },function(error){
                                     deferred.resolve(project._doc);
                                   });
-                                  //End of create invoice
-                              }
-                            },function(error){
-                              deferred.resolve(project._doc);
-                            });
-                            //End of create invoice Settings
-                           
-                          }
-                  });
-
+                                  //End of create invoice Settings
+                                 
+                                }
+                        });
+                    }
+                  }); //End of checking same AppName 
                 }//end of else of if project is there
               });             
 
@@ -156,28 +161,40 @@ module.exports = function(Project,InvoiceService){
               _self.getProject(id).then(function (project) {
                   if (!project) {
                       deferred.reject('error updating project');
-                  }
-                  if(project && project._userId==userId){                      
-                      project.name=name;                 
+                  }else if(project){
 
-                      project.save(function (err, project) {
-                              if (err) deferred.reject(err);
+                    Project.findOne({_userId:userId,name:name}, function (err, projectSameName) {
+                      if(projectSameName){
+                        deferred.reject('AppName already exists');
+                      }else{
 
-                              if(!project)
-                                  deferred.reject('Cannot save the app right now.');
-                              else{
-                                _self.projectStatus(id, userId).then(function(status){
-                                  project._doc.status = status;
-                                  deferred.resolve(project._doc);
-                                }, function(error){
-                                  project._doc.status = {status : 'Unknown'};
-                                  deferred.resolve(project._doc);
-                                });
-                              }
-                      });
-                  }else{
-                    deferred.reject("Unauthorized");
-                  }                 
+                          /***Start editing***/
+                          if(project && project._userId==userId){                      
+                              project.name=name;                 
+
+                              project.save(function (err, project) {
+                                  if (err) deferred.reject(err);
+
+                                  if(!project)
+                                      deferred.reject('Cannot save the app right now.');
+                                  else{
+                                    _self.projectStatus(id, userId).then(function(status){
+                                      project._doc.status = status;
+                                      deferred.resolve(project._doc);
+                                    }, function(error){
+                                      project._doc.status = {status : 'Unknown'};
+                                      deferred.resolve(project._doc);
+                                    });
+                                  }
+                              });
+                          }else{
+                            deferred.reject("Unauthorized");
+                          }
+                          /***End Start editing***/ 
+
+                      }
+                    });  
+                  }                                 
 
               },function(error){
                 deferred.reject(error);
