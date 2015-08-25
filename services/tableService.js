@@ -216,7 +216,7 @@ module.exports = function(Table) {
                             url: keys.dataServiceUrl + "/app/" + appId + '/'+ tableName,
                             body: post_data
                         }, function (error, response, body) {
-                            if (response.body === 'Success') {
+                            if ( response && response.body === 'Success') {
                                 console.log("Table Deleted From DS");
                                 deferred.resolve(true);
                             } else {
@@ -239,7 +239,7 @@ module.exports = function(Table) {
                         url: keys.dataServiceUrl + "/app/" + appId + "/" + tableName,
                         body: post_data
                     }, function (error, response, body) {
-                        if (response.body === 'Success') {
+                        if (response && response.body === 'Success') {
                             console.log("Table Deleted in DS");
                             deferred.resolve(true);
                         } else {

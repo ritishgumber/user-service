@@ -237,12 +237,12 @@ module.exports = function(Project,InvoiceService){
 
                     var post_data = "{ \"key\" : \""+keys.cbDataServicesConnectKey+"\"}";
 
-                    request.post({
+                    request.del({
                       headers: {
                                   'content-type' : 'application/json', 
                                   'content-length' : post_data.length
                                },
-                      url:     keys.dataServiceUrl +"/app/delete/"+appId,
+                      url:     keys.dataServiceUrl +"/app/"+appId,
                       body:    post_data
                     }, function(error, response, body){
 
