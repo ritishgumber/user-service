@@ -7,7 +7,7 @@ module.exports = function(controller) {
     app.post('/app/create', function(req,res,next) {
 
         var data = req.body || {};
-        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.body.userId;
        
         if(currentUserId && data){
           controller.createProject(data.name, data.appId,currentUserId).then(function(project) {
@@ -21,7 +21,7 @@ module.exports = function(controller) {
           });
 
         }else{
-            return res.send(401);
+            return res.status(401).send("Unauthorised");
         }
 
     });
