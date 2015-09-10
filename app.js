@@ -104,7 +104,10 @@ module.exports = function(){
 
 
     app.get('/', function(req, res, next){
-        res.send(200, 'Frontend Service is up and running fine.');
+        if(process.env.CBENV)
+            res.status(200).send(process.env.CBENV);
+        else
+            res.status(200).send("FS Running Fine");
     });
 
 
