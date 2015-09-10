@@ -1,4 +1,5 @@
-﻿if (!process.env.PORT) {
+﻿global.isStaging = false;
+if (!process.env.PORT) {
     global.isDevelopment = true;
 } else {
     if (process.env.PORT === "3000") {
@@ -6,6 +7,10 @@
     } else {
         global.isDevelopment = false;
     }
+}
+
+if(process.env.CBENV && process.env.CBENV === 'STAGING'){
+    global.isStaging = true;
 }
 global.isVM = false;
 var app = require('./app')();
