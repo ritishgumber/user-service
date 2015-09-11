@@ -8,7 +8,6 @@ if (!process.env.PORT) {
         global.isDevelopment = false;
     }
 }
-
 if(process.env.CBENV && process.env.CBENV === 'STAGING'){
     global.isStaging = true;
 }
