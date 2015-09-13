@@ -105,7 +105,7 @@ module.exports = function(){
 
     app.get('/', function(req, res, next){
         if(process.env.CBENV)
-            res.status(200).send(process.env.CBENV);
+            res.status(200).send("FS Running Fine 1");
         else
             res.status(200).send("FS Running Fine");
     });
