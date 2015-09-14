@@ -10,8 +10,9 @@ module.exports = function(){
     var CronJob = require('cron').CronJob;
     var Q = require('q'); 
 
-    global.keys = require('./config/keys.js');  
-
+    global.keys = require('./config/keys.js');
+    var cors = require('cors');
+    app.use(cors());
     app.use(function(req, res, next){
         if (req.is('text/*')) {
             req.text = '';
