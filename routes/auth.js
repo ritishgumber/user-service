@@ -261,8 +261,8 @@ module.exports = function(passport,controller) {
 
     app.post('/user/signin', function(req, res, next) {
         passport.authenticate('local',  function(err, user, info) {
-            if (err || !user) {
-                return res.send(500, info);
+            if (err || !user) {                
+                return res.status(500).send(info); 
             }
             req.login(user, function(err) {
                 if (err) {
@@ -270,8 +270,8 @@ module.exports = function(passport,controller) {
                 }
                 delete user.emailVerificationCode;
                 delete user.password; //delete this code form response for security
-
-                return res.json(200, user);
+                
+                return res.status(200).json(user);
             });
         })(req, res, next);
     });
