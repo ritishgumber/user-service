@@ -10,8 +10,7 @@ module.exports = function(){
     var CronJob = require('cron').CronJob;
     var Q = require('q'); 
 
-    global.keys = require('./config/keys.js');  
-
+    global.keys = require('./config/keys.js');
     app.use(function(req, res, next){
         if (req.is('text/*')) {
             req.text = '';
@@ -24,6 +23,9 @@ module.exports = function(){
     });
 
     app.use(function(req, res, next) {
+        if(req.text){
+            req.body = JSON.parse(req.text);
+        }
         res.header('Access-Control-Allow-Credentials', true);
         res.header('Access-Control-Allow-Origin', req.headers.origin);
         res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
@@ -104,7 +106,10 @@ module.exports = function(){
 
 
     app.get('/', function(req, res, next){
-        res.send(200, 'Frontend Service is up and running fine.');
+        if(process.env.CBENV)
+            res.status(200).send("FS Running Fine 1");
+        else
+            res.status(200).send("FS Running Fine");
     });
 
 

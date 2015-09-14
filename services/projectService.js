@@ -35,14 +35,13 @@ module.exports = function(Project,InvoiceService){
                         project.keys = {};
                         project.keys.js = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), keys.encryptKey, 100, 16).toString("base64");
                         project.keys.master = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), keys.encryptKey, 100, 32).toString("base64");        
-                        
-                        project.save(function (err, project) {
-                                if (err) deferred.reject(err);
-
+                        var promises = [];
+                        promises.push(createProject(appId));
+                        promises.push(project.save());
+                        Q.all(promises).then(function (project) {
                                 if(!project)
                                     deferred.reject('Cannot save the app right now.');
                                 else{
-
                                   //Create invoice Settings
                                   InvoiceService.createInvoiceSettings(appId, userId).then(function(invoiceSettings){
                                     if(invoiceSettings){
@@ -51,26 +50,28 @@ module.exports = function(Project,InvoiceService){
                                           if(invoice){                                        
                                               //Get Project Status
                                               _self.projectStatus(appId, userId).then(function(status){
-                                                project._doc.status = status;
-                                                deferred.resolve(project._doc);
+                                                project[1]._doc.status = status;
+                                                deferred.resolve(project[1]._doc);
                                               }, function(error){
-                                                project._doc.status = {status : 'Unknown'};
-                                                deferred.resolve(project._doc);
+                                                project[1]._doc.status = {status : 'Unknown'};
+                                                deferred.resolve(project[1]._doc);
                                               });
                                               //End of get Project Status
                                           }
 
                                         },function(error){
-                                          deferred.resolve(project._doc);
+                                          deferred.resolve(project[1]._doc);
                                         });
                                         //End of create invoice
                                     }
                                   },function(error){
-                                    deferred.resolve(project._doc);
+                                    deferred.resolve(project[1]._doc);
                                   });
                                   //End of create invoice Settings
                                  
                                 }
+                        },function(err){
+                            deferred.reject(err);
                         });
                     }
                   }); //End of checking same AppName 
@@ -299,3 +300,27 @@ module.exports = function(Project,InvoiceService){
     }
 
 };
+
+function createProject(appId){
+
+    var deferred = Q.defer();
+
+    var post_data = {};
+    post_data.key = global.keys.cbDataServicesConnectKey;
+    post_data = JSON.stringify(post_data);
+    var url = global.keys.dataServiceUrl + '/app/'+appId;
+    request.post(url,{
+        headers: {
+            'content-type': 'application/json',
+            'content-length': post_data.length
+        },
+        body: post_data
+    },function(err,response,body){
+        if(err || response.statusCode === 500 || body === 'Error')
+            deferred.reject(err);
+        else {
+            deferred.resolve();
+        }
+    });
+    return deferred.promise;
+}

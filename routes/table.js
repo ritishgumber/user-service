@@ -59,16 +59,16 @@ module.exports = function(controller, project) {
         if(key && projectId && name){            
         	project.getProject(projectId).then(function(project){
         		if (!project) {
-                    return res.status(400).send('Error: Project not found');
+                    res.status(400).send('Error: Project not found');
                 }else{
                 	if(key === project.keys.master){
                 		 controller.deleteTable(projectId,name).then(function() {                
-						    return res.status(200).send("Success");
+						    res.status(200).send("Success");
 						},function(error){
-						    return res.status(500).send(error);
+						    res.status(500).send(error);
 						});
                 	}else{
-                		return res.status(401).send({message: "Invalid Key"});
+                		res.status(401).send({message: "Invalid Key"});
                 	}
                 }
         	});
