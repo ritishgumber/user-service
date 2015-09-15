@@ -3,7 +3,7 @@ var app = express();
 
 module.exports = function(tutorialService) {
 
-    //tutorial routes
+    //routes
     app.get('/tutorial', function(req,res,next) {
 
 		tutorialService.getTutorialList().then(function(tutorial) {                      
