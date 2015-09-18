@@ -58,6 +58,7 @@ module.exports = function(){
     var Invoice = require('./model/invoice.js')(mongoose);
     var InvoiceSettings = require('./model/invoiceSettings.js')(mongoose);
     var Beacon = require('./model/beacon.js')(mongoose);
+    var Tutorial = require('./model/tutorial.js')(mongoose);
 
 	console.log("models created..");
     //config
@@ -88,6 +89,7 @@ module.exports = function(){
     var TableService  = require('./services/tableService.js')(Table);
     var ProjectDetailsService  = require('./services/projectDetailsService.js')(ProjectDetails);
     var PaymentService  = require('./services/paymentService.js')(StripeCustomer,CreditCardInfo,InvoiceService,UserService,ProjectService); 
+    var TutorialService  = require('./services/tutorialService.js')(Tutorial);
 
 	console.log("All services started..");
 	console.log("routes..");
@@ -100,6 +102,7 @@ module.exports = function(){
     app.use('/', require('./routes/payment.js')(PaymentService));
     app.use('/', require('./routes/invoice.js')(InvoiceService));
     app.use('/', require('./routes/beacon.js')(BeaconService));
+    app.use('/', require('./routes/tutorial.js')(TutorialService));
 
 
     app.get('/', function(req, res, next){
