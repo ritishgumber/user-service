@@ -329,9 +329,14 @@ module.exports = function(Table) {
         Q.allSettled(promises).then(function(res) {
             if (res[0].state === 'fulfilled' && res[1].state === 'fulfilled') {
                 if (originalTable) {
-                    deleteDroppedColumns(appId, originalTable, data.columns);
+                    deleteDroppedColumns(appId, originalTable, data.columns).then(function(){
+                        deferred.resolve(res[0].value._doc);
+                    },function(err){
+                       deferred.reject(err);
+                    });
+                }else {
+                    deferred.resolve(res[0].value._doc);
                 }
-                deferred.resolve(res[0].value._doc);
             }else{
                 if(res[0].state === 'fulfilled') {
                     if(!originalTable)
@@ -380,6 +385,7 @@ module.exports = function(Table) {
 
     function deleteDroppedColumns(appId, table, newColumns) {
 
+        var deferred = Q.defer();
         var originalColumns = table.columns;
 
         for (var i = 0; i < newColumns.length; i++) {
@@ -406,15 +412,20 @@ module.exports = function(Table) {
                     if (!error) {
                         if (response.body === 'Success') {
                             console.log("Column Sucessfully deleted");
+                            deferred.resolve();
                         } else {
                             console.log("Column Delete Error");
+                            deferred.reject();
                         }
                     } else {
                         console.log("error");
                     }
                 });
             }
+        }else{
+            deferred.resolve();
         }
+        return deferred.promise;
     }
 
     function createNewColumns(appId, table, newColumns) {
