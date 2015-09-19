@@ -20,7 +20,7 @@ module.exports = function(Tutorial){
 
         var self = this;
 
-        Tutorial.find({}, function (err, tutorial) {
+        Tutorial.find({},null,{sort: {order: 1}},function (err, tutorial) {
           if (err) deferred.reject(err);
           if(tutorial && tutorial.length>0){
             deferred.resolve(tutorial);
