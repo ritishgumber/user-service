@@ -549,7 +549,7 @@ module.exports = function(Table) {
         defaultColumn['createdAt'] = 'DateTime';
         defaultColumn['updatedAt'] = 'DateTime';
         defaultColumn['ACL'] = 'ACL';
-        defaultColumn['expires'] = 'Number';
+        defaultColumn['expires'] = 'DateTime';
         var index;
 
         if (type == 'user') {
@@ -580,7 +580,7 @@ module.exports = function(Table) {
         return true;
     }
 
-    //datatype varification
+    //dataType verification
     function checkValidDataType(columns, deafultDataType) {
         var index;
         var defaultColumns = [];
@@ -598,6 +598,12 @@ module.exports = function(Table) {
             if (index < 0)
                 return false;
 
+            for(var l=0;l<columns.length;l++){
+                if(columns[l].name == key){
+                    index = l;
+                    l = columns.length;
+                }
+            }
             //id property for every table
             //console.log(JSON.stringify(columns[index]));
             if (key === 'id') {

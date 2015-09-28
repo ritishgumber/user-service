@@ -131,7 +131,7 @@ module.exports = function(controller) {
 
     app.delete('/app/:appId', function(req,res,next) {
 
-        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.body.userId;
 
         if(currentUserId){
 
@@ -144,7 +144,7 @@ module.exports = function(controller) {
             });
 
         }else{
-            return res.send(401);
+            return res.status(401).send("unauthorized");
         }
 
     });

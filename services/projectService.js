@@ -235,9 +235,7 @@ module.exports = function(Project,InvoiceService){
                   console.log(err);
                   deferred.reject(err);
                 }else{
-
                     var post_data = "{ \"key\" : \""+keys.cbDataServicesConnectKey+"\"}";
-
                     request.del({
                       headers: {
                                   'content-type' : 'application/json', 
@@ -246,14 +244,12 @@ module.exports = function(Project,InvoiceService){
                       url:     keys.dataServiceUrl +"/app/"+appId,
                       body:    post_data
                     }, function(error, response, body){
-
                        if(response && response.body === 'Success'){
                           console.log('successfully deleted');
                            deferred.resolve();
                        }else{
                           deferred.reject();
                        }
-
                     });
                 }
               });
