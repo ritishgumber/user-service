@@ -555,7 +555,7 @@ module.exports = function(Table) {
         if (type == 'user') {
             defaultColumn['username'] = 'Text';
             defaultColumn['email'] = 'Email';
-            defaultColumn['password'] = 'Password'
+            defaultColumn['password'] = 'EncryptedText'
             defaultColumn['roles'] = 'List';
         } else if (type == 'role') {
             defaultColumn['name'] = 'Text';
@@ -643,7 +643,7 @@ module.exports = function(Table) {
 
             //password for user table
             if (key === 'password') {
-                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Password')
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'EncryptedText')
                     return false;
             }
 
@@ -667,7 +667,7 @@ module.exports = function(Table) {
         }//end of for-loop
 
         //check for userdefined column & its properties
-        var validDataTypeForUser = ['Text', 'Email', 'URL', 'Number', 'Boolean', 'DateTime', 'GeoPoint', 'File', 'List', 'Relation', 'Object'];
+        var validDataTypeForUser = ['Text', 'Email', 'URL', 'Number', 'Boolean','EncryptedText', 'DateTime', 'GeoPoint', 'File', 'List', 'Relation', 'Object'];
         //console.log(defaultColumns);
         for (var i = 0; i < columns.length; i++) {
             if (defaultColumns.indexOf(columns[i].name) < 0) {
