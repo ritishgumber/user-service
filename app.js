@@ -7,6 +7,8 @@ module.exports = function(){
     var mongoose = require('./config/db.js')();
     var passport = require('passport');
     var redis = require('redis');
+    var session = require('express-session');
+    var RedisStore = require('connect-redis')(session);
     var CronJob = require('cron').CronJob;
     var Q = require('q'); 
 
@@ -66,13 +68,16 @@ module.exports = function(){
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({extended: true}));
     //app.use(cookieParser('azuresample'));
-    app.use(require('express-session')({        
+    app.use(session({        
         key: 'session',
         resave: false, //does not forces session to be saved even when unmodified
         saveUninitialized: false, //doesnt forces a session that is "uninitialized"(new but unmodified) to be saved to the store
-        secret: 'azuresample',
-        store: require('mongoose-session')(mongoose),
-        cookie:{maxAge: (3600000*24*30*3)}// for 3 month
+        secret: 'azuresample',       
+        store: new RedisStore({
+            client: global.redisClient,
+            ttl   : 30 * 24 * 60 * 60 // 30 * 24 * 60 * 60 = 30 days.
+        }),
+        cookie:{maxAge: (2600000000)}// 2600000000 is for 1 month
     }));
     app.use(passport.initialize());
     app.use(passport.session());

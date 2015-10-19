@@ -264,7 +264,6 @@ module.exports = function(passport,controller) {
 
             if (err || !user) {
                 return res.status(500).send(info);
-
             }
             req.login(user, function(err) {
                 if (err) {
@@ -272,7 +271,6 @@ module.exports = function(passport,controller) {
                 }
                 delete user.emailVerificationCode;
                 delete user.password; //delete this code form response for security
-
 
                 return res.status(200).send(user);
 

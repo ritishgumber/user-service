@@ -26,7 +26,7 @@ module.exports = function(controller) {
 
     });
 
-    app.get('/app', function(req,res,next) {
+    app.get('/app', function(req,res,next) { 
 
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
               
