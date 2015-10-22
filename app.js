@@ -1,5 +1,6 @@
 module.exports = function(){
-
+    
+    var pjson = require('./package.json');
     var express = require('express');
     var cookieParser = require('cookie-parser');
     var bodyParser = require('body-parser');
@@ -110,11 +111,9 @@ module.exports = function(){
     app.use('/', require('./routes/tutorial.js')(TutorialService));
 
 
-    app.get('/', function(req, res, next){
-        if(process.env.CBENV)
-            res.status(200).send("FS Running Fine 1");
-        else
-            res.status(200).send("FS Running Fine");
+    app.get('/', function(req, res) {
+        res.setHeader('Content-Type', 'application/json');
+        res.send(JSON.stringify({ status : 200, version : pjson.version }));
     });
 
 
