@@ -27,7 +27,11 @@ module.exports = function(Table) {
 
             console.log("type check " + data.type);
             var index = ["custom", "user", "role"].indexOf(data.type.toString());
-            if(data.type === 'user' || data.type === 'role'){
+            if (data.type === 'user' || data.type === 'role') {
+                
+                if (!data.maxCount)
+                    data.maxCount = 1;
+
                 if(data.maxCount !== 1){
                     deferred.reject("User and Role can't be added twice");
                 }
