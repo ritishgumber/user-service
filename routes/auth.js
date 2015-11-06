@@ -248,14 +248,14 @@ module.exports = function(passport,controller) {
         },function(error){
             console.log('++++++ Request Reset Password Failed +++++++++++++');
             console.log(error);
-            return res.send(500, error);
+            return res.send(500, error);            
         });
     });
 
 
     app.post('/user/logout', function(req, res, next){
-        req.logout();
-       return res.json(200, {});
+        req.logout();       
+        return res.status(200).json({});
     });
 
 

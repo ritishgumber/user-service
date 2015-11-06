@@ -98,13 +98,13 @@ module.exports = function(controller) {
 		
             if (!project) {
                  return res.send(500, 'Error: Project not found');
-            }
-             
-            return res.json(200, project);
+            }             
+            
+            return res.status(200).json(project);
 
-            },function(error){
-                return res.send(500, error);
-         });    
+        },function(error){                
+            return res.status(500).send(error);  
+        });    
     });
     
     app.get('/app/:appId/masterkey', function(req,res,next) {
@@ -135,9 +135,9 @@ module.exports = function(controller) {
 
         if(currentUserId){
 
-            controller.delete(req.params.appId, currentUserId).then(function() {
-                
-                return res.json(200);
+            controller.delete(req.params.appId, currentUserId).then(function() {                
+                 
+                return res.status(200).json({});                              
 
             },function(error){
                 return res.send(500, error);
