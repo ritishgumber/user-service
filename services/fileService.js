@@ -5,13 +5,11 @@ var Q = require('q');
 var _ = require('underscore');
 var request = require('request');
 var keys = require('../config/keys');
-var mongoose = require('../config/db.js')();
 var Grid = require('gridfs-stream');
-Grid.mongo = mongoose.mongo;
-var gfs = new Grid(mongoose.connection.db);
 
-
-module.exports = function(Table) {
+module.exports = function(mongoose) {
+    Grid.mongo = mongoose.mongo;
+    var gfs = new Grid(mongoose.connection.db);
 
     return {
         putFile: function (file,filename,mimetype) { 

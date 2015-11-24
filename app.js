@@ -96,13 +96,14 @@ module.exports = function(){
     var ProjectDetailsService  = require('./services/projectDetailsService.js')(ProjectDetails);
     var PaymentService  = require('./services/paymentService.js')(StripeCustomer,CreditCardInfo,InvoiceService,UserService,ProjectService); 
     var TutorialService  = require('./services/tutorialService.js')(Tutorial);
-    var FileService  = require('./services/fileService.js')();
+    var FileService  = require('./services/fileService.js')(mongoose);
+    var MailChimpService  = require('./services/mailChimpService.js')();
 
     console.log("All services started..");
     console.log("routes..");
     //routes. 
-    app.use('/', require('./routes/auth')(passport,UserService,FileService));
-    app.use('/', require('./routes/subscriber.js')(SubscriberService));
+    app.use('/', require('./routes/auth')(passport,UserService,FileService,MailChimpService));
+    app.use('/', require('./routes/subscriber.js')(SubscriberService,MailChimpService));
     app.use('/', require('./routes/project.js')(ProjectService));
     app.use('/', require('./routes/table.js')(TableService, ProjectService));
     app.use('/', require('./routes/projectDetails.js')(ProjectDetailsService));
@@ -110,7 +111,7 @@ module.exports = function(){
     app.use('/', require('./routes/invoice.js')(InvoiceService));
     app.use('/', require('./routes/beacon.js')(BeaconService));
     app.use('/', require('./routes/tutorial.js')(TutorialService));
-    app.use('/', require('./routes/file.js')(FileService,UserService));
+    app.use('/', require('./routes/file.js')(mongoose,FileService,UserService));
 
 
     app.get('/', function(req, res) {

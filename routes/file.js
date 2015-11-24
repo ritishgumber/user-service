@@ -1,14 +1,14 @@
 var express = require('express');
 var app = express();
-var mongoose = require('../config/db.js')();
+
 var url = require('url');
 var Busboy = require('busboy');
 var Grid = require('gridfs-stream');
-Grid.mongo = mongoose.mongo;
-var gfs = new Grid(mongoose.connection.db);
 
+module.exports = function(mongoose,fileService,userService) {
 
-module.exports = function(fileService,userService) {
+    Grid.mongo = mongoose.mongo;
+    var gfs = new Grid(mongoose.connection.db);
 
     //routes
     app.get('/file/:id', function(req,res,next) { 

@@ -9,7 +9,7 @@ var url = require('url');
 
 
 //setup passport
-module.exports = function(passport,controller,fileService) {    
+module.exports = function(passport,controller,fileService,mailChimpService) {    
 
     //helpers
 
@@ -167,6 +167,8 @@ module.exports = function(passport,controller,fileService) {
             console.log('++++++ User Registration Success +++++++++++++');
 
             sendSignupEmail(user);
+            var newsListId="b0419808f9";       
+            mailChimpService.addSubscriber(newsListId,user.email);
 
             req.login(user, function(err) {
 
