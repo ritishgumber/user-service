@@ -143,8 +143,9 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
                 if (err) {
                     return next(err);
                 }
-                delete user.emailVerificationCode;
-                delete user.password; //delete this code form response for security
+                delete user._doc.emailVerificationCode;
+                delete user._doc.password; //delete this code form response for security
+                delete user._doc.salt;
 
                 return res.status(200).send(user);
 
