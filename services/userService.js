@@ -45,7 +45,7 @@ module.exports = function(User,BeaconService){
 
                 activate: function (code) {
 
-                     var deffered = Q.defer();
+                    var deffered = Q.defer();
 
                      User.find({ emailVerificationCode: code }, function (err, user) {
                           if (err) { return deffered.reject(err); }
@@ -63,31 +63,30 @@ module.exports = function(User,BeaconService){
                             });
 
                           }
-
                     });
 
-                     return deffered.promise;
+                    return deffered.promise;
                 },
 
                 requestResetPassword : function(email){
                      var deffered = Q.defer();
 
                      User.findOne({ email: email }, function (err, user) {
-                          if (err) { return deffered.reject(err); }
-                          if (!user) {
-                            return deffered.reject('Email doesnot belong to any user.');
-                          }
+                        if (err) { return deffered.reject(err); }
+                        if (!user) {
+                          return deffered.reject('Email doesnot belong to any user.');
+                        }
 
-                          user.emailVerificationCode = util.generateRandomString();
+                        user.emailVerificationCode = util.generateRandomString();
 
-                          user.save(function (err,user) {
-                            if (err) deffered.reject(err);
-                            else deffered.resolve(user);
-                          });
+                        user.save(function (err,user) {
+                          if (err) deffered.reject(err);
+                          else deffered.resolve(user);
+                        });
 
                      });
 
-                     return deffered.promise;
+                    return deffered.promise;
                 },
 
                 resetPassword : function(code, password){

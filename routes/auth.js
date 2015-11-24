@@ -3,146 +3,11 @@ var LocalStrategy = require('passport-local').Strategy;
 var express = require('express');
 var app = express();
 var keys = require('../config/keys.js');
-var mandrill = require('mandrill-api/mandrill');
-var mandrill_client = new mandrill.Mandrill(keys.mandrill);
 var url = require('url');
 
 
 //setup passport
-module.exports = function(passport,controller,fileService,mailChimpService) {    
-
-    //helpers
-
-    var sendRequestResetPasswordEmail = function(user){
-        var message = {
-                    "to": [{
-                            "email": user.email,
-                            "name": user.name,
-                            "type": "to"
-                        }],
-
-                    "global_merge_vars": [{
-                            "name": "name",
-                            "content": user.name
-                        },{
-                            "name": "link",
-                            "content": "<a href='https://dashboard.cloudboost.io/accounts/#/forgotpassword?code='"+user.emailVerificationCode+" class='btn-primary'>Reset your password</a>"
-                        }]
-                };
-
-
-            //send the verification email.
-            mandrill_client.messages.sendTemplate({"template_name": 'forgotpassword', 
-                "message" : message,
-                "template_content": [
-                    {name:'name',content:user.name},
-                    {name:'link',content:"<a href='https://dashboard.cloudboost.io/accounts/#/forgotpassword?code="+user.emailVerificationCode+"' class='btn-primary'>Reset your password</a>"}
-                ], "async": true}, function(result){
-                if(result.length>0 && result[0].status === 'sent'){
-                    console.log('++++++Mandrill Email Sent +++++++++++++');
-                }else{
-                    console.log('++++++Mandrill Email Error +++++++++++++');
-                    console.log(result);
-                }
-            });
-    };
-
-    var sendPasswordResetSuccessful = function(user){
-        var message = {
-                    "to": [{
-                            "email": user.email,
-                            "name": user.name,
-                            "type": "to"
-                        }],
-
-                    "global_merge_vars": [{
-                            "name": "name",
-                            "content": user.name
-                        }]
-                };
-
-
-            //send the verification email.
-            mandrill_client.messages.sendTemplate({"template_name": 'passwordchanged', 
-                "message" : message,
-                "template_content": [
-                    {name:'name',content:user.name},
-                ], "async": true}, function(result){
-                if(result.length>0 && result[0].status === 'sent'){
-                    console.log('++++++Mandrill Email Sent +++++++++++++');
-                }else{
-                    console.log('++++++Mandrill Email Error +++++++++++++');
-                    console.log(result);
-                }
-            });
-    };
-
-    var sendSignupEmail = function(user){
-        console.log(user.emailVerificationCode);
-        var message = {
-                    "to": [{
-                            "email": user.email,
-                            "name": user.name,
-                            "type": "to"
-                        }],
-
-                    "global_merge_vars": [{
-                            "name": "name",
-                            "content": user.name
-                        },{
-                            "name": "link",
-                            "content": "<a href='https://dashboard.cloudboost.io/accounts/#/activate?code='"+user.emailVerificationCode+" class='btn-primary'>Activate your account</a>"
-                        }]
-                };
-
-            //send the verification email.
-            mandrill_client.messages.sendTemplate({"template_name": 'signupwelcome', 
-                "message" : message,
-                "template_content": [
-                    {name:'name',content:user.name},
-                    {name:'link',content:"<a href='https://dashboard.cloudboost.io/accounts/#/activate?code="+user.emailVerificationCode+"' class='btn-primary'>Activate your account</a>"}
-                ], "async": true}, function(result){
-                if(result.length>0 && result[0].status === 'sent'){
-                    console.log('++++++Mandrill Email Sent +++++++++++++');
-                }else{
-                    console.log('++++++Mandrill Email Error +++++++++++++');
-                    console.log(result);
-                }
-            });
-    };
-
-     var sendActivatedEmail = function(user){
-
-        var message = {
-                   
-                    "to": [{
-                            "email": user.email,
-                            "name": user.name,
-                            "type": "to"
-                        }],
-
-                    "global_merge_vars": [{
-                            "name": "name",
-                            "content": user.name
-                        }]
-                   
-                };
-
-
-            //send the verification email.
-            mandrill_client.messages.sendTemplate({"template_name": 'accountactivated', 
-                "message" : message,
-                "template_content": [
-                    {name:'name',content:user.name}
-                ], "async": true}, function(result){
-                if(result.length>0 && result[0].status === 'sent'){
-                    console.log('++++++Mandrill Activated Email Sent +++++++++++++');
-                }else{
-                    console.log('++++++Mandrill Activated Email Error +++++++++++++');
-                    console.log(result);
-                }
-            });
-    };
+module.exports = function(passport,controller,fileService,mailChimpService,mandrillService) {      
 
     var authCallback = function(req, res) {
         var user=req.user;
@@ -166,25 +31,11 @@ module.exports = function(passport,controller,fileService,mailChimpService) {
 
             console.log('++++++ User Registration Success +++++++++++++');
 
-            sendSignupEmail(user);
+            mandrillService.sendSignupEmail(user);
             var newsListId="b0419808f9";       
             mailChimpService.addSubscriber(newsListId,user.email);
 
-            req.login(user, function(err) {
-
-                if (err) {
-                    console.log('++++++ User Login Error +++++++++++++');
-                    console.log(err);
-                    return next(err);
-                }
-
-                console.log('++++++ User Login Success +++++++++++++');
-
-                delete user.emailVerificationCode; 
-                delete user.password;//delete this code form response for security
-
-                return res.json(200, user);
-            });
+            return res.status(200).send('You have signed up Successfully!');    
         },function(error){
             console.log('++++++ User Registration Failed +++++++++++++');
             console.log(error);
@@ -200,11 +51,42 @@ module.exports = function(passport,controller,fileService,mailChimpService) {
 
             console.log('++++++ Activation Successful +++++++++++++');
             //send activated email.
-            sendActivatedEmail(user);
-            return res.send(200);
+            mandrillService.sendActivatedEmail(user);
+
+            req.login(user, function(err) {
+
+                if (err) {
+                    console.log('++++++ User Login Error +++++++++++++');
+                    console.log(err);
+                    return next(err);
+                }
+
+                console.log('++++++ User Login Success +++++++++++++');
+
+                delete user.emailVerificationCode; 
+                delete user.password;//delete this code form response for security
+
+                return res.status(200).json(user);    
+            });
+            
         },function(error){
             console.log('++++++ Activation Failed +++++++++++++');
             console.log(error);
+            return res.send(500, error);
+        });
+    });
+
+    app.post('/user/resendverification', function(req, res, next) {
+
+        var data = req.body || {};
+       
+        controller.getAccountByEmail(data.email).then(function(user) {
+
+            console.log('++++++ Resent verification Code Successful +++++++++++++');
+            //resend verify code.
+            mandrillService.sendSignupEmail(user);
+            return res.send(200);
+        },function(error){           
             return res.send(500, error);
         });
     });
@@ -215,10 +97,10 @@ module.exports = function(passport,controller,fileService,mailChimpService) {
 
         controller.requestResetPassword(data.email).then(function(user) {
 
-                console.log('++++++ Request Reset Password Successful +++++++++++++');
-                //send activated email.
-                sendRequestResetPasswordEmail(user);
-                return res.send(200);
+            console.log('++++++ Request Reset Password Successful +++++++++++++');
+            //send activated email.
+            mandrillService.sendRequestResetPasswordEmail(user);
+            return res.send(200);
         },function(error){
             console.log('++++++ Request Reset Password Failed +++++++++++++');
             console.log(error);
@@ -232,23 +114,11 @@ module.exports = function(passport,controller,fileService,mailChimpService) {
 
         controller.resetPassword(data.code, data.password).then(function(user) {
 
-                console.log('++++++ Request Reset Password Successful +++++++++++++');
-                //send activated email.
-                sendPasswordResetSuccessful(user);
+            console.log('++++++ Request Reset Password Successful +++++++++++++');
+            //send activated email.
+            mandrillService.sendPasswordResetSuccessful(user);              
 
-                 //login the user.
-                 req.login(user, function(err) {
-                    if (err) {
-                        return next(err);
-                    }
-
-                    delete user.emailVerificationCode;
-                    delete user.password; //delete this code form response for security
-
-                    return res.json(200, user);
-                 });
-
-                return res.send(200);
+            return res.status(200).send('You have changed password successfully!');    
         },function(error){
             console.log('++++++ Request Reset Password Failed +++++++++++++');
             console.log(error);
@@ -339,7 +209,7 @@ module.exports = function(passport,controller,fileService,mailChimpService) {
 
                 if(data.oldPassword,data.newPassword){
                     //send activated email.
-                    sendPasswordResetSuccessful(user);
+                    mandrillService.sendPasswordResetSuccessful(user);
                 }                
 
                 return res.status(200).json(user);                    

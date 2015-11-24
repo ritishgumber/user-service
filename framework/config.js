@@ -10,11 +10,16 @@ module.exports = function(passport, User) {
       usernameField: 'email',
       passwordField: 'password'
     },function(username, password, done) {     
-      User.findOne({ email: username }, function (err, user) {
+      User.findOne({ email: username}, function (err, user) {
         if (err) { return done(err); }
         if (!user) {
           return done(null, false, { message: 'Incorrect email.' });
         }
+
+        if(user && !user.emailVerified){
+          return done(null, false, { message: 'Account verification needed' });
+        }
+
         if (!UserService.validatePassword(password,user.password,user.salt)) {
           return done(null, false, { message: 'Incorrect password.' });
         }        

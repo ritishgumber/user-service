@@ -15,7 +15,7 @@ module.exports = function(Invoice,InvoiceSettings,UserService){
   return {
     
           getInvoice: function (userId,appId) {
-		console.log("--------------------Get Invoice Service-------------------");
+		       console.log("--------------------Get Invoice Service-------------------");
              var _self = this;
 
              var deferred = Q.defer();
@@ -231,7 +231,7 @@ module.exports = function(Invoice,InvoiceSettings,UserService){
           },
           getDueInvoiceList: function () {
 
-		console.log("---Get Due Invoice List---");
+		        console.log("---Get Due Invoice List---");
              var _self = this;
 	
              var deferred = Q.defer();

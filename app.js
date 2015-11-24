@@ -98,11 +98,12 @@ module.exports = function(){
     var TutorialService  = require('./services/tutorialService.js')(Tutorial);
     var FileService  = require('./services/fileService.js')(mongoose);
     var MailChimpService  = require('./services/mailChimpService.js')();
+    var MandrillService  = require('./services/mandrillService.js')();
 
     console.log("All services started..");
     console.log("routes..");
     //routes. 
-    app.use('/', require('./routes/auth')(passport,UserService,FileService,MailChimpService));
+    app.use('/', require('./routes/auth')(passport,UserService,FileService,MailChimpService,MandrillService));
     app.use('/', require('./routes/subscriber.js')(SubscriberService,MailChimpService));
     app.use('/', require('./routes/project.js')(ProjectService));
     app.use('/', require('./routes/table.js')(TableService, ProjectService));
