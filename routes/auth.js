@@ -5,9 +5,11 @@ var app = express();
 var keys = require('../config/keys.js');
 var mandrill = require('mandrill-api/mandrill');
 var mandrill_client = new mandrill.Mandrill(keys.mandrill);
+var url = require('url');
+
 
 //setup passport
-module.exports = function(passport,controller) {    
+module.exports = function(passport,controller,fileService) {    
 
     //helpers
 
@@ -278,7 +280,85 @@ module.exports = function(passport,controller) {
         })(req, res, next);
     });
 
+
+    app.get('/user', function(req, res, next) {
+
+        var serverUrl=fullUrl(req);
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+        var respJson={};
+
+        if(currentUserId){
+            controller.getAccountById(currentUserId).then(function(user) {  
+                delete user.password;
+                delete user.salt;  
+                delete user.emailVerificationCode;
+
+                respJson.user=user;  
+                              
+                if(user && user.fileId){                    
+                    return fileService.getFileById(user.fileId);
+                }                 
+            }).then(function(file){
+
+                if(file){
+                   //Wrapping for consistency in UI
+                    var fileObject={};
+                    fileObject.id=file._id;
+                    fileObject.name=file.filename;
+                    fileObject.url=serverUrl+"/file/"+respJson.user.fileId;         
+                  
+                    var wrapper={};
+                    wrapper.document=fileObject;                
+                                
+                    respJson.file=wrapper; 
+                }else{
+                    respJson.file=null; 
+                }                
+
+                return res.status(200).send(respJson);
+            },function(error){            
+                return res.send(500, error);
+            });
+        }else{
+            return res.send(401);
+        }
+        
+    });
+
+    app.post('/user/update', function(req, res, next) {
+        var data = req.body || {};
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+
+        if(currentUserId){
+            controller.updateUserProfile(currentUserId,data.name,data.oldPassword,data.newPassword).then(function(user) {  
+                if (!user) {                  
+                  return res.status(400).send('Error : User not updated'); 
+                } 
+
+                if(data.oldPassword,data.newPassword){
+                    //send activated email.
+                    sendPasswordResetSuccessful(user);
+                }                
+
+                return res.status(200).json(user);                    
+            },function(error){
+                return res.send(500, error);
+            });
+
+        }else{
+            return res.send(401);
+        }        
+
+    });
+  
+
     return app;
 
 }
 
+function fullUrl(req) {
+  return url.format({
+    protocol: req.protocol,
+    host: req.get('host')
+  });
+}
