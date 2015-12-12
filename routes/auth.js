@@ -3,6 +3,7 @@ var LocalStrategy = require('passport-local').Strategy;
 var express = require('express');
 var app = express();
 var keys = require('../config/keys.js');
+var _ = require('underscore');
 var url = require('url');
 
 
@@ -240,7 +241,176 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
             return res.send(401);
         }        
 
-    });  
+    });
+
+    app.get('/user/list/:skip/:limit', function(req, res, next) {
+     
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user; 
+        var skip=req.params.skip;
+        var limit=req.params.limit;        
+
+        if(currentUserId){
+            controller.getUserBySkipLimit(skip,limit).then(function(usersList) { 
+                if(usersList.length>0){
+                    for(var i=0;i<usersList.length;++i){
+                        if(usersList[i].password){
+                            delete usersList[i]._doc.password;
+                        }                    
+                        if(usersList[i].emailVerificationCode){
+                            delete usersList[i]._doc.emailVerificationCode;
+                        }
+                        if(usersList[i].salt){
+                            delete usersList[i]._doc.salt;
+                        }
+                        if(usersList[i].provider){
+                            delete usersList[i]._doc.provider;
+                        }                                                       
+                    }
+                }                  
+                return res.status(200).json(usersList);               
+            },function(error){            
+                return res.send(500, error);
+            });
+
+        }else{
+            return res.send(401);
+        }
+        
+    }); 
+
+    app.get('/user/active/:userId/:isActive', function(req, res, next) {
+     
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user; 
+        var userId=req.params.userId;
+        var isActive=req.params.isActive;              
+
+        if(currentUserId){
+            if(currentUserId!=userId){
+                controller.updateUserActive(currentUserId,userId,isActive).then(function(user) { 
+                    if(user){
+                        if(user.password){
+                            delete user._doc.password;
+                        }                    
+                        if(user.emailVerificationCode){
+                            delete user._doc.emailVerificationCode;
+                        }
+                        if(user.salt){
+                            delete user._doc.salt;
+                        }
+                        if(user.provider){
+                            delete user._doc.provider;
+                        } 
+                    }                              
+                    return res.status(200).json(user);               
+                },function(error){            
+                    return res.send(500, error);
+                });
+
+            }else{
+                return res.status(500).send("You can't perform this action");
+            }
+
+        }else{
+            return res.send(401);
+        }
+        
+    });
+
+    app.get('/user/changerole/:userId/:isAdmin', function(req, res, next) {
+     
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user; 
+        var userId=req.params.userId;
+        var isAdmin=req.params.isAdmin;             
+
+        if(currentUserId){
+            if(currentUserId!=userId){
+                controller.updateUserRole(currentUserId,userId,isAdmin).then(function(user) { 
+                    if(user){
+                        if(user.password){
+                            delete user._doc.password;
+                        }                    
+                        if(user.emailVerificationCode){
+                            delete user._doc.emailVerificationCode;
+                        }
+                        if(user.salt){
+                            delete user._doc.salt;
+                        }
+                        if(user.provider){
+                            delete user._doc.provider;
+                        } 
+                    }                              
+                    return res.status(200).json(user);               
+                },function(error){            
+                    return res.send(500, error);
+                });
+            }else{
+                return res.status(500).send("You can't perform this action");
+            }            
+
+        }else{
+            return res.send(401);
+        }
+        
+    }); 
+
+    app.delete('/user/:userId', function(req,res,next) {
+
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.body.userId;
+        var userId=req.params.userId;
+
+        if(currentUserId){
+            if(currentUserId!=userId){
+                controller.delete(currentUserId,userId).then(function() {             
+                     
+                    return res.status(200).json({});                              
+
+                },function(error){
+                    return res.send(500, error);
+                });
+            }else{
+                return res.status(500).send("You can't perform this action");
+            }
+
+        }else{
+            return res.status(401).send("unauthorized");
+        }
+
+    }); 
+
+
+    app.post('/user/byadmin', function(req,res,next) {
+
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.body.userId;
+        var data = req.body || {};
+
+        if(currentUserId){            
+            controller.getUserByEmailByAdmin(currentUserId,data.email).then(function(user) {             
+                 
+                if(user){
+                    if(user.password){
+                        delete user._doc.password;
+                    }                    
+                    if(user.emailVerificationCode){
+                        delete user._doc.emailVerificationCode;
+                    }
+                    if(user.salt){
+                        delete user._doc.salt;
+                    }
+                    if(user.provider){
+                        delete user._doc.provider;
+                    } 
+                }                              
+                return res.status(200).json(user);                              
+
+            },function(error){
+                return res.send(500, error);
+            });           
+
+        }else{
+            return res.status(401).send("unauthorized");
+        }
+
+    });
 
     return app;
 

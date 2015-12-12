@@ -172,6 +172,7 @@ module.exports = function(User,BeaconService){
                      user.email = data.email;
                      user.name = data.name;
                      user.isAdmin = data.isAdmin;
+                     user.isActive = true;
 
                      if(data.isAdmin){
                         user.emailVerified  = true;
@@ -204,6 +205,58 @@ module.exports = function(User,BeaconService){
                     }
                     return deffered.resolve(user);                    
                   });
+
+                  return deffered.promise;
+                },
+                updateUserActive: function(currentUserId,userId,isActive) {
+                  var deffered = Q.defer();
+
+                  User.findOne({_id:currentUserId},function (err, user) {
+                    if (err) { return deffered.reject(err); }
+                    if (!user) {
+                      return deffered.reject("Unauthorized");
+                    }
+                    if(user && user.isAdmin){
+
+                      User.findOneAndUpdate({_id:userId}, { $set: { isActive:isActive}},{new:true},function (err, user) {
+                        if (err) { return deffered.reject(err); }
+                        if (!user) {
+                          return deffered.reject(null);
+                        }
+                        return deffered.resolve(user);                    
+                      });
+
+                    }else{
+                      return deffered.reject("You can't perform this action!");
+                    }
+                                       
+                  });                 
+
+                  return deffered.promise;
+                },
+                updateUserRole: function(currentUserId,userId,isAdmin) {
+                  var deffered = Q.defer();
+
+                  User.findOne({_id:currentUserId},function (err, user) {
+                    if (err) { return deffered.reject(err); }
+                    if (!user) {
+                      return deffered.reject("Unauthorized");
+                    }
+                    if(user && user.isAdmin){
+
+                      User.findOneAndUpdate({_id:userId}, { $set: { isAdmin:isAdmin}},{new:true},function (err, user) {
+                        if (err) { return deffered.reject(err); }
+                        if (!user) {
+                          return deffered.reject(null);
+                        }
+                        return deffered.resolve(user);                    
+                      });
+
+                    }else{
+                      return deffered.reject("You can't perform this action!");
+                    }
+                                       
+                  }); 
 
                   return deffered.promise;
                 },
@@ -243,18 +296,13 @@ module.exports = function(User,BeaconService){
                       }
                       return deffered.resolve(user);                    
                     });
-                  }                 
-
+                  } 
 
                   return deffered.promise;
-                },
-
-                removeUser: function(id, callback) {
-                   //TODO
-                },
+                },               
 
                 getUserList: function(){
-                     var deffered = Q.defer();
+                    var deffered = Q.defer();
 
                      User.find({},function (err, users) {
                           if (err) { return deffered.reject(err); }
@@ -279,7 +327,78 @@ module.exports = function(User,BeaconService){
                   });
 
                   return deffered.promise;
-                }
+                },
+                getUserBySkipLimit: function(skip,limit){
+                  var deffered = Q.defer();
+
+                  User.find().skip(skip).limit(limit).exec(function (err, users) {
+                    if (err) { return deffered.reject(err); }
+                    if (users.length==0) {
+                      return deffered.reject(null);
+                    }                          
+                    return deffered.resolve(users);
+                  });
+
+                  return deffered.promise;
+                },
+                delete: function (currentUserId,userId) {
+
+                  var deffered = Q.defer();
+
+                  var self = this;                   
+
+                  User.findOne({_id:currentUserId},function (err, user) {
+                    if (err) { return deffered.reject(err); }
+                    if (!user) {
+                      return deffered.reject("Unauthorized");
+                    }
+                    if(user && user.isAdmin){
+
+                      User.remove({_id:userId}, function (err) {
+                        if(err){                       
+                          return deffered.reject(err);
+                        }else{
+                          return deffered.resolve("Success");
+                        }
+                      });
+
+                    }else{
+                      return deffered.reject("You can't perform this action!");
+                    }
+                                       
+                  });
+
+                  return deffered.promise;
+
+                },
+
+                getUserByEmailByAdmin: function (adminId,email) {
+                    
+                    var deffered = Q.defer();
+
+                    User.findOne({_id:adminId},function (err, user) {
+                      if (err) { return deffered.reject(err); }
+                      if (!user) {
+                        return deffered.reject("Unauthorized");
+                      }
+                      if(user && user.isAdmin){
+
+                        User.findOne({email:email}, function (err, user) {
+                            if (err) { return deffered.reject(err); }
+                            if (!user) {
+                              return deffered.reject('Incorrect Email');
+                            }                        
+                            return deffered.resolve(user);
+                        });
+
+                      }else{
+                        return deffered.reject("You can't perform this action!");
+                      }
+                                       
+                  });
+                  return deffered.promise;
+
+                },
         }
 
 };

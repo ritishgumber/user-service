@@ -14,7 +14,8 @@ module.exports = function(mongoose){
 		salt : String,
 		createdAt : Date,
 		fileId:String,
-		isAdmin:Boolean
+		isAdmin:Boolean,
+		isActive:Boolean,
 	});
 
 	return mongoose.model('User', userSchema);
