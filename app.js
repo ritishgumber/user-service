@@ -101,7 +101,7 @@ module.exports = function(){
     var MandrillService  = require('./services/mandrillService.js')();
 
     console.log("All services started..");
-    console.log("routes..");
+    console.log("routes..");    
     //routes. 
     app.use('/', require('./routes/auth')(passport,UserService,FileService,MailChimpService,MandrillService));
     app.use('/', require('./routes/subscriber.js')(SubscriberService,MailChimpService));
@@ -113,6 +113,7 @@ module.exports = function(){
     app.use('/', require('./routes/beacon.js')(BeaconService));
     app.use('/', require('./routes/tutorial.js')(TutorialService));
     app.use('/', require('./routes/file.js')(mongoose,FileService,UserService));
+    app.use('/', require('./routes/cloudboost.js')(UserService));
 
 
     app.get('/', function(req, res) {

@@ -171,7 +171,13 @@ module.exports = function(User,BeaconService){
                      var user = new User();
                      user.email = data.email;
                      user.name = data.name;
-                     user.emailVerified  = false;
+                     user.isAdmin = data.isAdmin;
+
+                     if(data.isAdmin){
+                        user.emailVerified  = true;
+                     }else{
+                        user.emailVerified  = false;
+                     }                     
                      user.emailVerificationCode = util.generateRandomString();
                      user.createdAt = new Date();
 
@@ -254,12 +260,25 @@ module.exports = function(User,BeaconService){
                           if (err) { return deffered.reject(err); }
                           if (users.length==0) {
                             return deffered.reject(null);
-                          }
-                          
+                          }                          
                           return deffered.resolve(users);
                     });
 
                     return deffered.promise;
+                },
+                isNewServer: function(){
+                  var deffered = Q.defer();
+
+                   User.find({},function (err, users) {
+                      if (err) { return deffered.reject(err); }
+                      if (!users || users.length==0) {
+                        return deffered.resolve(true);
+                      }
+                      
+                      return deffered.resolve(false);
+                  });
+
+                  return deffered.promise;
                 }
         }
 

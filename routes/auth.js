@@ -31,11 +31,30 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
 
             console.log('++++++ User Registration Success +++++++++++++');
 
-            mandrillService.sendSignupEmail(user);
             var newsListId="b0419808f9";       
             mailChimpService.addSubscriber(newsListId,user.email);
+            
+            if(data.isAdmin){
+                req.login(user, function(err) {
 
-            return res.status(200).send('You have signed up Successfully!');    
+                    if (err) {
+                        console.log('++++++ User Login Error +++++++++++++');
+                        console.log(err);
+                        return next(err);
+                    }
+                    
+                    console.log('++++++ User Login Success +++++++++++++');
+
+                    delete user.emailVerificationCode; 
+                    delete user.password;//delete this code form response for security
+
+                    return res.status(200).json(user);    
+                });
+
+            }else{
+                mandrillService.sendSignupEmail(user);
+                return res.status(200).send('You have signed up Successfully!');  
+            }                
         },function(error){
             console.log('++++++ User Registration Failed +++++++++++++');
             console.log(error);
@@ -60,7 +79,7 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
                     console.log(err);
                     return next(err);
                 }
-
+                
                 console.log('++++++ User Login Success +++++++++++++');
 
                 delete user.emailVerificationCode; 
@@ -207,12 +226,11 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
                 if (!user) {                  
                   return res.status(400).send('Error : User not updated'); 
                 } 
-
                 if(data.oldPassword,data.newPassword){
                     //send activated email.
                     mandrillService.sendPasswordResetSuccessful(user);
                 }                
-
+                req.logout();
                 return res.status(200).json(user);                    
             },function(error){
                 return res.send(500, error);
@@ -222,8 +240,7 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
             return res.send(401);
         }        
 
-    });
-  
+    });  
 
     return app;
 

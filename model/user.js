@@ -13,7 +13,8 @@ module.exports = function(mongoose){
 		provider: String,
 		salt : String,
 		createdAt : Date,
-		fileId:String
+		fileId:String,
+		isAdmin:Boolean
 	});
 
 	return mongoose.model('User', userSchema);
