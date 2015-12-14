@@ -129,6 +129,50 @@ module.exports = function(controller) {
         }
     });
 
+    app.get('/app/:appId/change/masterkey', function(req,res,next) {
+
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+        var id = req.params.appId;
+        
+        if(currentUserId && id){
+            controller.changeAppMasterKey(id).then(function(project) {
+                if (!project) {
+                    return res.send(500, 'Error: Project not found');
+                }
+
+                return res.status(200).send(project.keys.master);
+
+            },function(error){
+                return res.satus(500).send(error);
+            });
+
+        }else{
+            return res.send(401);
+        }
+    });
+
+    app.get('/app/:appId/change/clientkey', function(req,res,next) {
+
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+        var id = req.params.appId;
+       
+        if(currentUserId && id){
+            controller.changeAppClientKey(id).then(function(project) {
+                if (!project) {
+                    return res.send(500, 'Error: Project not found');
+                }
+
+                return res.status(200).send(project.keys.js);
+
+            },function(error){
+                return res.satus(500).send(error);
+            });
+
+        }else{
+            return res.send(401);
+        }
+    });
+
     app.delete('/app/:appId', function(req,res,next) {
 
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.body.userId;

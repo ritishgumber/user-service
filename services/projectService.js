@@ -220,6 +220,48 @@ module.exports = function(Project,InvoiceService){
              return deferred.promise;
 
           },
+          changeAppMasterKey: function (appId) {
+
+              var deferred = Q.defer();
+
+              var self = this;             
+
+              var newMasterKey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), keys.encryptKey, 100, 32).toString("base64");        
+
+              Project.findOneAndUpdate({appId:appId},{$set: {"keys.master":newMasterKey }},{'new': true}, function (err, newProject) {
+                if (err) deferred.reject(err);
+                if(newProject){
+                  deferred.resolve(newProject);
+                }else{
+                  deferred.resolve(null);
+                }
+                     
+              });
+
+             return deferred.promise;
+
+          },
+          changeAppClientKey: function (appId) {
+
+              var deferred = Q.defer();
+
+              var self = this;
+
+              var newClientkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), keys.encryptKey, 100, 16).toString("base64");
+
+              Project.findOneAndUpdate({appId:appId},{$set: {"keys.js":newClientkey }},{'new': true}, function (err, newProject) {
+                if (err) deferred.reject(err);
+                if(newProject){
+                  deferred.resolve(newProject);
+                }else{
+                  deferred.resolve(null);
+                }
+                     
+              });
+
+             return deferred.promise;
+
+          },
 
           delete: function (appId,userId) {
 
