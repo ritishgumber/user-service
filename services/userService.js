@@ -8,7 +8,7 @@ var util = require('./utilService')();
 var LocalStrategy = require('passport-local').Strategy;
 
 
-module.exports = function(User,BeaconService){
+module.exports = function(User,BeaconService,CbServerService){
 
     return {
                 makeSalt: function () {
@@ -188,8 +188,14 @@ module.exports = function(User,BeaconService){
                      }
 
                      user.save(function (err) {
-                          if (err) deffered.reject(err);
-                          else deffered.resolve(user);
+                        if (err){
+                          deffered.reject(err);
+                        } else{                          
+                          if(data.isAdmin){
+                            CbServerService.upsertSettings(null,false);
+                          }
+                          deffered.resolve(user);
+                        } 
                      });
 
                      return deffered.promise;
@@ -328,14 +334,15 @@ module.exports = function(User,BeaconService){
 
                   return deffered.promise;
                 },
-                getUserBySkipLimit: function(skip,limit){
+                getUserBySkipLimit: function(skip,limit,skipUserIds){
                   var deffered = Q.defer();
 
-                  User.find().skip(skip).limit(limit).exec(function (err, users) {
+                  User.find({_id:{$nin:skipUserIds}}).skip(skip).limit(limit).exec(function (err, users) {
                     if (err) { return deffered.reject(err); }
-                    if (users.length==0) {
-                      return deffered.reject(null);
-                    }                          
+                    if (users.length==0) {                      
+                      return deffered.resolve(null);
+                    }
+
                     return deffered.resolve(users);
                   });
 

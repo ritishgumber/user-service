@@ -243,15 +243,18 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
 
     });
 
-    app.get('/user/list/:skip/:limit', function(req, res, next) {
+    app.put('/user/list/:skip/:limit', function(req, res, next) {
      
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user; 
         var skip=req.params.skip;
-        var limit=req.params.limit;        
+        var limit=req.params.limit;
+
+        var data = req.body || {}; 
+        var skipUserIds=data.skipUserIds;       
 
         if(currentUserId){
-            controller.getUserBySkipLimit(skip,limit).then(function(usersList) { 
-                if(usersList.length>0){
+            controller.getUserBySkipLimit(skip,limit,skipUserIds).then(function(usersList) { 
+                if(usersList && usersList.length>0){
                     for(var i=0;i<usersList.length;++i){
                         if(usersList[i].password){
                             delete usersList[i]._doc.password;
