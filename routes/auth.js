@@ -224,6 +224,43 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
 
     });
   
+    app.post('/user/list', function(req, res, next) {
+        var data = req.body || {};
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+
+        if(currentUserId){
+            if(data.IdArray && data.IdArray.length>0){
+                controller.getUserListByIds(data.IdArray).then(function(usersList) {  
+                    if(usersList && usersList.length>0){
+                        for(var i=0;i<usersList.length;++i){
+                            if(usersList[i].password){
+                                delete usersList[i]._doc.password;
+                            }                    
+                            if(usersList[i].emailVerificationCode){
+                                delete usersList[i]._doc.emailVerificationCode;
+                            }
+                            if(usersList[i].salt){
+                                delete usersList[i]._doc.salt;
+                            }
+                            if(usersList[i].provider){
+                                delete usersList[i]._doc.provider;
+                            }                                                       
+                        }
+                    }                            
+
+                    return res.status(200).json(usersList);                    
+                },function(error){
+                    return res.send(500, error);
+                });
+            }else{
+                return res.status(200).json(null); 
+            }            
+
+        }else{
+            return res.send(401);
+        }        
+
+    });
 
     return app;
 

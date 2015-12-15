@@ -7,6 +7,7 @@ module.exports = function(mongoose){
 	       appId: String,
 	     _userId: String,
 	       keys : Object,
+	     invited: Array,
 	  developers: Array
 	});
 

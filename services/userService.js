@@ -260,6 +260,21 @@ module.exports = function(User,BeaconService){
                     });
 
                     return deffered.promise;
+                },
+
+                getUserListByIds: function(IdsArray){
+                  var deffered = Q.defer();
+
+                   User.find({_id:{$in:IdsArray}},function (err, usersList) {
+                      if (err) { return deffered.reject(err); }
+                      if (usersList.length==0) {
+                        return deffered.reject(null);
+                      }
+                      
+                      return deffered.resolve(usersList);
+                  });
+
+                  return deffered.promise;
                 }
         }
 

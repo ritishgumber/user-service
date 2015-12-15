@@ -35,6 +35,17 @@ module.exports = function(Project,InvoiceService){
                         project.keys = {};
                         project.keys.js = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), keys.encryptKey, 100, 16).toString("base64");
                         project.keys.master = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), keys.encryptKey, 100, 32).toString("base64");        
+                        
+                        //Adding default developer
+                        var developers=[];
+                        var newDeveloper={};
+                        newDeveloper.userId=userId;
+                        newDeveloper.role="Admin";
+                        developers.push(newDeveloper);
+
+                        project.developers=developers;
+                        //End Adding default developer
+
                         var promises = [];
                         promises.push(createProject(appId));
                         promises.push(project.save());
@@ -123,9 +134,9 @@ module.exports = function(Project,InvoiceService){
 
             var deferred = Q.defer();
 
-            var self = this;
+            var self = this;            
 
-              Project.find({ _userId: userId }, function (err, list) {
+              Project.find({ developers: {$elemMatch: {userId:userId} } }, function (err, list) {
                 if (err) deferred.reject(err);
 
                 var promise = [];
@@ -164,13 +175,13 @@ module.exports = function(Project,InvoiceService){
                       deferred.reject('error updating project');
                   }else if(project){
 
-                    Project.findOne({_userId:userId,name:name}, function (err, projectSameName) {
+                    Project.findOne({name:name}, function (err, projectSameName) {
                       if(projectSameName){
                         deferred.reject('AppName already exists');
                       }else{
 
                           /***Start editing***/
-                          if(project && project._userId==userId){                      
+                          if(project && checkValidUser(project,userId)){                      
                               project.name=name;                 
 
                               project.save(function (err, project) {
@@ -189,7 +200,7 @@ module.exports = function(Project,InvoiceService){
                                   }
                               });
                           }else{
-                            deferred.reject("Unauthorized");
+                           deferred.reject("Unauthorized");
                           }
                           /***End Start editing***/ 
 
@@ -271,7 +282,7 @@ module.exports = function(Project,InvoiceService){
 
               console.log(' ++++++++ App Delete request +++++++++');
 
-              Project.remove({appId:appId, _userId : userId}, function (err) {
+              Project.remove({appId:appId,developers: {$elemMatch: {userId:userId,role:"Admin"} }}, function (err) {
                 if(err){
                   console.log('++++++++ App Delete failed from frontend ++++++++++'); 
                   console.log(err);
@@ -361,4 +372,17 @@ function createProject(appId){
         }
     });
     return deferred.promise;
+}
+
+function checkValidUser(app,userId){
+  if(app.developers && app.developers.length>0){
+    return _.find(app.developers, function(eachObj){ 
+      if(eachObj.userId==userId){
+        return true;
+      }
+    });
+
+  }else {
+    return false;
+  }
 }
