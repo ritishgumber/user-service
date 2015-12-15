@@ -62,6 +62,7 @@ module.exports = function(){
     var InvoiceSettings = require('./model/invoiceSettings.js')(mongoose);
     var Beacon = require('./model/beacon.js')(mongoose);
     var Tutorial = require('./model/tutorial.js')(mongoose);
+    var CbServer = require('./model/cbserver.js')(mongoose);
 
     console.log("models created..");
     //config
@@ -86,8 +87,9 @@ module.exports = function(){
 
     //services.
     console.log("starting services..");
-    var BeaconService  = require('./services/beaconService.js')(Beacon);  
-    var UserService = require('./services/userService')(User,BeaconService);
+    var BeaconService  = require('./services/beaconService.js')(Beacon); 
+    var CbServerService  = require('./services/cbServerService.js')(CbServer); 
+    var UserService = require('./services/userService')(User,BeaconService,CbServerService);
     console.log("UserService : " + UserService);    
     var SubscriberService  = require('./services/subscriberService.js')(Subscriber);
     var InvoiceService  = require('./services/invoiceService.js')(Invoice,InvoiceSettings,UserService);
@@ -99,9 +101,10 @@ module.exports = function(){
     var FileService  = require('./services/fileService.js')(mongoose);
     var MailChimpService  = require('./services/mailChimpService.js')();
     var MandrillService  = require('./services/mandrillService.js')();
+    
 
     console.log("All services started..");
-    console.log("routes..");
+    console.log("routes..");    
     //routes. 
     app.use('/', require('./routes/auth')(passport,UserService,FileService,MailChimpService,MandrillService));
     app.use('/', require('./routes/subscriber.js')(SubscriberService,MailChimpService));
@@ -113,6 +116,7 @@ module.exports = function(){
     app.use('/', require('./routes/beacon.js')(BeaconService));
     app.use('/', require('./routes/tutorial.js')(TutorialService));
     app.use('/', require('./routes/file.js')(mongoose,FileService,UserService));
+    app.use('/', require('./routes/cloudboost.js')(CbServerService,UserService));
 
 
     app.get('/', function(req, res) {

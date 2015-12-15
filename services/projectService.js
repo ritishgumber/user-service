@@ -310,6 +310,42 @@ module.exports = function(Project,InvoiceService){
              return deferred.promise;
 
           },
+          removeUser: function (appId,userId) {
+
+              var deferred = Q.defer();
+
+              var self = this;             
+
+              Project.findOne({appId:appId,developers: {$elemMatch: {userId:userId} }}, function (err,foundProj) {
+                if(err){                  
+                  deferred.reject(err);
+                }else if(!foundProj){
+                   deferred.reject("Project not found with given userId");
+                }else{
+
+                  var tempArray=foundProj.developers;
+
+                  for(var i=0;i<foundProj.developers.length;++i){
+                    if(foundProj.developers[i].userId==userId){
+                      tempArray.splice(i,1);
+                    }
+                  }
+
+                  foundProj.developers=tempArray;
+                  foundProj.save(function (err, project) {
+                    if (err) deferred.reject(err);
+                    if(!project){
+                      deferred.reject('Cannot save the app right now.');
+                    }else{
+                      deferred.resolve(project);                     
+                    }
+                  });
+                }
+              });
+
+             return deferred.promise;
+
+          },
           allProjectList: function () {
 
             var _self = this;
@@ -345,6 +381,83 @@ module.exports = function(Project,InvoiceService){
               });
 
              return deferred.promise;
+          },
+          inviteUser: function (appId,userId) {
+
+              var deferred = Q.defer();
+
+              var self = this;                 
+
+              Project.findOne({appId:appId}, function (err, project) {
+                if (err) deferred.reject(err);
+                if(!project){
+                  deferred.reject("App not found!.");
+                }else{
+                  var alreadyThere=project.invited.indexOf(userId);
+                  if(alreadyThere<0){
+                    project.invited.push(userId);
+
+                    project.save(function (err, savedProject) {
+                      if (err) deferred.reject(err);
+                      if(!savedProject){
+                        deferred.reject('Cannot save the app right now.');
+                      }else{
+                        deferred.resolve("successfully Invited!");                     
+                      }
+                    });
+
+                  }else{
+                    deferred.resolve("Already invited!");
+                  } 
+                  
+                }
+                     
+              });
+
+             return deferred.promise;
+
+          },
+          addDeveloper: function (appId,userId) {
+
+              var deferred = Q.defer();
+
+              var self = this;                 
+
+              Project.findOne({appId:appId}, function (err, project) {
+                if (err) deferred.reject(err);
+                if(!project){
+                  deferred.reject("App not found!.");
+                }else{
+
+                  if(!checkValidUser(project,userId)){
+
+                    //Adding default developer                      
+                      var newDeveloper={};
+                      newDeveloper.userId=userId;
+                      newDeveloper.role="User";
+
+                      project.developers.push(newDeveloper); 
+                    //End Adding default developer                   
+
+                    project.save(function (err, savedProject) {
+                      if (err) deferred.reject(err);
+                      if(!savedProject){
+                        deferred.reject('Cannot save the app right now.');
+                      }else{
+                        deferred.resolve("successfully Added!");                     
+                      }
+                    });
+
+                  }else{
+                    deferred.resolve("Already added!");
+                  } 
+                  
+                }
+                     
+              });
+
+             return deferred.promise;
+
           }
     }
 

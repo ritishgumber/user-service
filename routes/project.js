@@ -193,6 +193,74 @@ module.exports = function(controller) {
 
     });
 
+    app.delete('/app/:appId/removeuser/:userId', function(req,res,next) {
+
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.body.userId;
+
+        var appId = req.params.appId;
+        var userId = req.params.userId;
+
+        if(currentUserId && appId && userId){
+
+            controller.removeUser(appId, userId).then(function(project) {                
+                 
+                return res.status(200).json(project);                              
+
+            },function(error){
+                return res.send(500, error);
+            });
+
+        }else{
+            return res.status(401).send("unauthorized");
+        }
+
+    });
+
+    app.get('/app/:appId/invite/:userId', function(req,res,next) {
+
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+        var appId = req.params.appId;
+        var userId = req.params.userId;
+        
+        if(currentUserId && appId && userId){
+            controller.inviteUser(appId,userId).then(function(response) {
+                if (!response) {
+                    return res.send(500, 'Error: Project not found');
+                }
+
+                return res.status(200).send(response);
+
+            },function(error){
+                return res.satus(500).send(error);
+            });
+
+        }else{
+            return res.send(401);
+        }
+    });
+
+    app.get('/app/:appId/adddeveloper/:userId', function(req,res,next) {
+
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+        var appId = req.params.appId;
+        var userId = req.params.userId;
+        
+        if(currentUserId && appId && userId){
+            controller.addDeveloper(appId,userId).then(function(response) {
+                if (!response) {
+                    return res.send(500, 'Error: Project not found');
+                }
+
+                return res.status(200).send(responser);
+
+            },function(error){
+                return res.satus(500).send(error);
+            });
+
+        }else{
+            return res.send(401);
+        }
+    });
 
     return app;
 
