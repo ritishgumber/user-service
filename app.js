@@ -40,18 +40,18 @@ module.exports = function(){
          }
     });   
 
-	console.log("creating redis client..");
+    console.log("creating redis client..");
     global.redisClient = redis.createClient(global.keys.redisPort,
         global.keys.redisURL,
         {
             auth_pass:global.keys.redisPassword
         }
     );
-	console.log("redis client created..");
+    console.log("redis client created..");
     //models. 
-	console.log("creating models..");
+    console.log("creating models..");
     var Project = require('./model/project.js')(mongoose);
-	//console.log(Project);
+    //console.log(Project);
     var Subscriber = require('./model/subscriber.js')(mongoose);
     var User = require('./model/user.js')(mongoose);
     var Table = require('./model/table.js')(mongoose);
@@ -63,7 +63,7 @@ module.exports = function(){
     var Beacon = require('./model/beacon.js')(mongoose);
     var Tutorial = require('./model/tutorial.js')(mongoose);
 
-	console.log("models created..");
+    console.log("models created..");
     //config
     
     app.use(bodyParser.json());
@@ -85,10 +85,10 @@ module.exports = function(){
     require('./framework/config')(passport, User);
 
     //services.
-	console.log("starting services..");
+    console.log("starting services..");
     var BeaconService  = require('./services/beaconService.js')(Beacon);  
     var UserService = require('./services/userService')(User,BeaconService);
-	console.log("UserService : " + UserService);    
+    console.log("UserService : " + UserService);    
     var SubscriberService  = require('./services/subscriberService.js')(Subscriber);
     var InvoiceService  = require('./services/invoiceService.js')(Invoice,InvoiceSettings,UserService);
     var ProjectService  = require('./services/projectService.js')(Project,InvoiceService);
@@ -96,12 +96,15 @@ module.exports = function(){
     var ProjectDetailsService  = require('./services/projectDetailsService.js')(ProjectDetails);
     var PaymentService  = require('./services/paymentService.js')(StripeCustomer,CreditCardInfo,InvoiceService,UserService,ProjectService); 
     var TutorialService  = require('./services/tutorialService.js')(Tutorial);
+    var FileService  = require('./services/fileService.js')(mongoose);
+    var MailChimpService  = require('./services/mailChimpService.js')();
+    var MandrillService  = require('./services/mandrillService.js')();
 
-	console.log("All services started..");
-	console.log("routes..");
+    console.log("All services started..");
+    console.log("routes..");
     //routes. 
-    app.use('/', require('./routes/auth')(passport,UserService));
-    app.use('/', require('./routes/subscriber.js')(SubscriberService));
+    app.use('/', require('./routes/auth')(passport,UserService,FileService,MailChimpService,MandrillService));
+    app.use('/', require('./routes/subscriber.js')(SubscriberService,MailChimpService));
     app.use('/', require('./routes/project.js')(ProjectService));
     app.use('/', require('./routes/table.js')(TableService, ProjectService));
     app.use('/', require('./routes/projectDetails.js')(ProjectDetailsService));
@@ -109,6 +112,7 @@ module.exports = function(){
     app.use('/', require('./routes/invoice.js')(InvoiceService));
     app.use('/', require('./routes/beacon.js')(BeaconService));
     app.use('/', require('./routes/tutorial.js')(TutorialService));
+    app.use('/', require('./routes/file.js')(mongoose,FileService,UserService));
 
 
     app.get('/', function(req, res) {
@@ -120,7 +124,7 @@ module.exports = function(){
 
    /**********CRON JOB**********/
    try{
-	console.log("cron job initializing...");
+    console.log("cron job initializing...");
         var job = new CronJob('00 30 11 1 * *', function() {
           /*
            * 00 30 11 1 * *
@@ -130,13 +134,13 @@ module.exports = function(){
             InvoiceService.getDueInvoiceList().then(function(invoiceList){                                    
               
               if(invoiceList){
-    			    console.log("Invoice Service..");                    
+                    console.log("Invoice Service..");                    
                     var userIndex=[]; 
                     var promises=[];
                  
-        			if(!invoiceList.length ){
-        				console.log("undefine length");
-        			}
+                    if(!invoiceList.length ){
+                        console.log("undefine length");
+                    }
                     for(var i=0;i<invoiceList.length;++i){
 
                       var userId=invoiceList[i]._userId;                    

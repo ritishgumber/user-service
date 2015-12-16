@@ -12,7 +12,8 @@ module.exports = function(mongoose){
 		emailVerificationCode : String,
 		provider: String,
 		salt : String,
-		createdAt : Date
+		createdAt : Date,
+		fileId:String
 	});
 
 	return mongoose.model('User', userSchema);

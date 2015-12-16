@@ -45,7 +45,7 @@ module.exports = function(User,BeaconService){
 
                 activate: function (code) {
 
-                     var deffered = Q.defer();
+                    var deffered = Q.defer();
 
                      User.find({ emailVerificationCode: code }, function (err, user) {
                           if (err) { return deffered.reject(err); }
@@ -63,31 +63,30 @@ module.exports = function(User,BeaconService){
                             });
 
                           }
-
                     });
 
-                     return deffered.promise;
+                    return deffered.promise;
                 },
 
                 requestResetPassword : function(email){
                      var deffered = Q.defer();
 
                      User.findOne({ email: email }, function (err, user) {
-                          if (err) { return deffered.reject(err); }
-                          if (!user) {
-                            return deffered.reject('Email doesnot belong to any user.');
-                          }
+                        if (err) { return deffered.reject(err); }
+                        if (!user) {
+                          return deffered.reject('Email doesnot belong to any user.');
+                        }
 
-                          user.emailVerificationCode = util.generateRandomString();
+                        user.emailVerificationCode = util.generateRandomString();
 
-                          user.save(function (err,user) {
-                            if (err) deffered.reject(err);
-                            else deffered.resolve(user);
-                          });
+                        user.save(function (err,user) {
+                          if (err) deffered.reject(err);
+                          else deffered.resolve(user);
+                        });
 
                      });
 
-                     return deffered.promise;
+                    return deffered.promise;
                 },
 
                 resetPassword : function(code, password){
@@ -121,18 +120,16 @@ module.exports = function(User,BeaconService){
                     var deffered = Q.defer();
 
                      User.findById(id, function (err, user) {
-                          if (err) { return deffered.reject(err); }
-                          if (!user) {
-                            return deffered.reject('Incorrect ID');
-                          }
-                          
-                          return deffered.resolve(user);
+                        if (err) { return deffered.reject(err); }
+                        if (!user) {
+                          return deffered.reject('Incorrect ID');
+                        }                        
+                        return deffered.resolve(user._doc);
                     });
 
                     return deffered.promise;
 
                 },
-
             
                 register: function (data) {
                     var deffered = Q.defer();
@@ -191,9 +188,59 @@ module.exports = function(User,BeaconService){
                      return deffered.promise;
                    
                 },
+                updateUserProfilePic: function(userId,fileId) {
+                  var deffered = Q.defer();
 
-                updateUser: function(data) {
-                   //TODO.
+                  User.findOneAndUpdate({_id:userId}, { $set: { fileId:fileId}},{new:true},function (err, user) {
+                    if (err) { return deffered.reject(err); }
+                    if (!user) {
+                      return deffered.reject(null);
+                    }
+                    return deffered.resolve(user);                    
+                  });
+
+                  return deffered.promise;
+                },
+
+                updateUserProfile: function(userId,name,oldPassword,newPassword) {
+                  var self = this;
+
+                  var deffered = Q.defer();
+
+                  if(oldPassword && newPassword){
+
+                    self.getAccountById(userId).then(function(user){                      
+                      if (!self.validatePassword(oldPassword,user.password,user.salt)) {
+                        return deffered.reject("Password is Incorrect");
+                      }else{
+
+                        var setPassword={};                      
+
+                        setPassword.salt = self.makeSalt();
+                        setPassword.password = self.encryptPassword(newPassword, setPassword.salt);
+
+                        User.findOneAndUpdate({_id:userId}, { $set: setPassword},{new:true},function (err, user) {
+                          if (err) { return deffered.reject(err); }
+                          if (!user) {
+                            return deffered.reject(null);
+                          }
+                          return deffered.resolve(user);                    
+                        });
+                      }
+                    });                  
+
+                  }else if(name){
+                    User.findOneAndUpdate({_id:userId}, { $set: {name:name}},{new:true},function (err, user) {
+                      if (err) { return deffered.reject(err); }
+                      if (!user) {
+                        return deffered.reject(null);
+                      }
+                      return deffered.resolve(user);                    
+                    });
+                  }                 
+
+
+                  return deffered.promise;
                 },
 
                 removeUser: function(id, callback) {

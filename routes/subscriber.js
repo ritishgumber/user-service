@@ -1,7 +1,10 @@
 ﻿var express = require('express');
 var app = express();
+var keys = require('../config/keys');
+var request = require('request');
+var Q = require('q');
 
-module.exports = function(subscriberService) {
+module.exports = function(subscriberService,mailChimpService) {
 
     // routes
     app.post('/subscribe', function(req,res,next) {
@@ -12,20 +15,22 @@ module.exports = function(subscriberService) {
         }
 
         subscriberService.subscribe(data.email).then(function(subscriber){
-            if (!subscriber) {
-               return res.send(500,'Server Error');
-            }else{
-              return res.json(200,subscriber);
+            if (!subscriber) {               
+               return res.status(400).send('Server Error'); 
+            }else{       
+              var newsListId="b0419808f9";       
+              mailChimpService.addSubscriber(newsListId,data.email);
+              return res.status(200).json(subscriber);
             }
         }, function(error){
-          if(error === 'Already Subscribed'){
-            return res.json(406 , 'Already subscribed');
+          if(error === 'Already Subscribed'){            
+            return res.status(400).send('Already subscribed'); 
           }
         });
 
     });
 
     return app;
-
     
 };
+
