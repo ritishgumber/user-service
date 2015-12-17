@@ -1,5 +1,5 @@
 #
-# CloudBoost Dockerfile
+# CloudBoost Services Dockerfile
 #
 
 # Pull base image ununtu image.
@@ -21,9 +21,8 @@ RUN npm install
 COPY . /usr/src/app
 
 # Expose ports.
-#   - 4730: CloudBoost HTTP REST API
-EXPOSE 4730
+#   - 3000: CloudBoost HTTP REST API
+EXPOSE 3000
 
 #Run the app
 CMD [ "npm", "start" ]
-
