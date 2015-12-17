@@ -8,7 +8,7 @@ var util = require('./utilService')();
 var LocalStrategy = require('passport-local').Strategy;
 
 
-module.exports = function(User,BeaconService,CbServerService){
+module.exports = function(User,BeaconService,CbServerService,NotificationService){
 
     return {
                 makeSalt: function () {
@@ -193,6 +193,8 @@ module.exports = function(User,BeaconService,CbServerService){
                         } else{                          
                           if(data.isAdmin){
                             CbServerService.upsertSettings(null,false);
+                            NotificationService.linkUserId(user.email,user._id);
+
                           }
                           deffered.resolve(user);
                         } 

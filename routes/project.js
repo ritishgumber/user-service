@@ -90,7 +90,7 @@ module.exports = function(controller) {
     });
 
     app.get('/app/:appId', function(req,res,next) {
-		console.log(req.body);
+		//console.log(req.body);
         //var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
         var id=req.params.appId;
                  
@@ -135,15 +135,15 @@ module.exports = function(controller) {
         var id = req.params.appId;
         
         if(currentUserId && id){
-            controller.changeAppMasterKey(id).then(function(project) {
+            controller.changeAppMasterKey(currentUserId,id).then(function(project) {
                 if (!project) {
-                    return res.send(500, 'Error: Project not found');
+                    return res.send(400, 'Error: Project not found');
                 }
 
                 return res.status(200).send(project.keys.master);
 
             },function(error){
-                return res.satus(500).send(error);
+                return res.satus(400).send(error);
             });
 
         }else{
@@ -157,15 +157,15 @@ module.exports = function(controller) {
         var id = req.params.appId;
        
         if(currentUserId && id){
-            controller.changeAppClientKey(id).then(function(project) {
+            controller.changeAppClientKey(currentUserId,id).then(function(project) {
                 if (!project) {
-                    return res.send(500, 'Error: Project not found');
+                    return res.send(400, 'Error: Project not found');
                 }
 
                 return res.status(200).send(project.keys.js);
 
             },function(error){
-                return res.satus(500).send(error);
+                return res.satus(400).send(error);
             });
 
         }else{
@@ -193,7 +193,7 @@ module.exports = function(controller) {
 
     });
 
-    app.delete('/app/:appId/removeuser/:userId', function(req,res,next) {
+    app.delete('/app/:appId/removedeveloper/:userId', function(req,res,next) {
 
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.body.userId;
 
@@ -202,12 +202,12 @@ module.exports = function(controller) {
 
         if(currentUserId && appId && userId){
 
-            controller.removeUser(appId, userId).then(function(project) {                
+            controller.removeDeveloper(currentUserId,appId, userId).then(function(project) {                
                  
                 return res.status(200).json(project);                              
 
             },function(error){
-                return res.send(500, error);
+                return res.status(400).send(error);
             });
 
         }else{
@@ -216,45 +216,69 @@ module.exports = function(controller) {
 
     });
 
-    app.get('/app/:appId/invite/:userId', function(req,res,next) {
+    app.post('/app/:appId/removeinvitee', function(req,res,next) {
 
-        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.body.userId;
+
         var appId = req.params.appId;
-        var userId = req.params.userId;
-        
-        if(currentUserId && appId && userId){
-            controller.inviteUser(appId,userId).then(function(response) {
-                if (!response) {
-                    return res.send(500, 'Error: Project not found');
-                }
+        var data = req.body || {};
 
-                return res.status(200).send(response);
+        if(currentUserId && appId && data.email){
 
-            },function(error){
-                return res.satus(500).send(error);
+            controller.removeInvitee(currentUserId,appId, data.email).then(function(project) {                
+                 
+                return res.status(200).json(project);                              
+
+            },function(error){                
+                return res.status(400).send(error);
             });
 
         }else{
-            return res.send(401);
+            return res.status(401).send("unauthorized");
+        }
+
+    });
+
+    app.post('/app/:appId/invite', function(req,res,next) {
+
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+        var appId = req.params.appId;        
+        var data = req.body || {};
+        
+        if(currentUserId && appId && data.email){
+            
+            controller.inviteUser(appId,data.email).then(function(response) {
+                if (!response) {
+                    return res.send(400, 'Error: Project not found');
+                }
+                return res.status(200).send(response);
+
+            },function(error){
+                return res.status(400).send(error);
+            });
+                       
+
+        }else{
+            return res.send(401);            
         }
     });
 
-    app.get('/app/:appId/adddeveloper/:userId', function(req,res,next) {
+    app.get('/app/:appId/adddeveloper/:email', function(req,res,next) {
 
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
         var appId = req.params.appId;
-        var userId = req.params.userId;
+        var email = req.params.email;
         
-        if(currentUserId && appId && userId){
-            controller.addDeveloper(appId,userId).then(function(response) {
-                if (!response) {
-                    return res.send(500, 'Error: Project not found');
+        if(currentUserId && appId && email){
+            controller.addDeveloper(currentUserId,appId,email).then(function(project) {
+                if (!project) {
+                    return res.send(400, 'Error: Project not found');
                 }
 
-                return res.status(200).send(responser);
+                return res.status(200).json(project);
 
             },function(error){
-                return res.satus(500).send(error);
+                return res.satus(400).send(error);
             });
 
         }else{
