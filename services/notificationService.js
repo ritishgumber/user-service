@@ -101,6 +101,7 @@ module.exports = function(Notification){
         return deferred.promise;
     },
     removeNotificationByAppId: function(appId){
+      var deferred = Q.defer();
       Notification.remove({appId:appId}, function (err) {
         if(err){          
           deferred.reject(err);
@@ -108,6 +109,7 @@ module.exports = function(Notification){
           deferred.reject("Success!");
         }
       });
+      return deferred.promise;
     }
 
   }

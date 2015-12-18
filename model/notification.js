@@ -8,7 +8,8 @@ module.exports = function(mongoose){
 	            appId: String,
 	 notificationType: String,
 	             type: String,
-	             seen: Boolean
+	             seen: Boolean,
+	             date: Object
 
 	});
 

@@ -321,59 +321,18 @@ module.exports = function(Project,InvoiceService,UserService,NotificationService
                   deferred.reject(err);
                 }else if(!foundProj){
                    deferred.reject("Project not found with given userId");
+                }else if(currentUserId==userId || checkValidUser(foundProj,currentUserId,"Admin")){
+                  //User can delete himself or can delete others when he is a Admin
+                  processRemoveDeveloper(foundProj,userId,currentUserId,self)
+                  .then(function(data){
+                    deferred.resolve(data);
+                  },function(error){
+                    deferred.reject(error);
+                  });                                      
                 }else{
-
-                  if(currentUserId==userId){//User can delete himself
-
-                    var tempArray=foundProj.developers;
-
-                    for(var i=0;i<foundProj.developers.length;++i){
-                      if(foundProj.developers[i].userId==userId){
-                        tempArray.splice(i,1);
-                      }
-                    }
-
-                    if(tempArray.length>0){
-                      foundProj.developers=tempArray;
-                      foundProj.save(function (err, project) {
-                        if (err) deferred.reject(err);
-                        if(!project){
-                          deferred.reject('Cannot save the app right now.');
-                        }else{
-                          deferred.resolve(project);                     
-                        }
-                      });
-
-                    }else{
-                      self.delete(foundProj.appId,currentUserId).then(function(resp) {                           
-                        deferred.resolve(resp);
-                      },function(error){
-                        deferred.reject(error);
-                      });
-                    }                   
-
-                  }else if(checkValidUser(foundProj,currentUserId,"Admin")){
-                     var tempArray=foundProj.developers;
-
-                      for(var i=0;i<foundProj.developers.length;++i){
-                        if(foundProj.developers[i].userId==userId){
-                          tempArray.splice(i,1);
-                        }
-                      }
-
-                      foundProj.developers=tempArray;
-                      foundProj.save(function (err, project) {
-                        if (err) deferred.reject(err);
-                        if(!project){
-                          deferred.reject('Cannot save the app right now.');
-                        }else{
-                          deferred.resolve(project);                     
-                        }
-                      });
-                  }else{
-                    deferred.reject('Unauthorized!');
-                  }                  
-                }
+                  deferred.reject('Unauthorized!');
+                }                  
+                
               });
 
              return deferred.promise;
@@ -385,7 +344,7 @@ module.exports = function(Project,InvoiceService,UserService,NotificationService
 
               var self = this;             
 
-              Project.findOne({appId:appId,invited: {$in: [email] },developers: {$elemMatch: {userId:currentUserId}}}, function (err,foundProj) {
+              Project.findOne({appId:appId,invited: {$in: [email]}}, function (err,foundProj) {
                 if(err){                  
                   deferred.reject(err);
                 }else if(!foundProj){
@@ -394,49 +353,23 @@ module.exports = function(Project,InvoiceService,UserService,NotificationService
 
                   UserService.getAccountByEmail(email).then(function(foundUser) {
 
-                    if(!checkValidUser(foundProj,foundUser._id,"Admin")){
-                      var tempArray=foundProj.invited;
-                      var inviteeIndex=foundProj.invited.indexOf(email);
-                      if(inviteeIndex==0 || inviteeIndex>0){
-                        tempArray.splice(inviteeIndex,1);
-                      }
-
-                      foundProj.invited=tempArray;
-                      foundProj.save(function (err, project) {
-                        if (err) deferred.reject(err);
-                        if(!project){
-                          deferred.reject('Cannot save the app right now.');
-                        }else{
-                          deferred.resolve(project);
-                          NotificationService.removeNotificationByAppId(foundProj.appId);                     
-                        }
-                      });
-
-                    }else if(foundUser._id==currentUserId){
-
-                      var tempArray=foundProj.invited;
-                      var inviteeIndex=foundProj.invited.indexOf(email);
-                      if(inviteeIndex==0 || inviteeIndex>0){
-                        tempArray.splice(inviteeIndex,1);
-                      }
-
-                      foundProj.invited=tempArray;
-                      foundProj.save(function (err, project) {
-                        if (err) deferred.reject(err);
-                        if(!project){
-                          deferred.reject('Cannot save the app right now.');
-                        }else{
-                          deferred.resolve(project); 
-                          NotificationService.removeNotificationByAppId(foundProj.appId);                    
-                        }
-                      });
+                    if(checkValidUser(foundProj,currentUserId,"Admin") || foundUser._id==currentUserId){
+                      //User can delete himself or can delete others when he is a Admin
+                      processRemoveInvitee(foundProj,email,NotificationService)
+                      .then(function(data){
+                        deferred.resolve(data);
+                      },function(error){
+                        deferred.reject(error);
+                      });                     
 
                     }else{
                       deferred.reject("Unauthorized"); 
-                    }  
+                    } 
+
                   },function(userError) { 
                     deferred.reject("Cannot Perform this task now");                    
-                  });                   
+                  }); 
+
                 }
               });
 
@@ -494,61 +427,26 @@ module.exports = function(Project,InvoiceService,UserService,NotificationService
                   UserService.getAccountByEmail(email).then(function(foundUser) {
                     if(foundUser){
 
-                      if(!checkValidUser(project,foundUser._id,null)){
-                          //Invitation 
-                          var alreadyInvited=project.invited.indexOf(email);
-                          if(alreadyInvited<0){
-                            project.invited.push(email);
+                      if(!checkValidUser(project,foundUser._id,null)){ 
 
-                            project.save(function (err, savedProject) {
-                              if (err) deferred.reject(err);
-                              if(!savedProject){
-                                deferred.reject('Cannot save the app right now.');
-                              }else{
-                                deferred.resolve("successfully Invited!"); 
+                        processInviteUser(project,email,foundUser,NotificationService,MandrillService)
+                        .then(function(data){
+                          deferred.resolve(data);
+                        },function(error){
+                          deferred.reject(error);
+                        });     
 
-                                var notificationType="Confirm";
-                                var type="invited-project";
-                                var text="You have been invited to collaborate on "+savedProject.name+". Do you want to accept the invite.";
-                                NotificationService.createNotification(savedProject.appId,foundUser._id,notificationType,type,text); 
-                                MandrillService.inviteDeveloper(email,savedProject.name);
-                              }
-                            });
-
-                          }else{
-                            deferred.reject("Already Invited!");
-                          }
-                          //Invitation
                       }else{
                         deferred.reject("Already a Developer to this App!");
                       } 
 
                     }else{//There is no user with this email in cloudboost
-
-                      //Invitation 
-                      var alreadyInvited=project.invited.indexOf(email);
-                      if(alreadyInvited<0){
-                        project.invited.push(email);
-
-                        project.save(function (err, savedProject) {
-                          if (err) deferred.reject(err);
-                          if(!savedProject){
-                            deferred.reject('Cannot save the app right now.');
-                          }else{
-                            deferred.resolve("successfully Invited!");
-
-                            var notificationType="Confirm";
-                            var type="invited-project";
-                            var text="You have been invited to collaborate on "+savedProject.name+". Do you want to accept the invite.";
-                            NotificationService.createNotification(savedProject.appId,email,notificationType,type,text); 
-                            MandrillService.inviteDeveloper(email,savedProject.name);                  
-                          }
-                        });
-
-                      }else{
-                        deferred.reject("Already Invited!");
-                      }
-                      //Invitation
+                      processInviteUser(project,email,foundUser,NotificationService,MandrillService)
+                      .then(function(data){
+                        deferred.resolve(data);
+                      },function(error){
+                        deferred.reject(error);
+                      });     
                     }
                   },function(usererror) {   
                     deferred.reject('Cannot perform this task right now.');                
@@ -593,8 +491,17 @@ module.exports = function(Project,InvoiceService,UserService,NotificationService
                       if(!savedProject){
                         deferred.reject('Cannot save the app right now.');
                       }else{
-                        deferred.resolve(savedProject);
-                        NotificationService.removeNotificationByAppId(savedProject.appId);                     
+                        NotificationService.removeNotificationByAppId(savedProject.appId); 
+
+                        //Get the status
+                        self.projectStatus(savedProject._doc.appId, currentUserId)
+                        .then(function(statusObj){
+                          savedProject._doc.status=statusObj;
+                          deferred.resolve(savedProject);
+                        },function(error) {
+                          deferred.resolve(error);
+                        });                       
+                                            
                       }
                     });
 
@@ -608,33 +515,212 @@ module.exports = function(Project,InvoiceService,UserService,NotificationService
 
              return deferred.promise;
 
-          }
+          },
+          changeDeveloperRole: function (currentUserId,appId,userId,role) {
+
+              var deferred = Q.defer();
+
+              var self = this;              
+
+              Project.findOne({appId:appId,developers: {$elemMatch: {userId:currentUserId} }}, function (err, project) {
+                if (err) deferred.reject(err);
+                if(!project){
+                  deferred.reject("App not found or Unauthorized!");
+                }else{
+                  var tempArray=project.developers;
+                  var currentUserObj=_.first(_.where(tempArray, {userId:currentUserId}));
+                  
+
+                  if(currentUserId==userId){
+
+                    if((currentUserObj.role=="Admin" && role=="User") || (currentUserObj.role=="Admin" && role=="Admin")){
+
+                      //Check if other Admins in APP
+                      var otherAdmins = _.find(tempArray, function(eachDev){ 
+                        if(eachDev.userId!=currentUserId && eachDev.role=="Admin"){
+                          return true;
+                        }
+                      });
+
+                      if(currentUserObj.role=="Admin" && role=="User" && otherAdmins){
+                        processChangeDeveloperRole(project,userId)
+                        .then(function(data){
+                          deferred.resolve(data);
+                        },function(error){
+                          deferred.reject(error);
+                        });
+                      }else{
+                        deferred.reject("You cannot remove all admins from an app!");
+                      }
+                      
+
+                    }else if(currentUserObj.role=="User" && role=="Admin"){
+                      deferred.reject("You cannot perform this task!");
+                    }else if(currentUserObj.role=="User" && role=="User"){
+                      deferred.resolve("Already is a User!");
+                    }
+
+                  }else if(currentUserObj.role=="Admin"){
+                    processChangeDeveloperRole(project,userId)
+                    .then(function(data){
+                      deferred.resolve(data);
+                    },function(error){
+                      deferred.reject(error);
+                    });
+
+                  }else{
+                    deferred.reject("You cannot perform this task!");
+                  }                  
+                }
+                     
+              });
+
+             return deferred.promise;
+
+          },
     }
 
 };
 
 function createProject(appId){
 
-    var deferred = Q.defer();
+  var deferred = Q.defer();
 
-    var post_data = {};
-    post_data.key = global.keys.cbDataServicesConnectKey;
-    post_data = JSON.stringify(post_data);
-    var url = global.keys.dataServiceUrl + '/app/'+appId;
-    request.post(url,{
-        headers: {
-            'content-type': 'application/json',
-            'content-length': post_data.length
-        },
-        body: post_data
-    },function(err,response,body){
-        if(err || response.statusCode === 500 || body === 'Error')
-            deferred.reject(err);
-        else {
-            deferred.resolve();
-        }
+  var post_data = {};
+  post_data.key = global.keys.cbDataServicesConnectKey;
+  post_data = JSON.stringify(post_data);
+  var url = global.keys.dataServiceUrl + '/app/'+appId;
+  request.post(url,{
+      headers: {
+          'content-type': 'application/json',
+          'content-length': post_data.length
+      },
+      body: post_data
+  },function(err,response,body){
+      if(err || response.statusCode === 500 || body === 'Error')
+          deferred.reject(err);
+      else {
+          deferred.resolve();
+      }
+  });
+  return deferred.promise;
+}
+
+
+function processRemoveDeveloper(foundProj,userId,currentUserId,self){  
+
+  var deferred = Q.defer();
+
+  var tempArray=foundProj.developers;
+
+  for(var i=0;i<foundProj.developers.length;++i){
+    if(foundProj.developers[i].userId==userId){
+      tempArray.splice(i,1);
+    }
+  }
+
+  if(tempArray.length>0){
+    foundProj.developers=tempArray;
+    foundProj.save(function (err, project) {
+      if (err) deferred.reject(err);
+      if(!project){
+        deferred.reject('Cannot save the app right now.');
+      }else{
+        deferred.resolve(project);                     
+      }
     });
-    return deferred.promise;
+
+  }else{
+    self.delete(foundProj.appId,currentUserId).then(function(resp) {                           
+      deferred.resolve(resp);
+    },function(error){
+      deferred.reject(error);
+    });
+  }
+
+  return deferred.promise;
+}
+
+function processRemoveInvitee(foundProj,email,NotificationService){
+  var deferred = Q.defer();
+
+  var tempArray=foundProj.invited;
+  var inviteeIndex=foundProj.invited.indexOf(email);
+  if(inviteeIndex==0 || inviteeIndex>0){
+    tempArray.splice(inviteeIndex,1);
+  }
+
+  foundProj.invited=tempArray;
+  foundProj.save(function (err, project) {
+    if (err) deferred.reject(err);
+    if(!project){
+      deferred.reject('Cannot save the app right now.');
+    }else{
+      deferred.resolve(project);
+      NotificationService.removeNotificationByAppId(foundProj.appId);                     
+    }
+  });
+
+  return deferred.promise;
+}
+
+function processInviteUser(project,email,foundUser,NotificationService,MandrillService){
+  var deferred = Q.defer();
+
+  //Invitation 
+  var alreadyInvited=project.invited.indexOf(email);
+  if(alreadyInvited<0){
+    project.invited.push(email);
+
+    project.save(function (err, savedProject) {
+      if (err) deferred.reject(err);
+      if(!savedProject){
+        deferred.reject('Cannot save the app right now.');
+      }else{
+        deferred.resolve("successfully Invited!"); 
+
+        var notificationType="Confirm";
+        var type="invited-project";
+        var text="You have been invited to collaborate on <span style='font-weight:bold;'>"+savedProject.name+"</span>. Do you want to accept the invite?";
+        NotificationService.createNotification(savedProject.appId,foundUser._id,notificationType,type,text); 
+        MandrillService.inviteDeveloper(email,savedProject.name);
+      }
+    });
+
+  }else{
+    deferred.reject("Already Invited!");
+  }
+  //Invitation
+
+  return deferred.promise;
+}
+
+function processChangeDeveloperRole(project,userId){
+  var deferred = Q.defer();
+
+    var tempArray=project.developers;
+    var userThere=_.first(_.where(tempArray, {userId:userId}));
+
+    if(userThere){
+
+      var index=tempArray.indexOf(userThere);
+      tempArray[index].role=role;
+
+      project.developers=tempArray;
+      project.save(function (err, savedProject) {
+        if (err) deferred.reject(err);
+        if(!savedProject){
+          deferred.reject('Cannot save the app right now.');
+        }else{                                            
+          deferred.resolve(savedProject);                    
+        }
+      });
+
+    }else{
+      deferred.reject("User not found!");
+    }
+
+  return deferred.promise;
 }
 
 function checkValidUser(app,userId,role){

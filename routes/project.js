@@ -121,7 +121,7 @@ module.exports = function(controller) {
                 return res.status(200).send(project.keys.master);
 
             },function(error){
-                return res.satus(500).send(error);
+                return res.status(500).send(error);
             });
 
         }else{
@@ -143,7 +143,7 @@ module.exports = function(controller) {
                 return res.status(200).send(project.keys.master);
 
             },function(error){
-                return res.satus(400).send(error);
+                return res.status(400).send(error);
             });
 
         }else{
@@ -165,7 +165,7 @@ module.exports = function(controller) {
                 return res.status(200).send(project.keys.js);
 
             },function(error){
-                return res.satus(400).send(error);
+                return res.status(400).send(error);
             });
 
         }else{
@@ -278,8 +278,36 @@ module.exports = function(controller) {
                 return res.status(200).json(project);
 
             },function(error){
-                return res.satus(400).send(error);
             });
+
+        }else{
+            return res.send(401);
+        }
+    });
+
+    app.post('/app/changerole', function(req,res,next) {
+
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+        var data = req.body || {};
+        var appId = data.appId;
+        var userId = data.userId;
+        var role = data.role;
+        
+        if(currentUserId){
+            if(appId && userId && role){
+                controller.changeDeveloperRole(currentUserId,appId,userId,role).then(function(project) {
+                if (!project) {
+                        return res.send(400, 'Error: Cannot Perform this task now');
+                    }
+
+                    return res.status(200).json(project);
+
+                },function(error){
+                    return res.status(400).send(error);
+                });
+            }else{
+                return res.status(400).send("AppId and UserId are not provided!");
+            }            
 
         }else{
             return res.send(401);
