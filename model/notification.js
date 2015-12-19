@@ -9,7 +9,7 @@ module.exports = function(mongoose){
 	 notificationType: String,
 	             type: String,
 	             seen: Boolean,
-	             date: Object
+	             date: { type: Date, default: Date.now }
 
 	});
 

@@ -28,6 +28,7 @@ module.exports = function(Notification){
         notification.type=type;
         notification.text=text;
         notification.seen=false;
+        notification.date=new Date();
      
         notification.save(function (err, notificationObj) {
             if (err) deferred.reject(err);
@@ -41,7 +42,7 @@ module.exports = function(Notification){
 
         return deferred.promise;
     },
-    getNotifications: function (userId) {
+    getNotifications: function (userId,skip,limit) {
 
         var _self = this;
 
@@ -49,10 +50,12 @@ module.exports = function(Notification){
 
         var self = this;
 
-        Notification.find({user:userId}, function (err, notificatonList) {
+        Notification.find({user:userId}).skip(skip).limit(limit).exec(function (err, notificatonList) {      
           if (err) deferred.reject(err);
           if(notificatonList){
             deferred.resolve(notificatonList);
+          }else{
+            deferred.resolve(null);
           }
                
         });
