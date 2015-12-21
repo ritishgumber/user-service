@@ -4,17 +4,16 @@ module.exports = function(){
     var express = require('express');
     var cookieParser = require('cookie-parser');
     var bodyParser = require('body-parser');
-    var app = express();
-    var mongoose = require('./config/db.js')();
     var passport = require('passport');
-    var redis = require('redis');
     var session = require('express-session');
     var RedisStore = require('connect-redis')(session);
     var CronJob = require('cron').CronJob;
-    var Q = require('q'); 
-
-    global.keys = require('./config/keys.js');
-    app.use(function(req, res, next){
+    var Q = require('q');
+    
+    //connect to db
+    addConnections(passport);
+    
+    global.app.use(function(req, res, next){
         if (req.is('text/*')) {
             req.text = '';
             req.setEncoding('utf8');
@@ -25,7 +24,7 @@ module.exports = function(){
         }
     });
 
-    app.use(function(req, res, next) {
+    global.app.use(function(req, res, next) {
         if(req.text){
             req.body = JSON.parse(req.text);
         }
@@ -39,37 +38,13 @@ module.exports = function(){
              next();
          }
     });   
-
-    console.log("creating redis client..");
-    global.redisClient = redis.createClient(global.keys.redisPort,
-        global.keys.redisURL,
-        {
-            auth_pass:global.keys.redisPassword
-        }
-    );
-    console.log("redis client created..");
-    //models. 
-    console.log("creating models..");
-    var Project = require('./model/project.js')(mongoose);
-    //console.log(Project);
-    var Subscriber = require('./model/subscriber.js')(mongoose);
-    var User = require('./model/user.js')(mongoose);
-    var Table = require('./model/table.js')(mongoose);
-    var ProjectDetails = require('./model/projectDetails.js')(mongoose);
-    var StripeCustomer = require('./model/stripeCustomer.js')(mongoose);
-    var CreditCardInfo = require('./model/creditCardInfo.js')(mongoose);
-    var Invoice = require('./model/invoice.js')(mongoose);
-    var InvoiceSettings = require('./model/invoiceSettings.js')(mongoose);
-    var Beacon = require('./model/beacon.js')(mongoose);
-    var Tutorial = require('./model/tutorial.js')(mongoose);
-
-    console.log("models created..");
-    //config
     
-    app.use(bodyParser.json());
-    app.use(bodyParser.urlencoded({extended: true}));
-    //app.use(cookieParser('azuresample'));
-    app.use(session({        
+    
+    
+    global.app.use(bodyParser.json());
+    global.app.use(bodyParser.urlencoded({extended: true}));
+    //global.app.use(cookieParser('azuresample'));
+    global.app.use(session({        
         key: 'session',
         resave: false, //does not forces session to be saved even when unmodified
         saveUninitialized: false, //doesnt forces a session that is "uninitialized"(new but unmodified) to be saved to the store
@@ -80,42 +55,11 @@ module.exports = function(){
         }),
         cookie:{maxAge: (2600000000)}// 2600000000 is for 1 month
     }));
-    app.use(passport.initialize());
-    app.use(passport.session());
-    require('./framework/config')(passport, User);
+    global.app.use(passport.initialize());
+    global.app.use(passport.session());
+    
 
-    //services.
-    console.log("starting services..");
-    var BeaconService  = require('./services/beaconService.js')(Beacon);  
-    var UserService = require('./services/userService')(User,BeaconService);
-    console.log("UserService : " + UserService);    
-    var SubscriberService  = require('./services/subscriberService.js')(Subscriber);
-    var InvoiceService  = require('./services/invoiceService.js')(Invoice,InvoiceSettings,UserService);
-    var ProjectService  = require('./services/projectService.js')(Project,InvoiceService);
-    var TableService  = require('./services/tableService.js')(Table);
-    var ProjectDetailsService  = require('./services/projectDetailsService.js')(ProjectDetails);
-    var PaymentService  = require('./services/paymentService.js')(StripeCustomer,CreditCardInfo,InvoiceService,UserService,ProjectService); 
-    var TutorialService  = require('./services/tutorialService.js')(Tutorial);
-    var FileService  = require('./services/fileService.js')(mongoose);
-    var MailChimpService  = require('./services/mailChimpService.js')();
-    var MandrillService  = require('./services/mandrillService.js')();
-
-    console.log("All services started..");
-    console.log("routes..");
-    //routes. 
-    app.use('/', require('./routes/auth')(passport,UserService,FileService,MailChimpService,MandrillService));
-    app.use('/', require('./routes/subscriber.js')(SubscriberService,MailChimpService));
-    app.use('/', require('./routes/project.js')(ProjectService));
-    app.use('/', require('./routes/table.js')(TableService, ProjectService));
-    app.use('/', require('./routes/projectDetails.js')(ProjectDetailsService));
-    app.use('/', require('./routes/payment.js')(PaymentService));
-    app.use('/', require('./routes/invoice.js')(InvoiceService));
-    app.use('/', require('./routes/beacon.js')(BeaconService));
-    app.use('/', require('./routes/tutorial.js')(TutorialService));
-    app.use('/', require('./routes/file.js')(mongoose,FileService,UserService));
-
-
-    app.get('/', function(req, res) {
+    global.app.get('/', function(req, res) {
         res.setHeader('Content-Type', 'application/json');
         res.send(JSON.stringify({ status : 200, version : pjson.version }));
     });
@@ -191,4 +135,142 @@ module.exports = function(){
     /**********CRON JOB**********/   
     return app;
 };
+
+
+//this fucntion add connections to the DB.
+function addConnections(passport){ 
+   //MONGO DB
+   setUpMongoDB(passport);
+   //setUp Redis
+   setUpRedis();
+}
+
+function setUpRedis(){
+   //Set up Redis.
+   var hosts = [];
+   
+   if(global.config.redis.length>0){
+       //take from config file
+       for(var i=0;i<global.config.redis.length;i++){
+           hosts.push({
+                host : global.config.redis[i].host,
+                port : global.config.redis[i].port,
+                password : global.config.redis[i].password
+           });
+       }
+   }else{
+      //take from env variables.
+      
+       var i=1;
+      
+       while(process.env["DOCKER_REDIS_"+i+"_PORT_6379_TCP_ADDR"] && process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"]){
+       var obj = {
+                    host : process.env["DOCKER_REDIS_"+i+"_PORT_6379_TCP_ADDR"],
+                    port : process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"]
+                 };
+                 
+            hosts.push(obj);       
+            i++;
+        }
+   }
+  
+   console.log("Redis Connection String");
+   console.log(hosts);
+   var Redis = require('ioredis');
+   global.redisClient = new Redis.Cluster(hosts);
+   
+}
+
+
+function setUpMongoDB(passport){
+   //MongoDB connections. 
+   var mongoConnectionString = "mongodb://";
+   
+   if(global.config.mongo.length>0){
+       //take from config file
+       for(var i=0;i<global.config.mongo.length;i++){
+            mongoConnectionString+=global.config.mongo[i].host +":"+global.config.mongo[i].port;
+            mongoConnectionString+=",";
+       }
+   }else{
+        var i=1;
+        while(process.env["DOCKER_MONGO_"+i+"_PORT_27017_TCP_ADDR"] && process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]){
+            mongoConnectionString+=process.env["DOCKER_MONGO_"+i+"_PORT_27017_TCP_ADDR"]+":"+process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]; 
+            mongoConnectionString+=",";
+            i++;
+        }
+   }
+  
+   mongoConnectionString = mongoConnectionString.substring(0, mongoConnectionString.length - 1);
+   mongoConnectionString += "/"; //de limitter. 
+   global.keys.db = mongoConnectionString+"?replicaSet=cloudboost&slaveOk=true";  
+   global.keys.mongoConnectionString = global.keys.db; 
+   console.log("Mongo DB : "+global.keys.db);
+   
+   var mongoose = require('./config/db.js')();
+   
+    //models. 
+    console.log("creating models..");
+    
+    
+    var Project = require('./model/project.js')(mongoose);
+    var Subscriber = require('./model/subscriber.js')(mongoose);
+    var User = require('./model/user.js')(mongoose);
+    var Table = require('./model/table.js')(mongoose);
+    var ProjectDetails = require('./model/projectDetails.js')(mongoose);
+    var StripeCustomer = require('./model/stripeCustomer.js')(mongoose);
+    var CreditCardInfo = require('./model/creditCardInfo.js')(mongoose);
+    var Invoice = require('./model/invoice.js')(mongoose);
+    var InvoiceSettings = require('./model/invoiceSettings.js')(mongoose);
+    var Beacon = require('./model/beacon.js')(mongoose);
+    var Tutorial = require('./model/tutorial.js')(mongoose);
+    
+     //services.
+    console.log("starting services..");
+    var BeaconService  = require('./services/beaconService.js')(Beacon);  
+    var UserService = require('./services/userService')(User,BeaconService);
+    console.log("UserService : " + UserService);    
+    var SubscriberService  = require('./services/subscriberService.js')(Subscriber);
+    var InvoiceService  = require('./services/invoiceService.js')(Invoice,InvoiceSettings,UserService);
+    var ProjectService  = require('./services/projectService.js')(Project,InvoiceService);
+    var TableService  = require('./services/tableService.js')(Table);
+    var ProjectDetailsService  = require('./services/projectDetailsService.js')(ProjectDetails);
+    var PaymentService  = require('./services/paymentService.js')(StripeCustomer,CreditCardInfo,InvoiceService,UserService,ProjectService); 
+    var TutorialService  = require('./services/tutorialService.js')(Tutorial);
+    var FileService  = require('./services/fileService.js')(mongoose);
+    var MailChimpService  = require('./services/mailChimpService.js')();
+    var MandrillService  = require('./services/mandrillService.js')();
+
+    console.log("All services started..");
+    console.log("routes..");
+    //routes. 
+    global.app.use('/', require('./routes/auth')(passport,UserService,FileService,MailChimpService,MandrillService));
+    global.app.use('/', require('./routes/subscriber.js')(SubscriberService,MailChimpService));
+    global.app.use('/', require('./routes/project.js')(ProjectService));
+    global.app.use('/', require('./routes/table.js')(TableService, ProjectService));
+    global.app.use('/', require('./routes/projectDetails.js')(ProjectDetailsService));
+    global.app.use('/', require('./routes/payment.js')(PaymentService));
+    global.app.use('/', require('./routes/invoice.js')(InvoiceService));
+    global.app.use('/', require('./routes/beacon.js')(BeaconService));
+    global.app.use('/', require('./routes/tutorial.js')(TutorialService));
+    global.app.use('/', require('./routes/file.js')(mongoose,FileService,UserService));
+    
+    require('./framework/config')(passport, User);
+    
+    require('./config/mongoConnect')().connect(function(db){
+        global.mongoClient = db;
+        //init encryption Key. 
+        initEncryptionKey();
+    }, function(error){
+        //error
+        console.log("Error  : MongoDB failed to connect.");
+        console.log(error);
+    });
+}
+
+
+function initEncryptionKey(){
+    require('./config/keyService.js')().initEncryptKey();
+}
+
 

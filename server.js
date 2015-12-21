@@ -1,17 +1,13 @@
-﻿global.isStaging = false;
-if (!process.env.PORT) {
-    global.isDevelopment = true;
-} else {
-    if (process.env.PORT === "3000") {
-        global.isDevelopment = true;
-    } else {
-        global.isDevelopment = false;
-    }
-}
-if(process.env.CBENV && process.env.CBENV === 'STAGING'){
-    global.isStaging = true;
-}
-global.isVM = false;
+﻿//Express.
+var express = require('express');
+global.app = express();
+
+//Load the configuration.
+global.config = require('./config/cloudboost');
+
+//Load keys.    
+global.keys = require('./config/keys.js');
+
 var app = require('./app')();
 
 app.set('port', process.env.PORT || 3000);

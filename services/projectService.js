@@ -235,7 +235,7 @@ module.exports = function(Project,InvoiceService){
                   console.log(err);
                   deferred.reject(err);
                 }else{
-                    var post_data = "{ \"key\" : \""+keys.cbDataServicesConnectKey+"\"}";
+                    var post_data = "{ \"key\" : \""+keys.encryptKey+"\"}";
                     request.del({
                       headers: {
                                   'content-type' : 'application/json', 
@@ -302,7 +302,7 @@ function createProject(appId){
     var deferred = Q.defer();
 
     var post_data = {};
-    post_data.key = global.keys.cbDataServicesConnectKey;
+    post_data.key = global.keys.encryptKey;
     post_data = JSON.stringify(post_data);
     var url = global.keys.dataServiceUrl + '/app/'+appId;
     request.post(url,{

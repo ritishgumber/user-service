@@ -210,7 +210,7 @@ module.exports = function(Table) {
                         //delete table from cache.
                         global.redisClient.del(global.keys.cacheSchemaPrefix + '-' + appId + ':' + tableName);
 
-                        var post_data = "{ \"key\" : \"" + keys.cbDataServicesConnectKey + "\"}";
+                        var post_data = "{ \"key\" : \"" + keys.encryptKey + "\"}";
 
                         request.del({
                             headers: {
@@ -233,7 +233,7 @@ module.exports = function(Table) {
                 }else{
                     console.log("Table Not Found");
                         
-                    var post_data = "{ \"key\" : \"" + keys.cbDataServicesConnectKey + "\"}";
+                    var post_data = "{ \"key\" : \"" + keys.encryptKey + "\"}";
 
                     request.del({
                         headers: {
@@ -360,7 +360,7 @@ module.exports = function(Table) {
     function createTable(appId, tableName, schema){
         var deferred = Q.defer();
 
-        var post_data = "{ \"key\" : \"" + keys.cbDataServicesConnectKey + "\", \"schema\" : " + JSON.stringify(schema) + "}";
+        var post_data = "{ \"key\" : \"" + keys.encryptKey + "\", \"schema\" : " + JSON.stringify(schema) + "}";
 
                 request.post({
                     headers: {
@@ -402,7 +402,7 @@ module.exports = function(Table) {
             for (var i = 0; i < originalColumns.length; i++) {
 
                 //send a post request. 
-                var post_data = "{ \"key\" : \"" + keys.cbDataServicesConnectKey + "\"}";
+                var post_data = "{ \"key\" : \"" + keys.encryptKey + "\"}";
 
                 request.del({
                     headers: {
@@ -452,7 +452,7 @@ module.exports = function(Table) {
             //these columns need to be created in DataServices. 
             for (var i = 0; i < addedColumns.length; i++) {
                 //send a post request. 
-                var post_data = "{ \"key\" : \"" + keys.cbDataServicesConnectKey + "\",  \"column\" : " + JSON.stringify(addedColumns[i]) + "}";
+                var post_data = "{ \"key\" : \"" + keys.encryptKey + "\",  \"column\" : " + JSON.stringify(addedColumns[i]) + "}";
                 request.post({
                     headers: {
                         'content-type': 'application/json',
