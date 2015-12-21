@@ -62,6 +62,8 @@ module.exports = function(){
     var InvoiceSettings = require('./model/invoiceSettings.js')(mongoose);
     var Beacon = require('./model/beacon.js')(mongoose);
     var Tutorial = require('./model/tutorial.js')(mongoose);
+    var CbServer = require('./model/cbserver.js')(mongoose);
+    var Notification = require('./model/notification.js')(mongoose);
 
     console.log("models created..");
     //config
@@ -86,22 +88,26 @@ module.exports = function(){
 
     //services.
     console.log("starting services..");
-    var BeaconService  = require('./services/beaconService.js')(Beacon);  
-    var UserService = require('./services/userService')(User,BeaconService);
-    console.log("UserService : " + UserService);    
+    var BeaconService  = require('./services/beaconService.js')(Beacon); 
+    var CbServerService  = require('./services/cbServerService.js')(CbServer); 
+    var MailChimpService  = require('./services/mailChimpService.js')();
+    var MandrillService  = require('./services/mandrillService.js')(); 
+    var NotificationService  = require('./services/notificationService.js')(Notification);
+    var UserService = require('./services/userService')(User,BeaconService,CbServerService,NotificationService);
+       
     var SubscriberService  = require('./services/subscriberService.js')(Subscriber);
     var InvoiceService  = require('./services/invoiceService.js')(Invoice,InvoiceSettings,UserService);
-    var ProjectService  = require('./services/projectService.js')(Project,InvoiceService);
+    var ProjectService  = require('./services/projectService.js')(Project,InvoiceService,UserService,NotificationService,MandrillService);
     var TableService  = require('./services/tableService.js')(Table);
     var ProjectDetailsService  = require('./services/projectDetailsService.js')(ProjectDetails);
     var PaymentService  = require('./services/paymentService.js')(StripeCustomer,CreditCardInfo,InvoiceService,UserService,ProjectService); 
     var TutorialService  = require('./services/tutorialService.js')(Tutorial);
     var FileService  = require('./services/fileService.js')(mongoose);
-    var MailChimpService  = require('./services/mailChimpService.js')();
-    var MandrillService  = require('./services/mandrillService.js')();
+      
+    
 
     console.log("All services started..");
-    console.log("routes..");
+    console.log("routes..");    
     //routes. 
     app.use('/', require('./routes/auth')(passport,UserService,FileService,MailChimpService,MandrillService));
     app.use('/', require('./routes/subscriber.js')(SubscriberService,MailChimpService));
@@ -113,6 +119,8 @@ module.exports = function(){
     app.use('/', require('./routes/beacon.js')(BeaconService));
     app.use('/', require('./routes/tutorial.js')(TutorialService));
     app.use('/', require('./routes/file.js')(mongoose,FileService,UserService));
+    app.use('/', require('./routes/cloudboost.js')(CbServerService,UserService));
+    app.use('/', require('./routes/notification.js')(NotificationService));
 
 
     app.get('/', function(req, res) {

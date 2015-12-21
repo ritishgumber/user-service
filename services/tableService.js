@@ -272,7 +272,7 @@ module.exports = function(Table) {
                     if (tables) {
                         var tables = _.map(tables, function (obj) {
                             obj._doc._type = 'table';
-                            return obj._doc
+                            return obj._doc;
                         });
                         deferred.resolve(tables);
                     } else {
@@ -704,15 +704,15 @@ function _columnRollback(originalTable,table){
     table.save();
 }
 
-    //generate a unique Id
-    function makeId() {
-        //creates a random string of 8 char long.
-        var text = "";
-        var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        for (var i = 0; i < 8; i++)
-            text += possible.charAt(Math.floor(Math.random() * possible.length));
-        return 'x' + text; //should start with char.
-    }
+//generate a unique Id
+function makeId() {
+    //creates a random string of 8 char long.
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for (var i = 0; i < 8; i++)
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    return 'x' + text; //should start with char.
+}
 
         
 function _deserialize(table){
