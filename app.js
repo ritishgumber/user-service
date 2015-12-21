@@ -38,12 +38,9 @@ module.exports = function(){
              next();
          }
     });   
-    
-    
-    
+        
     global.app.use(bodyParser.json());
     global.app.use(bodyParser.urlencoded({extended: true}));
-    //global.app.use(cookieParser('azuresample'));
     global.app.use(session({        
         key: 'session',
         resave: false, //does not forces session to be saved even when unmodified
@@ -55,16 +52,16 @@ module.exports = function(){
         }),
         cookie:{maxAge: (2600000000)}// 2600000000 is for 1 month
     }));
+    
     global.app.use(passport.initialize());
     global.app.use(passport.session());
     
-
+    require('./framework/config')(passport, User);
+    
     global.app.get('/', function(req, res) {
         res.setHeader('Content-Type', 'application/json');
         res.send(JSON.stringify({ status : 200, version : pjson.version }));
     });
-
-
 
    /**********CRON JOB**********/
    try{
@@ -224,6 +221,7 @@ function setUpMongoDB(passport){
     var InvoiceSettings = require('./model/invoiceSettings.js')(mongoose);
     var Beacon = require('./model/beacon.js')(mongoose);
     var Tutorial = require('./model/tutorial.js')(mongoose);
+    var CbServer = require('./model/cbserver.js')(mongoose);
     
      //services.
     console.log("starting services..");
