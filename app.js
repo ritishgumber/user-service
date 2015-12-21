@@ -56,8 +56,6 @@ module.exports = function(){
     global.app.use(passport.initialize());
     global.app.use(passport.session());
     
-    require('./framework/config')(passport, User);
-    
     global.app.get('/', function(req, res) {
         res.setHeader('Content-Type', 'application/json');
         res.send(JSON.stringify({ status : 200, version : pjson.version }));
