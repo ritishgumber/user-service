@@ -8,7 +8,7 @@ var util = require('./utilService')();
 var LocalStrategy = require('passport-local').Strategy;
 
 
-module.exports = function(User,BeaconService,CbServerService){
+module.exports = function(User,BeaconService,CbServerService,NotificationService){
 
     return {
                 makeSalt: function () {
@@ -193,6 +193,8 @@ module.exports = function(User,BeaconService,CbServerService){
                         } else{                          
                           if(data.isAdmin){
                             CbServerService.upsertSettings(null,false);
+                            NotificationService.linkUserId(user.email,user._id);
+
                           }
                           deffered.resolve(user);
                         } 
@@ -320,6 +322,22 @@ module.exports = function(User,BeaconService,CbServerService){
 
                     return deffered.promise;
                 },
+
+                getUserListByIds: function(IdsArray){
+                  var deffered = Q.defer();
+
+                   User.find({_id:{$in:IdsArray}},function (err, usersList) {
+                      if (err) { return deffered.reject(err); }
+                      if (usersList.length==0) {
+                        return deffered.reject(null);
+                      }
+                      
+                      return deffered.resolve(usersList);
+                  });
+
+                  return deffered.promise;
+                },
+
                 isNewServer: function(){
                   var deffered = Q.defer();
 
@@ -401,6 +419,21 @@ module.exports = function(User,BeaconService,CbServerService){
                       }else{
                         return deffered.reject("You can't perform this action!");
                       }
+                                       
+                  });
+                  return deffered.promise;
+
+                },
+                getUserListByKeyword: function (email) {
+                    
+                    var deffered = Q.defer();
+
+                    User.find({email:email},function (err, userList) {
+                      if (err) { return deffered.reject(err); }
+                      if (userList.length==0) {
+                        return deffered.resolve(null);
+                      }                     
+                      return deffered.resolve(userList);                
                                        
                   });
                   return deffered.promise;

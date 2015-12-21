@@ -141,6 +141,35 @@ module.exports = function(){
                 console.log(result);
             }
         });
+    },
+    inviteDeveloper : function(email,appName){
+
+        var message = {                   
+            "to": [{
+                    "email": email,                    
+                    "type": "to"
+                }],
+
+            "global_merge_vars": [{
+                    "name": "projectname",
+                    "content": appName
+                }]           
+        };
+
+
+        //send the verification email.
+        mandrill_client.messages.sendTemplate({"template_name": 'invitedeveloper', 
+            "message" : message,
+            "template_content": [
+                {name:'projectname',content:appName}
+            ], "async": true}, function(result){
+            if(result.length>0 && result[0].status === 'sent'){
+                console.log('++++++Mandrill InviteDeveloper Email Sent +++++++++++++');
+            }else{
+                console.log('++++++Mandrill InviteDeveloper Email Error +++++++++++++');
+                console.log(result);
+            }
+        });
     }  
 
   }

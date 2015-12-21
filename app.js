@@ -207,7 +207,6 @@ function setUpMongoDB(passport){
     //models. 
     console.log("creating models..");
     
-    
     var Project = require('./model/project.js')(mongoose);
     var Subscriber = require('./model/subscriber.js')(mongoose);
     var User = require('./model/user.js')(mongoose);
@@ -220,10 +219,12 @@ function setUpMongoDB(passport){
     var Beacon = require('./model/beacon.js')(mongoose);
     var Tutorial = require('./model/tutorial.js')(mongoose);
     var CbServer = require('./model/cbserver.js')(mongoose);
+    var Notification = require('./model/notification.js')(mongoose);
     
      //services.
     console.log("starting services..");
     var BeaconService  = require('./services/beaconService.js')(Beacon);  
+    
     var UserService = require('./services/userService')(User,BeaconService);
     console.log("UserService : " + UserService);    
     var SubscriberService  = require('./services/subscriberService.js')(Subscriber);
@@ -236,6 +237,8 @@ function setUpMongoDB(passport){
     var FileService  = require('./services/fileService.js')(mongoose);
     var MailChimpService  = require('./services/mailChimpService.js')();
     var MandrillService  = require('./services/mandrillService.js')();
+    var NotificationService  = require('./services/notificationService.js')(Notification);
+    var CbServerService = require('./services/cbServerService.js')(CbServer);
 
     console.log("All services started..");
     console.log("routes..");
@@ -250,6 +253,8 @@ function setUpMongoDB(passport){
     global.app.use('/', require('./routes/beacon.js')(BeaconService));
     global.app.use('/', require('./routes/tutorial.js')(TutorialService));
     global.app.use('/', require('./routes/file.js')(mongoose,FileService,UserService));
+    global.app.use('/', require('./routes/cloudboost.js')(CbServerService,UserService));
+    global.app.use('/', require('./routes/notification.js')(NotificationService));
     
     require('./framework/config')(passport, User);
     

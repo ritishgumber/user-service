@@ -243,6 +243,77 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
 
     });
 
+    app.post('/user/list', function(req, res, next) {
+        var data = req.body || {};
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+
+        if(currentUserId){
+            if(data.IdArray && data.IdArray.length>0){
+                controller.getUserListByIds(data.IdArray).then(function(usersList) {  
+                    if(usersList && usersList.length>0){
+                        for(var i=0;i<usersList.length;++i){
+                            if(usersList[i].password){
+                                delete usersList[i]._doc.password;
+                            }                    
+                            if(usersList[i].emailVerificationCode){
+                                delete usersList[i]._doc.emailVerificationCode;
+                            }
+                            if(usersList[i].salt){
+                                delete usersList[i]._doc.salt;
+                            }
+                            if(usersList[i].provider){
+                                delete usersList[i]._doc.provider;
+                            }                                                       
+                        }
+                    }                            
+
+                    return res.status(200).json(usersList);                    
+                },function(error){
+                    return res.status(500).send(error);
+                });
+            }else{
+                return res.status(200).json(null);
+            }  
+            
+        }else{
+            return res.send(401);
+        }       
+    });
+
+    app.post('/user/list/bykeyword', function(req, res, next) {
+        var data = req.body || {};
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+
+        if(currentUserId){
+            
+            controller.getUserListByKeyword(data.keyword).then(function(usersList) {  
+                if(usersList && usersList.length>0){
+                    for(var i=0;i<usersList.length;++i){
+                        if(usersList[i].password){
+                            delete usersList[i]._doc.password;
+                        }                    
+                        if(usersList[i].emailVerificationCode){
+                            delete usersList[i]._doc.emailVerificationCode;
+                        }
+                        if(usersList[i].salt){
+                            delete usersList[i]._doc.salt;
+                        }
+                        if(usersList[i].provider){
+                            delete usersList[i]._doc.provider;
+                        }                                                       
+                    }
+                }                            
+
+                return res.status(200).json(usersList);                    
+            },function(error){
+                return res.send(500, error);
+            });           
+            
+        }else{
+            return res.send(401);
+        }       
+    });            
+
     app.put('/user/list/:skip/:limit', function(req, res, next) {
      
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user; 
@@ -348,37 +419,14 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
                 });
             }else{
                 return res.status(500).send("You can't perform this action");
+
             }            
 
         }else{
             return res.send(401);
-        }
+        }      
         
-    }); 
-
-    app.delete('/user/:userId', function(req,res,next) {
-
-        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.body.userId;
-        var userId=req.params.userId;
-
-        if(currentUserId){
-            if(currentUserId!=userId){
-                controller.delete(currentUserId,userId).then(function() {             
-                     
-                    return res.status(200).json({});                              
-
-                },function(error){
-                    return res.send(500, error);
-                });
-            }else{
-                return res.status(500).send("You can't perform this action");
-            }
-
-        }else{
-            return res.status(401).send("unauthorized");
-        }
-
-    }); 
+    });  
 
 
     app.post('/user/byadmin', function(req,res,next) {
