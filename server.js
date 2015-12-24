@@ -2,6 +2,9 @@
 var express = require('express');
 global.app = express();
 
+var bodyParser = require('body-parser');
+
+global.app.use(bodyParser.text());
 //Load the configuration.
 global.config = require('./config/cloudboost');
 
@@ -10,8 +13,8 @@ global.keys = require('./config/keys.js');
 
 var app = require('./app')();
 
-app.set('port', process.env.PORT || 3000);
+global.app.set('port', process.env.PORT || 3000);
 
-var server = app.listen(app.get('port'), function(){
-	console.log("On PORT:"+app.get('port'));
+var server = global.app.listen(global.app.get('port'), function(){
+	console.log("On PORT:"+global.app.get('port'));
 });

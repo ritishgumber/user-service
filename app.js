@@ -3,13 +3,32 @@ module.exports = function(){
     var pjson = require('./package.json');
     var express = require('express');
     var cookieParser = require('cookie-parser');
-    var bodyParser = require('body-parser');
     var passport = require('passport');
     var session = require('express-session');
     var RedisStore = require('connect-redis')(session);
     var CronJob = require('cron').CronJob;
     var Q = require('q');
+   
+     global.app.use(function(req, res, next) {
+        
+        //if req body is a string, convert it to JSON. 
+        if(typeof(req.body)==="string"){
+            req.body = JSON.parse(req.body);
+        }
+
+        res.header('Access-Control-Allow-Credentials', true);
+        res.header('Access-Control-Allow-Origin', req.headers.origin);
+        res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+        res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
+        if ('OPTIONS' === req.method) {
+             res.sendStatus(200);
+         } else {
+             next();
+         }
+    });   
     
+   
+
     //connect to db
     addConnections(passport);
     
@@ -24,35 +43,7 @@ module.exports = function(){
         }
     });
 
-    global.app.use(function(req, res, next) {
-        if(req.text){
-            req.body = JSON.parse(req.text);
-        }
-        res.header('Access-Control-Allow-Credentials', true);
-        res.header('Access-Control-Allow-Origin', req.headers.origin);
-        res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-        res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
-        if ('OPTIONS' === req.method) {
-             res.sendStatus(200);
-         } else {
-             next();
-         }
-    });   
         
-    global.app.use(bodyParser.json());
-    global.app.use(bodyParser.urlencoded({extended: true}));
-    global.app.use(session({        
-        key: 'session',
-        resave: false, //does not forces session to be saved even when unmodified
-        saveUninitialized: false, //doesnt forces a session that is "uninitialized"(new but unmodified) to be saved to the store
-        secret: 'azuresample',       
-        store: new RedisStore({
-            client: global.redisClient,
-            ttl   : 30 * 24 * 60 * 60 // 30 * 24 * 60 * 60 = 30 days.
-        }),
-        cookie:{maxAge: (2600000000)}// 2600000000 is for 1 month
-    }));
-    
     global.app.use(passport.initialize());
     global.app.use(passport.session());
     
@@ -60,77 +51,6 @@ module.exports = function(){
         res.setHeader('Content-Type', 'application/json');
         res.send(JSON.stringify({ status : 200, version : pjson.version }));
     });
-
-   /**********CRON JOB**********/
-   try{
-    console.log("cron job initializing...");
-        var job = new CronJob('00 30 11 1 * *', function() {
-          /*
-           * 00 30 11 1 * *
-           * Runs every Month 1st day on weekday (Sunday through Saturday)
-           * at 11:30:00 AM. 
-           */
-            InvoiceService.getDueInvoiceList().then(function(invoiceList){                                    
-              
-              if(invoiceList){
-                    console.log("Invoice Service..");                    
-                    var userIndex=[]; 
-                    var promises=[];
-                 
-                    if(!invoiceList.length ){
-                        console.log("undefine length");
-                    }
-                    for(var i=0;i<invoiceList.length;++i){
-
-                      var userId=invoiceList[i]._userId;                    
-
-                      if(!invoiceList[i].charged){//if previously not charged
-                         promises.push(PaymentService.findCard(userId));
-                         userIndex.push(i);
-                      }                      
-                    }
-
-                    Q.allSettled(promises).then(function(creditCardList){                
-                  
-                        for(var i=0;i<creditCardList.length;i++){                            
-                      
-                            if(creditCardList[i].state="fulfilled" && creditCardList[i].value){                               
-                                var index=userIndex[i];
-                                var customerId=creditCardList[i].value.stripeCardObject.customer;
-                               
-                                //make payments
-                                PaymentService.makePayments(invoiceList[index],customerId);                                                                                   
-
-                            }else{//if card not found block the user                                                       
-                                var index=userIndex[i];
-                                InvoiceService.blockUser(invoiceList[index]._userId,invoiceList[index]._appId);
-                            }                   
-                        }             
-
-                    });//end of Q.allSetteled
-
-              }else{
-                console.log("There are no Invoices.");
-              }
-
-            },function(error){
-              console.log(error);              
-            });//end of getting invoice List
-
-          }, function () {
-            /* This function is executed when the job stops */
-          },
-          true /* Start the job right now */           
-        );
-        job.start();
-
-    } catch(ex) {
-        console.log("cron pattern not valid");
-    }   
-    /**********CRON JOB**********/   
-    return app;
-};
-
 
 //this fucntion add connections to the DB.
 function addConnections(passport){ 
@@ -141,39 +61,73 @@ function addConnections(passport){
 }
 
 function setUpRedis(){
-   //Set up Redis.
-   var hosts = [];
-   
-   if(global.config.redis.length>0){
-       //take from config file
-       for(var i=0;i<global.config.redis.length;i++){
-           hosts.push({
-                host : global.config.redis[i].host,
-                port : global.config.redis[i].port,
-                password : global.config.redis[i].password
-           });
-       }
-   }else{
-      //take from env variables.
-      
-       var i=1;
-      
-       while(process.env["DOCKER_REDIS_"+i+"_PORT_6379_TCP_ADDR"] && process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"]){
-       var obj = {
-                    host : process.env["DOCKER_REDIS_"+i+"_PORT_6379_TCP_ADDR"],
-                    port : process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"]
-                 };
-                 
-            hosts.push(obj);       
-            i++;
-        }
-   }
+  try{
   
-   console.log("Redis Connection String");
-   console.log(hosts);
-   var Redis = require('ioredis');
-   global.redisClient = new Redis.Cluster(hosts);
-   
+        //Set up Redis.
+        var hosts = [];
+        
+        var isCluster = false;
+        
+        if(global.config.redis.length>0){
+            //take from config file
+            for(var i=0;i<global.config.redis.length;i++){
+                hosts.push({
+                        host : global.config.redis[i].host,
+                        port : global.config.redis[i].port,
+                        
+                });
+                
+                if(global.config.redis[i].password){
+                    hosts[i].password = global.config.redis[i].password;
+                }
+            }
+            
+            if(global.config.redis.length>1){
+                isCluster = true;
+            }
+            
+        }else{
+            //take from env variables.
+            var i=1;
+            
+            while(process.env["DOCKER_REDIS_"+i+"_PORT_6379_TCP_ADDR"] && process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"]){
+                        if(i>1){
+                            isCluster = true;
+                        }
+                        var obj = {
+                            host : process.env["DOCKER_REDIS_"+i+"_PORT_6379_TCP_ADDR"],
+                            port : process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"]
+                        };
+                        hosts.push(obj);       
+                        i++;
+                }
+        }
+
+        console.log("Redis Connection String");
+        
+        var Redis = require('ioredis');
+        
+        if(isCluster){
+                global.redisClient = new Redis.Cluster(hosts);
+        }else{
+            global.redisClient = new Redis(hosts[0]);
+        }
+
+        global.app.use(session({        
+                key: 'session',
+                resave: false, //does not forces session to be saved even when unmodified
+                saveUninitialized: false, //doesnt forces a session that is "uninitialized"(new but unmodified) to be saved to the store
+                secret: 'azuresample',       
+                store: new RedisStore({
+                    client: global.redisClient,
+                    ttl   : 30 * 24 * 60 * 60 // 30 * 24 * 60 * 60 = 30 days.
+                }),
+                cookie:{maxAge: (2600000000)}// 2600000000 is for 1 month
+            }));
+   }catch(e){
+       console.log("Error connecting to Redis : ");
+       console.log(e);
+   }
 }
 
 
@@ -181,8 +135,15 @@ function setUpMongoDB(passport){
    //MongoDB connections. 
    var mongoConnectionString = "mongodb://";
    
+   var isReplicaSet = false;
+   
    if(global.config.mongo.length>0){
        //take from config file
+       
+       if(global.config.mongo.length>1){
+           isReplicaSet = true;
+       }
+       
        for(var i=0;i<global.config.mongo.length;i++){
             mongoConnectionString+=global.config.mongo[i].host +":"+global.config.mongo[i].port;
             mongoConnectionString+=",";
@@ -190,15 +151,25 @@ function setUpMongoDB(passport){
    }else{
         var i=1;
         while(process.env["DOCKER_MONGO_"+i+"_PORT_27017_TCP_ADDR"] && process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]){
+            if(i>1){
+                isReplicaSet = true;
+            }
             mongoConnectionString+=process.env["DOCKER_MONGO_"+i+"_PORT_27017_TCP_ADDR"]+":"+process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]; 
             mongoConnectionString+=",";
             i++;
         }
    }
+
   
    mongoConnectionString = mongoConnectionString.substring(0, mongoConnectionString.length - 1);
    mongoConnectionString += "/"; //de limitter. 
-   global.keys.db = mongoConnectionString+"?replicaSet=cloudboost&slaveOk=true";  
+   
+   global.keys.db = mongoConnectionString;
+
+   if(isReplicaSet){
+      global.db+="?replicaSet=cloudboost&slaveOk=true";
+   }
+
    global.keys.mongoConnectionString = global.keys.db; 
    console.log("Mongo DB : "+global.keys.db);
    
@@ -267,11 +238,10 @@ function setUpMongoDB(passport){
         console.log("Error  : MongoDB failed to connect.");
         console.log(error);
     });
+  }
 }
 
 
 function initEncryptionKey(){
     require('./config/keyService.js')().initEncryptKey();
 }
-
-

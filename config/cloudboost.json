@@ -10,8 +10,7 @@
   }],
   
   "redis" : [{
-                "host" : "cbredis.redis.cache.windows.net",
-                "port" : 6379,
-                "password" : "Lu40rnq6AccYY2t9DL0yeldebmth/Uz6pgZceg13eek="
+                "host" : "cbredis.cloudapp.net",
+                "port" : 6379
             }]
 }
