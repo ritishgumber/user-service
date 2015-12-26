@@ -1,6 +1,8 @@
 module.exports = {
 	dataServiceUrl : 'http://localhost:4730',
     cacheSchemaPrefix : 'schema',
+    globalDb : "CloudBoostProdDB",
+    globalSettings : "_Settings",
 	schemaExpirationTimeFromCache : 86400,
     mandrill : 'qiDZR_J-NKKKfg6ieTPSYw',
     mixpanelToken : global.isDevelopment ? '59f8c851677a01bdbfa6cffb2865c682' : '59f8c851677a01bdbfa6cffb2865c682',

@@ -20,74 +20,27 @@ module.exports = function(Project,InvoiceService,UserService,NotificationService
 
               var self = this;
 
-              Project.findOne({appId : appId}, function (err, project) {
-                if(project){
-                  deferred.reject('AppID already exists');
-                }else{
-                  Project.findOne({_userId:userId,name:name}, function (err, projectSameName) {
-                    if(projectSameName){
-                      deferred.reject('AppName already exists');
-                    }else{
-                        var project = new Project();
-                        project._userId=userId;
-                        project.name=name;
-                        project.appId = appId;  
-                        project.keys = {};
-                        project.keys.js = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), keys.encryptKey, 100, 16).toString("base64");
-                        project.keys.master = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), keys.encryptKey, 100, 32).toString("base64");        
-                        
-                        //Adding default developer
-                        var developers=[];
-                        var newDeveloper={};
-                        newDeveloper.userId=userId;
-                        newDeveloper.role="Admin";
-                        developers.push(newDeveloper);
+              var post_data = {};
+              post_data.globalKey = global.keys.encryptKey;
+              post_data.userId = userId;
+              post_data.appName = appName;
+              post_data.appId = appId;
 
-                        project.developers=developers;
-                        //End Adding default developer
-
-                        var promises = [];
-                        promises.push(createProject(appId));
-                        promises.push(project.save());
-                        Q.all(promises).then(function (project) {
-                                if(!project)
-                                    deferred.reject('Cannot save the app right now.');
-                                else{
-                                  //Create invoice Settings
-                                  InvoiceService.createInvoiceSettings(appId, userId).then(function(invoiceSettings){
-                                    if(invoiceSettings){
-                                        //Create invoice 
-                                        InvoiceService.createInvoice(appId, userId).then(function(invoice){                                    
-                                          if(invoice){                                        
-                                              //Get Project Status
-                                              _self.projectStatus(appId, userId).then(function(status){
-                                                project[1]._doc.status = status;
-                                                deferred.resolve(project[1]._doc);
-                                              }, function(error){
-                                                project[1]._doc.status = {status : 'Unknown'};
-                                                deferred.resolve(project[1]._doc);
-                                              });
-                                              //End of get Project Status
-                                          }
-
-                                        },function(error){
-                                          deferred.resolve(project[1]._doc);
-                                        });
-                                        //End of create invoice
-                                    }
-                                  },function(error){
-                                    deferred.resolve(project[1]._doc);
-                                  });
-                                  //End of create invoice Settings
-                                 
-                                }
-                        },function(err){
-                            deferred.reject(err);
-                        });
-                    }
-                  }); //End of checking same AppName 
-                }//end of else of if project is there
-              });             
+              post_data = JSON.stringify(post_data);
+              var url = global.keys.dataServiceUrl + '/app/'+appId;
+              request.post(url,{
+                  headers: {
+                      'content-type': 'application/json',
+                      'content-length': post_data.length
+                  },
+                  body: post_data
+              },function(err,response,body){
+                  if(err || response.statusCode === 500 || body === 'Error')
+                      deferred.reject(err);
+                  else {
+                      deferred.resolve("App created successfully.");
+                  }
+              });
 
               return deferred.promise;
           },
@@ -96,32 +49,9 @@ module.exports = function(Project,InvoiceService,UserService,NotificationService
 
               var deferred = Q.defer();
 
-              var self = this;         
+              var self = this;
 
-              // try{    
-
-              //     Project.findOne({ appId: appId, _userId : userId }, function (err, project) {
-              //       if (err) deferred.reject(err);
-
-              //       if(!project)
-              //         deferred.reject('Cannot find.');
-
-              //       http.get(keys.dataServiceUrl+":"+keys.dataServiceUrlPort+"/app/status/"+appId, function(res) {
-              //         if(res.statusCode===200){
-              //           deferred.resolve({status:'online', appId : appId});
-              //         }else{
-              //           deferred.resolve({status:'offline', appId : appId});
-              //         }
-              //       }).on('error', function(e) {
-              //         deferred.resolve({status:'offline', appId : appId});
-              //       });
-                     
-              //     });
-              //   }catch(e){
-              //     console.log('+++++ Project Status Error +++++++');
-              //     console.log(e);
-              //     deferred.reject(e);
-              //   }
+              //TODO : Retrieve Proper App Status.
 
               deferred.resolve({status:'online', appId : appId});
 
@@ -172,12 +102,13 @@ module.exports = function(Project,InvoiceService,UserService,NotificationService
 
               _self.getProject(id).then(function (project) {
                   if (!project) {
-                      deferred.reject('error updating project');
+                      deferred.reject('Error : Cannot update project right now.');
                   }else if(project){
 
                     Project.findOne({name:name}, function (err, projectSameName) {
                       if(projectSameName){
-                        deferred.reject('AppName already exists');
+                        deferred.reject('You cannot have two apps with the same name.');
+
                       }else{
 
                           /***Start editing***/
@@ -202,8 +133,7 @@ module.exports = function(Project,InvoiceService,UserService,NotificationService
                           }else{
                            deferred.reject("Unauthorized");
                           }
-                          /***End Start editing***/ 
-
+                          /***End Start editing***/
                       }
                     });  
                   }                                 
@@ -231,48 +161,7 @@ module.exports = function(Project,InvoiceService,UserService,NotificationService
              return deferred.promise;
 
           },
-          changeAppMasterKey: function (currentUserId,appId) {
 
-              var deferred = Q.defer();
-
-              var self = this;             
-
-              var newMasterKey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), keys.encryptKey, 100, 32).toString("base64");        
-
-              Project.findOneAndUpdate({appId:appId,developers: {$elemMatch: {userId:currentUserId,role:"Admin"}}},{$set: {"keys.master":newMasterKey }},{'new': true}, function (err, newProject) {
-                if (err) deferred.reject(err);
-                if(newProject){
-                  deferred.resolve(newProject);
-                }else{
-                  deferred.resolve(null);
-                }
-                     
-              });
-
-             return deferred.promise;
-
-          },
-          changeAppClientKey: function (currentUserId,appId) {
-
-              var deferred = Q.defer();
-
-              var self = this;
-
-              var newClientkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), keys.encryptKey, 100, 16).toString("base64");
-
-              Project.findOneAndUpdate({appId:appId,developers: {$elemMatch: {userId:currentUserId,role:"Admin"} }},{$set: {"keys.js":newClientkey }},{'new': true}, function (err, newProject) {
-                if (err) deferred.reject(err);
-                if(newProject){
-                  deferred.resolve(newProject);
-                }else{
-                  deferred.resolve(null);
-                }
-                     
-              });
-
-             return deferred.promise;
-
-          },
 
           delete: function (appId,userId) {
 
@@ -582,30 +471,6 @@ module.exports = function(Project,InvoiceService,UserService,NotificationService
 
 };
 
-function createProject(appId){
-
-
-    var deferred = Q.defer();
-
-    var post_data = {};
-    post_data.key = global.keys.encryptKey;
-    post_data = JSON.stringify(post_data);
-    var url = global.keys.dataServiceUrl + '/app/'+appId;
-    request.post(url,{
-        headers: {
-            'content-type': 'application/json',
-            'content-length': post_data.length
-        },
-        body: post_data
-    },function(err,response,body){
-        if(err || response.statusCode === 500 || body === 'Error')
-            deferred.reject(err);
-        else {
-            deferred.resolve();
-      }
-  });
-  return deferred.promise;
-}
 
 
 function processRemoveDeveloper(foundProj,userId,currentUserId,self){  

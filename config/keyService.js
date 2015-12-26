@@ -7,55 +7,79 @@ module.exports = function () {
     return {
         
         initEncryptKey : function () {
-            
-            var key = null;
-            
-            if (global.keys.encryptKey) {
-                deferred.resolve(global.keys.encryptKey);
-            } else {
-                
-                //get it from mongodb, If does not exist, create a new random key and return; 
-                var deferred = q.defer();
-                
-                var collection = global.mongoClient.db(global.keys.globalDb).collection(global.keys.globalSettings);
-                                
-                collection.find(function (err, docs) {
-                    if (err) {
-                        console.log("Error retrieveing Global Settings");
-                        console.log(err);
-                        deferred.reject(err);
-                    } else {
-                        
-                        var key = uuid.v4(); //generate a new key.
+            try {
+                console.log("Init Encrypt Key");
+                var key = null;
 
-                        if (docs.length >= 1) {
-                            if (docs[0].encryptKey) {
-                                global.keys.encryptKey = docs[0].encryptKey;
-                                deferred.resolve(global.keys.encryptKey);
-                            } else {
-                                
-                                //save in mongodb. 
-                                if (!docs[0])
-                                    docs[0] = {};
-                                
-                                docs[0]["encryptKey"] = key;
+                if (global.keys.encryptKey) {
+                    console.log("Encrypt Key : " + global.keys.encryptKey);
+                    deferred.resolve(global.keys.encryptKey);
+                } else {
 
-                                collection.save(docs[0], function (err, doc) {
+                    //get it from mongodb, If does not exist, create a new random key and return;
+                    var deferred = q.defer();
+
+                    var collection = global.mongoClient.db(global.keys.globalDb).collection(global.keys.globalSettings);
+
+                    collection.find(function (err, docs) {
+                        if (err) {
+                            console.log("Error retrieveing Global Settings");
+                            console.log(err);
+                            deferred.reject(err);
+                        } else {
+
+                            var key = uuid.v4(); //generate a new key.
+
+                            if (docs.length >= 1) {
+                                if (docs[0].encryptKey) {
+                                    global.keys.encryptKey = docs[0].encryptKey;
+                                    console.log("Encrypt Key : " + global.keys.encryptKey);
+                                    deferred.resolve(global.keys.encryptKey);
+                                } else {
+
+                                    //save in mongodb.
+                                    if (!docs[0])
+                                        docs[0] = {};
+
+                                    docs[0]["encryptKey"] = key;
+
+                                    collection.save(docs[0], function (err, doc) {
+                                        if (err) {
+                                            console.log("Error while saving Global Settings");
+                                            console.log(err);
+                                            deferred.reject(err);
+                                        } else {
+                                            //resolve if not an error
+                                            console.log("Encrypt Key : " + global.keys.encryptKey);
+                                            deferred.resolve(key);
+                                        }
+                                    });
+                                }
+                            }else{
+                                //create a new document.
+                                var doc = {};
+                                doc.encryptKey = key;
+                                global.keys.encryptKey = key;
+                                collection.save(doc, function (err, doc) {
                                     if (err) {
                                         console.log("Error while saving Global Settings");
                                         console.log(err);
                                         deferred.reject(err);
                                     } else {
-                                       //resolve if not an error
+                                        //resolve if not an error
+                                        console.log("Encrypt Key : " + global.keys.encryptKey);
                                         deferred.resolve(key);
                                     }
                                 });
                             }
                         }
-                    }
-                });
-                
+                    });
+                }
+
                 return deferred.promise;
+            }catch(e){
+                console.log("Error Init Encrypt Key");
+                console.log(e);
             }
         },
 

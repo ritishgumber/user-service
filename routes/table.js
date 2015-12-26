@@ -9,15 +9,16 @@ module.exports = function(controller, project) {
 
      app.put('/:appId/table/:tableName', function(req,res,next) {
      
-        console.log("++++ CREATE TBALE API +++++");
+        console.log("++++ CREATE TABLE API +++++");
 
         var projectId=req.params.appId;
 
         if(req.text){
         	req.body = JSON.parse(req.text);
         }
+
          var key = req.body.key;
-        var data = req.body.data || {};
+         var data = req.body.data || {};
      
 		if(key && projectId ){
 			project.getProject(projectId).then(function(project) {
@@ -58,10 +59,6 @@ module.exports = function(controller, project) {
        
         var name = req.params.tableName || {};
         var key = req.body.key;
-
-        console.log(key);
-        console.log(projectId);
-        console.log(name);
 
         if(key && projectId && name){            
         	project.getProject(projectId).then(function(project){
@@ -171,7 +168,5 @@ module.exports = function(controller, project) {
             });
         }
     }
-
-
 }
 

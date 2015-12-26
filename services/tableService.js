@@ -36,6 +36,7 @@ module.exports = function(Table) {
                     deferred.reject("User and Role can't be added twice");
                 }
             }
+
             if (index < 0) {
                 deferred.reject("Invalid Table Type");
                 return deferred.promise;

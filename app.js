@@ -103,7 +103,9 @@ function setUpRedis(){
                 }
         }
 
-        console.log("Redis Connection String");
+        //console.log("Redis Connection String");
+        //
+        //console.log(hosts);
         
         var Redis = require('ioredis');
         
@@ -164,7 +166,7 @@ function setUpMongoDB(passport){
    mongoConnectionString = mongoConnectionString.substring(0, mongoConnectionString.length - 1);
    mongoConnectionString += "/"; //de limitter. 
    
-   global.keys.db = mongoConnectionString;
+   global.keys.db = mongoConnectionString+global.keys.globalDb;
 
    if(isReplicaSet){
       global.db+="?replicaSet=cloudboost&slaveOk=true";
@@ -174,10 +176,7 @@ function setUpMongoDB(passport){
    console.log("Mongo DB : "+global.keys.db);
    
    var mongoose = require('./config/db.js')();
-   
-    //models. 
-    console.log("creating models..");
-    
+
     var Project = require('./model/project.js')(mongoose);
     var Subscriber = require('./model/subscriber.js')(mongoose);
     var User = require('./model/user.js')(mongoose);
@@ -193,11 +192,10 @@ function setUpMongoDB(passport){
     var Notification = require('./model/notification.js')(mongoose);
     
      //services.
-    console.log("starting services..");
+    console.log("Service Init...");
     var BeaconService  = require('./services/beaconService.js')(Beacon);  
     
     var UserService = require('./services/userService')(User,BeaconService);
-    console.log("UserService : " + UserService);    
     var SubscriberService  = require('./services/subscriberService.js')(Subscriber);
     var InvoiceService  = require('./services/invoiceService.js')(Invoice,InvoiceSettings,UserService);
     var ProjectService  = require('./services/projectService.js')(Project,InvoiceService);
@@ -211,8 +209,8 @@ function setUpMongoDB(passport){
     var NotificationService  = require('./services/notificationService.js')(Notification);
     var CbServerService = require('./services/cbServerService.js')(CbServer);
 
-    console.log("All services started..");
-    console.log("routes..");
+    console.log("Services Status : OK.");
+    console.log("API Init...");
     //routes. 
     global.app.use('/', require('./routes/auth')(passport,UserService,FileService,MailChimpService,MandrillService));
     global.app.use('/', require('./routes/subscriber.js')(SubscriberService,MailChimpService));
@@ -226,10 +224,12 @@ function setUpMongoDB(passport){
     global.app.use('/', require('./routes/file.js')(mongoose,FileService,UserService));
     global.app.use('/', require('./routes/cloudboost.js')(CbServerService,UserService));
     global.app.use('/', require('./routes/notification.js')(NotificationService));
+
+    console.log("API Status : OK.")
     
     require('./framework/config')(passport, User);
     
-    require('./config/mongoConnect')().connect(function(db){
+    require('./config/mongoConnect')().connect().then(function(db){
         global.mongoClient = db;
         //init encryption Key. 
         initEncryptionKey();
@@ -240,7 +240,6 @@ function setUpMongoDB(passport){
     });
   }
 }
-
 
 function initEncryptionKey(){
     require('./config/keyService.js')().initEncryptKey();
