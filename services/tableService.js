@@ -446,7 +446,6 @@ module.exports = function(Table) {
             if (!column) {
                 addedColumns.push(newColumns[i]);
             }
-
         }
 
         if (addedColumns.length > 0) {

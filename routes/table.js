@@ -52,7 +52,7 @@ module.exports = function(controller, project) {
      */
 
      app.delete('/:appId/table/:tableName', function(req,res,next) {
-
+         
         console.log("++++ DELETE TBALE API +++++");
 
         var projectId=req.params.appId;

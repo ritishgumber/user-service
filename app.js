@@ -25,9 +25,7 @@ module.exports = function(){
          } else {
              next();
          }
-    });   
-    
-   
+    });
 
     //connect to db
     addConnections(passport);
@@ -232,7 +230,8 @@ function setUpMongoDB(passport){
     require('./config/mongoConnect')().connect().then(function(db){
         global.mongoClient = db;
         //init encryption Key. 
-        initEncryptionKey();
+        initSecureKey();
+        initClusterKey();
     }, function(error){
         //error
         console.log("Error  : MongoDB failed to connect.");
@@ -241,6 +240,10 @@ function setUpMongoDB(passport){
   }
 }
 
-function initEncryptionKey(){
-    require('./config/keyService.js')().initEncryptKey();
+function initSecureKey(){
+    require('./config/keyService.js')().initSecureKey();
+}
+
+function initClusterKey(){
+    require('./config/keyService.js')().initClusterKey();
 }
