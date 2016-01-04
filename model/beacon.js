@@ -1,6 +1,6 @@
-module.exports = function(mongoose){
+module.exports = function(){
 
-	var Schema = mongoose.Schema;
+	var Schema = global.mongoose.Schema;
 	//console.log("Schema : "+Schema);
 	var beaconSchema = new Schema({	 
 	            _userId : String,
@@ -12,5 +12,5 @@ module.exports = function(mongoose){
 	  documentationLink : Boolean
 	});
 
-	return mongoose.model('Beacon', beaconSchema);
+	return global.mongoose.model('Beacon', beaconSchema);
 };

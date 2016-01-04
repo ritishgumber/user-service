@@ -8,7 +8,7 @@ var url = require('url');
 
 
 //setup passport
-module.exports = function(passport,controller,fileService,mailChimpService,mandrillService) {      
+module.exports = function(passport) {      
 
     var authCallback = function(req, res) {
         var user=req.user;
@@ -24,7 +24,7 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
 
         var data = req.body || {};
 
-        controller.register(data).then(function(user) {
+        global.userService.register(data).then(function(user) {
             if (!user) {
                 console.log('++++++ User Registration Failed +++++++++++++');
                 return res.send(500, "Error: Something went wrong");
@@ -33,7 +33,7 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
             console.log('++++++ User Registration Success +++++++++++++');
 
             var newsListId="b0419808f9";       
-            mailChimpService.addSubscriber(newsListId,user.email);
+            global.mailChimpService.addSubscriber(newsListId,user.email);
             
             if(data.isAdmin){
                 req.login(user, function(err) {
@@ -53,7 +53,7 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
                 });
 
             }else{
-                mandrillService.sendSignupEmail(user);
+                global.mandrillService.sendSignupEmail(user);
                 return res.status(200).send('You have signed up Successfully!');  
             }                
         },function(error){
@@ -67,11 +67,11 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
 
         var data = req.body || {};
        
-        controller.activate(data.code).then(function(user) {
+        global.userService.activate(data.code).then(function(user) {
 
             console.log('++++++ Activation Successful +++++++++++++');
             //send activated email.
-            mandrillService.sendActivatedEmail(user);
+            global.mandrillService.sendActivatedEmail(user);
 
             req.login(user, function(err) {
 
@@ -100,11 +100,11 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
 
         var data = req.body || {};
        
-        controller.getAccountByEmail(data.email).then(function(user) {
+        global.userService.getAccountByEmail(data.email).then(function(user) {
 
             console.log('++++++ Resent verification Code Successful +++++++++++++');
             //resend verify code.
-            mandrillService.sendSignupEmail(user);
+            global.mandrillService.sendSignupEmail(user);
             return res.send(200);
         },function(error){           
             return res.send(500, error);
@@ -115,11 +115,11 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
 
         var data = req.body || {};
 
-        controller.requestResetPassword(data.email).then(function(user) {
+        global.userService.requestResetPassword(data.email).then(function(user) {
 
             console.log('++++++ Request Reset Password Successful +++++++++++++');
             //send activated email.
-            mandrillService.sendRequestResetPasswordEmail(user);
+            global.mandrillService.sendRequestResetPasswordEmail(user);
             return res.send(200);
         },function(error){
             console.log('++++++ Request Reset Password Failed +++++++++++++');
@@ -132,11 +132,11 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
 
         var data = req.body || {};
 
-        controller.resetPassword(data.code, data.password).then(function(user) {
+        global.userService.resetPassword(data.code, data.password).then(function(user) {
 
             console.log('++++++ Request Reset Password Successful +++++++++++++');
             //send activated email.
-            mandrillService.sendPasswordResetSuccessful(user);              
+            global.mandrillService.sendPasswordResetSuccessful(user);              
 
             return res.status(200).send('You have changed password successfully!');    
         },function(error){
@@ -181,7 +181,7 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
         var respJson={};
 
         if(currentUserId){
-            controller.getAccountById(currentUserId).then(function(user) {  
+            global.userService.getAccountById(currentUserId).then(function(user) {  
                 delete user.password;
                 delete user.salt;  
                 delete user.emailVerificationCode;
@@ -189,7 +189,7 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
                 respJson.user=user;  
                               
                 if(user && user.fileId){                    
-                    return fileService.getFileById(user.fileId);
+                    return global.fileService.getFileById(user.fileId);
                 }                 
             }).then(function(file){
 
@@ -223,13 +223,13 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
 
         if(currentUserId){
-            controller.updateUserProfile(currentUserId,data.name,data.oldPassword,data.newPassword).then(function(user) {  
+            global.userService.updateUserProfile(currentUserId,data.name,data.oldPassword,data.newPassword).then(function(user) {  
                 if (!user) {                  
                   return res.status(400).send('Error : User not updated'); 
                 } 
                 if(data.oldPassword,data.newPassword){
                     //send activated email.
-                    mandrillService.sendPasswordResetSuccessful(user);
+                    global.mandrillService.sendPasswordResetSuccessful(user);
                 }                
                 req.logout();
                 return res.status(200).json(user);                    
@@ -249,7 +249,7 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
 
         if(currentUserId){
             if(data.IdArray && data.IdArray.length>0){
-                controller.getUserListByIds(data.IdArray).then(function(usersList) {  
+                global.userService.getUserListByIds(data.IdArray).then(function(usersList) {  
                     if(usersList && usersList.length>0){
                         for(var i=0;i<usersList.length;++i){
                             if(usersList[i].password){
@@ -286,7 +286,7 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
 
         if(currentUserId){
             
-            controller.getUserListByKeyword(data.keyword).then(function(usersList) {  
+            global.userService.getUserListByKeyword(data.keyword).then(function(usersList) {  
                 if(usersList && usersList.length>0){
                     for(var i=0;i<usersList.length;++i){
                         if(usersList[i].password){
@@ -324,7 +324,7 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
         var skipUserIds=data.skipUserIds;       
 
         if(currentUserId){
-            controller.getUserBySkipLimit(skip,limit,skipUserIds).then(function(usersList) { 
+            global.userService.getUserBySkipLimit(skip,limit,skipUserIds).then(function(usersList) { 
                 if(usersList && usersList.length>0){
                     for(var i=0;i<usersList.length;++i){
                         if(usersList[i].password){
@@ -360,7 +360,7 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
 
         if(currentUserId){
             if(currentUserId!=userId){
-                controller.updateUserActive(currentUserId,userId,isActive).then(function(user) { 
+                global.userService.updateUserActive(currentUserId,userId,isActive).then(function(user) { 
                     if(user){
                         if(user.password){
                             delete user._doc.password;
@@ -398,7 +398,7 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
 
         if(currentUserId){
             if(currentUserId!=userId){
-                controller.updateUserRole(currentUserId,userId,isAdmin).then(function(user) { 
+                global.userService.updateUserRole(currentUserId,userId,isAdmin).then(function(user) { 
                     if(user){
                         if(user.password){
                             delete user._doc.password;
@@ -435,7 +435,7 @@ module.exports = function(passport,controller,fileService,mailChimpService,mandr
         var data = req.body || {};
 
         if(currentUserId){            
-            controller.getUserByEmailByAdmin(currentUserId,data.email).then(function(user) {             
+            global.userService.getUserByEmailByAdmin(currentUserId,data.email).then(function(user) {             
                  
                 if(user){
                     if(user.password){

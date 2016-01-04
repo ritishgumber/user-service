@@ -8,7 +8,7 @@ var util = require('./utilService')();
 var LocalStrategy = require('passport-local').Strategy;
 
 
-module.exports = function(User,BeaconService,CbServerService,NotificationService){
+module.exports = function(User){
 
     return {
                 makeSalt: function () {
@@ -150,7 +150,7 @@ module.exports = function(User,BeaconService,CbServerService,NotificationService
 
                             //Create Beacons For New Users
                             if(user){
-                              BeaconService.createBeacon(user._doc._id.toString());
+                              global.beaconService.createBeacon(user._doc._id.toString());
                             }                            
                         },function(error){
                             deffered.reject(error);
@@ -192,8 +192,8 @@ module.exports = function(User,BeaconService,CbServerService,NotificationService
                           deffered.reject(err);
                         } else{                          
                           if(data.isAdmin){
-                            CbServerService.upsertSettings(null,false);
-                            NotificationService.linkUserId(user.email,user._id);
+                            global.cbServerService.upsertSettings(null,false);
+                            global.notificationService.linkUserId(user.email,user._id);
 
                           }
                           deffered.resolve(user);

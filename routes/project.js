@@ -1,7 +1,7 @@
 ﻿var express = require('express');
 var app = express();
 
-module.exports = function(controller) {
+module.exports = function() {
 
     // routes
     app.post('/app/create', function(req,res,next) {
@@ -10,11 +10,11 @@ module.exports = function(controller) {
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.body.userId;
        
         if(currentUserId && data){
-          controller.createProject(data.name, data.appId,currentUserId).then(function(project) {
+          global.projectService.createProject(data.name, data.appId,currentUserId).then(function(project) {
               if (!project) {                  
                   return res.status(400).send('Error : Project not created'); 
               }            
-            return res.status(200).json(project);
+            return res.status(200).json(project._doc);
 
           },function(error){            
             return res.status(500).send(error); 
@@ -31,7 +31,7 @@ module.exports = function(controller) {
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
               
         if(currentUserId){
-            controller.projectList(currentUserId).then(function(list) {
+            global.projectService.projectList(currentUserId).then(function(list) {
                 if (!list) {
                     return res.send(500, 'Error: Something Went Wrong');
                 }               
@@ -51,7 +51,7 @@ module.exports = function(controller) {
        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
 
         if(currentUserId && req.params.appId){
-            controller.projectStatus(req.params.appId).then(function(status) {
+            global.projectService.projectStatus(req.params.appId).then(function(status) {
                 return res.json(200, status);
             },function(error){
                 return res.send(500, error);
@@ -73,7 +73,7 @@ module.exports = function(controller) {
 
         if(currentUserId && appId && data){
 
-            controller.editProject(currentUserId,appId,name).then(function(project) {
+            global.projectService.editProject(currentUserId,appId,name).then(function(project) {
                 if (!project) {                    
                     return res.status(500).send("Error: Project didn't get edited");  
                 }               
@@ -94,7 +94,7 @@ module.exports = function(controller) {
         //var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
         var id=req.params.appId;
                  
-		controller.getProject(id).then(function(project) {
+		global.projectService.getProject(id).then(function(project) {
 		
             if (!project) {
                  return res.send(500, 'Error: Project not found');
@@ -113,7 +113,7 @@ module.exports = function(controller) {
         var id = req.params.appId;
 		var key = req.body.key;
         if(key && id){
-            controller.getProject(id).then(function(project) {
+            global.projectService.getProject(id).then(function(project) {
                 if (!project) {
                     return res.send(500, 'Error: Project not found');
                 }
@@ -135,7 +135,7 @@ module.exports = function(controller) {
         var id = req.params.appId;
         
         if(currentUserId && id){
-            controller.changeAppMasterKey(currentUserId,id).then(function(project) {
+            global.projectService.changeAppMasterKey(currentUserId,id).then(function(project) {
                 if (!project) {
                     return res.send(400, 'Error: Project not found');
                 }
@@ -157,7 +157,7 @@ module.exports = function(controller) {
         var id = req.params.appId;
        
         if(currentUserId && id){
-            controller.changeAppClientKey(currentUserId,id).then(function(project) {
+            global.projectService.changeAppClientKey(currentUserId,id).then(function(project) {
                 if (!project) {
                     return res.send(400, 'Error: Project not found');
                 }
@@ -179,7 +179,7 @@ module.exports = function(controller) {
 
         if(currentUserId){
 
-            controller.delete(req.params.appId, currentUserId).then(function() {                
+            global.projectService.delete(req.params.appId, currentUserId).then(function() {                
                  
                 return res.status(200).json({});                              
 
@@ -202,7 +202,7 @@ module.exports = function(controller) {
 
         if(currentUserId && appId && userId){
 
-            controller.removeDeveloper(currentUserId,appId, userId).then(function(project) {                
+            global.projectService.removeDeveloper(currentUserId,appId, userId).then(function(project) {                
                  
                 return res.status(200).json(project);                              
 
@@ -225,7 +225,7 @@ module.exports = function(controller) {
 
         if(currentUserId && appId && data.email){
 
-            controller.removeInvitee(currentUserId,appId, data.email).then(function(project) {                
+            global.projectService.removeInvitee(currentUserId,appId, data.email).then(function(project) {                
                  
                 return res.status(200).json(project);                              
 
@@ -247,7 +247,7 @@ module.exports = function(controller) {
         
         if(currentUserId && appId && data.email){
             
-            controller.inviteUser(appId,data.email).then(function(response) {
+            global.projectService.inviteUser(appId,data.email).then(function(response) {
                 if (!response) {
                     return res.send(400, 'Error: Project not found');
                 }
@@ -270,7 +270,7 @@ module.exports = function(controller) {
         var email = req.params.email;
         
         if(currentUserId && appId && email){
-            controller.addDeveloper(currentUserId,appId,email).then(function(project) {
+            global.projectService.addDeveloper(currentUserId,appId,email).then(function(project) {
                 if (!project) {
                     return res.send(400, 'Error: Project not found');
                 }
@@ -295,7 +295,7 @@ module.exports = function(controller) {
         
         if(currentUserId){
             if(appId && userId && role){
-                controller.changeDeveloperRole(currentUserId,appId,userId,role).then(function(project) {
+                global.projectService.changeDeveloperRole(currentUserId,appId,userId,role).then(function(project) {
                 if (!project) {
                         return res.send(400, 'Error: Cannot Perform this task now');
                     }

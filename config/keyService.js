@@ -6,9 +6,7 @@ var uuid = require('node-uuid');
 module.exports = function () {
     return {
         initSecureKey : function () {
-            try {
-
-                console.log("Initializing Secure Key...");
+            try {               
 
                 var key = null;
 
@@ -90,8 +88,7 @@ module.exports = function () {
 
     initClusterKey : function () {
         try {
-
-            console.log("Initializing Cluster Key...");
+           
 
             var key = null;
 

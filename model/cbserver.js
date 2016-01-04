@@ -1,10 +1,10 @@
-module.exports = function(mongoose){
+module.exports = function(){
 
-	var Schema = mongoose.Schema;
+	var Schema = global.mongoose.Schema;
 	
 	var cbServerSchema = new Schema({	 
 	    allowSignUp : Boolean	          
 	});
 
-	return mongoose.model('CbServer', cbServerSchema);
+	return global.mongoose.model('CbServer', cbServerSchema);
 };

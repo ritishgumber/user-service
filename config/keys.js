@@ -1,7 +1,7 @@
 module.exports = {
 	dataServiceUrl : 'http://localhost:4730',
     cacheSchemaPrefix : 'schema',
-    globalDb : "CloudBoostProdDB",
+    globalDb : "_GLOBAL",
     globalSettings : "_Settings",
 	schemaExpirationTimeFromCache : 86400,
     mandrill : 'qiDZR_J-NKKKfg6ieTPSYw',

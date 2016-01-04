@@ -1,11 +1,11 @@
-module.exports = function(mongoose){
+module.exports = function(){
 
-	var Schema = mongoose.Schema;
+	var Schema = global.mongoose.Schema;
 
 	var subscriberSchema = new Schema({
 	  email:  String
 	});
 
-	return mongoose.model('Subscriber', subscriberSchema);
+	return global.mongoose.model('Subscriber', subscriberSchema);
 
 };

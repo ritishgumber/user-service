@@ -10,7 +10,7 @@ var request = require('request');
 var mandrill = require('mandrill-api/mandrill');
 var mandrill_client = new mandrill.Mandrill(keys.mandrill);
 
-module.exports = function(Invoice,InvoiceSettings,UserService){
+module.exports = function(Invoice,InvoiceSettings){
 
   return {
     
@@ -306,7 +306,7 @@ module.exports = function(Invoice,InvoiceSettings,UserService){
                               deferred.reject('Cannot block the User right now.');
                           else{
                                 var userId=invoiceSettings._userId;
-                                UserService.getAccountById(userId)
+                                global.userService.getAccountById(userId)
                                 .then(function(user){
                                   if(user){
 

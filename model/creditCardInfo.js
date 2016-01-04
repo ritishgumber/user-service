@@ -1,12 +1,12 @@
-module.exports = function(mongoose){
+module.exports = function(){
 
-	var Schema = mongoose.Schema;
+	var Schema = global.mongoose.Schema;
 
 	var creditCardInfoSchema = new Schema({		 
 	  _userId: String,
 	  stripeCardObject:Object
 	});
 
-	return mongoose.model('CreditCardInfo', creditCardInfoSchema);
+	return global.mongoose.model('CreditCardInfo', creditCardInfoSchema);
 };
 

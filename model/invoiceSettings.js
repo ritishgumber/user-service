@@ -1,6 +1,6 @@
-module.exports = function(mongoose){
+module.exports = function(){
 
-	var Schema = mongoose.Schema;
+	var Schema = global.mongoose.Schema;
 
 	var invoiceSettingsSchema = new Schema({	  
 	  _appId: String,
@@ -10,5 +10,5 @@ module.exports = function(mongoose){
 	  blocked: Object
 	});
 
-	return mongoose.model('InvoiceSettings', invoiceSettingsSchema);
+	return global.mongoose.model('InvoiceSettings', invoiceSettingsSchema);
 };

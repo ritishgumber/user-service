@@ -1,7 +1,7 @@
 var express = require('express');
 var app = express();
 
-module.exports = function(projectDetailsService) {
+module.exports = function() {
 
     // routes
     app.put('/app/:appId/details', function(req,res,next) {
@@ -10,7 +10,7 @@ module.exports = function(projectDetailsService) {
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
        
         if(currentUserId && data){
-          projectDetailsService.saveProjectDetails(data,currentUserId).then(function(projectDet) {
+          global.projectDetailsService.saveProjectDetails(data,currentUserId).then(function(projectDet) {
               if (!projectDet) {
                   return res.send(400, "Error: Settings not saved");
               }
@@ -32,7 +32,7 @@ module.exports = function(projectDetailsService) {
         var appId=req.params.appId;
 
         if(currentUserId && appId){
-          projectDetailsService.getProjectDetails(currentUserId,appId).then(function(projectDet) {
+          global.projectDetailsService.getProjectDetails(currentUserId,appId).then(function(projectDet) {
               if (!projectDet) {
                   return res.send(200, null);
               }

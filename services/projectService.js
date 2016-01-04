@@ -8,7 +8,7 @@ var _ = require('underscore');
 var crypto = require('crypto');
 var request = require('request');
 
-module.exports = function(Project,InvoiceService,UserService,NotificationService,MandrillService){
+module.exports = function(Project){
 
   return {
 
@@ -20,27 +20,35 @@ module.exports = function(Project,InvoiceService,UserService,NotificationService
 
               var self = this;
 
-              var post_data = {};
-              post_data.globalKey = global.keys.encryptKey;
-              post_data.userId = userId;
-              post_data.appName = appName;
-              post_data.appId = appId;
+              var savedProject;
 
-              post_data = JSON.stringify(post_data);
-              var url = global.keys.dataServiceUrl + '/app/'+appId;
-              request.post(url,{
-                  headers: {
-                      'content-type': 'application/json',
-                      'content-length': post_data.length
-                  },
-                  body: post_data
-              },function(err,response,body){
-                  if(err || response.statusCode === 500 || body === 'Error')
-                      deferred.reject(err);
-                  else {
-                      deferred.resolve("App created successfully.");
-                  }
-              });
+              _createAppFromDS(appId).then(function(project) {
+                project=JSON.parse(project);
+               
+                //Adding default developer
+                var developers=[];
+                var newDeveloper={};
+                newDeveloper.userId=userId;
+                newDeveloper.role="Admin";
+                developers.push(newDeveloper);              
+                //End Adding default developer
+
+                var appendJson={_userId:userId,name:name,developers:developers};
+                return _self.findOneAndUpdateProject(project._id,appendJson);                              
+
+              }).then(function(newProject){ 
+
+                savedProject=newProject;
+                return _self.projectStatus(appId,userId); 
+
+              }).then(function(statusObj){
+
+                savedProject._doc.status = statusObj;
+                deferred.resolve(savedProject);
+
+              },function(error) {
+                deferred.reject(error);
+              });              
 
               return deferred.promise;
           },
@@ -162,6 +170,26 @@ module.exports = function(Project,InvoiceService,UserService,NotificationService
 
           },
 
+          findOneAndUpdateProject: function (projectId,newJson) {
+
+            var deffered = Q.defer();
+
+            var self = this;
+
+              Project.findOneAndUpdate({_id:projectId}, { $set: newJson},{new:true},function (err, user) {
+                if (err) { 
+                  return deffered.reject(err); 
+                }
+
+                if (!user) {
+                  return deffered.reject(null);
+                }
+                return deffered.resolve(user);                    
+              });
+
+            return deffered.promise;
+
+          },
 
           delete: function (appId,userId) {
 
@@ -171,28 +199,20 @@ module.exports = function(Project,InvoiceService,UserService,NotificationService
 
               console.log(' ++++++++ App Delete request +++++++++');
 
-              Project.remove({appId:appId,developers: {$elemMatch: {userId:userId,role:"Admin"} }}, function (err) {
+              Project.findOne({appId:appId,developers: {$elemMatch: {userId:userId,role:"Admin"} }}, function (err,foundProj) {
                 if(err){
-                  console.log('++++++++ App Delete failed from frontend ++++++++++'); 
-                  console.log(err);
+                  console.log('++++++++ App Delete failed from frontend ++++++++++');                   
                   deferred.reject(err);
+                }else if(foundProj){
+
+                  _deleteAppFromDS(appId).then(function(resp){
+                    deferred.resolve(resp);
+                  },function(error){
+                    deferred.reject(error);
+                  });
+
                 }else{
-                    var post_data = "{ \"key\" : \""+keys.encryptKey+"\"}";
-                    request.del({
-                      headers: {
-                                  'content-type' : 'application/json', 
-                                  'content-length' : post_data.length
-                               },
-                      url:     keys.dataServiceUrl +"/app/"+appId,
-                      body:    post_data
-                    }, function(error, response, body){
-                       if(response && response.body === 'Success'){
-                          console.log('successfully deleted');
-                           deferred.resolve();
-                       }else{
-                          deferred.reject();
-                       }
-                    });
+                  deferred.reject("Project not found with specified user");
                 }
               });
 
@@ -240,11 +260,11 @@ module.exports = function(Project,InvoiceService,UserService,NotificationService
                   deferred.reject("Project not found with given Email");
                 }else{
 
-                  UserService.getAccountByEmail(email).then(function(foundUser) {
+                  global.userService.getAccountByEmail(email).then(function(foundUser) {
 
                     if(checkValidUser(foundProj,currentUserId,"Admin") || foundUser._id==currentUserId){
                       //User can delete himself or can delete others when he is a Admin
-                      processRemoveInvitee(foundProj,email,NotificationService)
+                      processRemoveInvitee(foundProj,email)
                       .then(function(data){
                         deferred.resolve(data);
                       },function(error){
@@ -313,12 +333,12 @@ module.exports = function(Project,InvoiceService,UserService,NotificationService
                   deferred.reject("App not found!.");
                 }else{
 
-                  UserService.getAccountByEmail(email).then(function(foundUser) {
+                  global.userService.getAccountByEmail(email).then(function(foundUser) {
                     if(foundUser){
 
                       if(!checkValidUser(project,foundUser._id,null)){ 
 
-                        processInviteUser(project,email,foundUser,NotificationService,MandrillService)
+                        processInviteUser(project,email,foundUser)
                         .then(function(data){
                           deferred.resolve(data);
                         },function(error){
@@ -330,7 +350,7 @@ module.exports = function(Project,InvoiceService,UserService,NotificationService
                       } 
 
                     }else{//There is no user with this email in cloudboost
-                      processInviteUser(project,email,foundUser,NotificationService,MandrillService)
+                      processInviteUser(project,email,foundUser)
                       .then(function(data){
                         deferred.resolve(data);
                       },function(error){
@@ -380,7 +400,7 @@ module.exports = function(Project,InvoiceService,UserService,NotificationService
                       if(!savedProject){
                         deferred.reject('Cannot save the app right now.');
                       }else{
-                        NotificationService.removeNotificationByAppId(savedProject.appId); 
+                        global.notificationService.removeNotificationByAppId(savedProject.appId); 
 
                         //Get the status
                         self.projectStatus(savedProject._doc.appId, currentUserId)
@@ -507,7 +527,7 @@ function processRemoveDeveloper(foundProj,userId,currentUserId,self){
   return deferred.promise;
 }
 
-function processRemoveInvitee(foundProj,email,NotificationService){
+function processRemoveInvitee(foundProj,email){
   var deferred = Q.defer();
 
   var tempArray=foundProj.invited;
@@ -523,14 +543,14 @@ function processRemoveInvitee(foundProj,email,NotificationService){
       deferred.reject('Cannot save the app right now.');
     }else{
       deferred.resolve(project);
-      NotificationService.removeNotificationByAppId(foundProj.appId);                     
+      global.notificationService.removeNotificationByAppId(foundProj.appId);                     
     }
   });
 
   return deferred.promise;
 }
 
-function processInviteUser(project,email,foundUser,NotificationService,MandrillService){
+function processInviteUser(project,email,foundUser){
   var deferred = Q.defer();
 
   //Invitation 
@@ -548,8 +568,8 @@ function processInviteUser(project,email,foundUser,NotificationService,MandrillS
         var notificationType="Confirm";
         var type="invited-project";
         var text="You have been invited to collaborate on <span style='font-weight:bold;'>"+savedProject.name+"</span>. Do you want to accept the invite?";
-        NotificationService.createNotification(savedProject.appId,foundUser._id,notificationType,type,text); 
-        MandrillService.inviteDeveloper(email,savedProject.name);
+        global.notificationService.createNotification(savedProject.appId,foundUser._id,notificationType,type,text); 
+        global.mandrillService.inviteDeveloper(email,savedProject.name);
       }
     });
 
@@ -607,3 +627,66 @@ function checkValidUser(app,userId,role){
     return false;
   }
 }
+
+/***********************Pinging Data Services*********************************/
+
+function _createAppFromDS(appId){
+  var deferred = Q.defer();
+ 
+  var post_data = {};
+  post_data.secureKey = global.keys.secureKey;
+  post_data = JSON.stringify(post_data);
+
+  var url = global.keys.dataServiceUrl + '/app/'+appId;
+  request.post(url,{
+      headers: {
+          'content-type': 'application/json',
+          'content-length': post_data.length
+      },
+      body: post_data
+  },function(err,response,body){
+      if(err || response.statusCode === 500 || body === 'Error')
+        deferred.reject(err);
+      else {                         
+        deferred.resolve(body);
+      }
+  });
+
+  return deferred.promise;
+}
+
+function _deleteAppFromDS(appId){
+
+  var deferred = Q.defer();
+
+  var post_data = {};
+  post_data.secureKey = global.keys.secureKey;
+  post_data = JSON.stringify(post_data);
+
+  request.del({
+    headers: {
+                'content-type' : 'application/json', 
+                'content-length' : post_data.length
+             },
+    url:     keys.dataServiceUrl +"/app/"+appId,
+    body:    post_data
+  }, function(error, response, body){
+    if(response){
+      var respData=JSON.parse(response.body);
+
+      if(respData.status === 'Success'){
+        console.log('successfully deleted');
+        deferred.resolve('Successfully deleted');
+      }else{
+        deferred.reject("Unable to delete!");
+      }
+
+    }else{
+      deferred.reject("Unable to delete!");
+    }
+     
+  });
+
+  return deferred.promise;
+}
+  

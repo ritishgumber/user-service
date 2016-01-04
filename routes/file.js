@@ -5,17 +5,17 @@ var url = require('url');
 var Busboy = require('busboy');
 var Grid = require('gridfs-stream');
 
-module.exports = function(mongoose,fileService,userService) {
+module.exports = function() {
 
-    Grid.mongo = mongoose.mongo;
-    var gfs = new Grid(mongoose.connection.db);
+    Grid.mongo = global.mongoose.mongo;
+    var gfs = new Grid(global.mongoose.connection.db);
 
     //routes
     app.get('/file/:id', function(req,res,next) { 
 
         var fileId=req.params.id;
         if(fileId){
-            fileService.getFileById(fileId).then(function(file) { 
+            global.fileService.getFileById(fileId).then(function(file) { 
 
                 res.set('Content-Type', file.contentType);
                 res.set('Content-Disposition', 'attachment; filename="' + file.filename + '"'); 
@@ -50,14 +50,14 @@ module.exports = function(mongoose,fileService,userService) {
 
         busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {  
        
-            userService.getAccountById(currentUserId).then(function(user) {              
+            global.userService.getAccountById(currentUserId).then(function(user) {              
                 if(user && user.fileId){
-                    fileService.deleteFileById(user.fileId);
+                    global.fileService.deleteFileById(user.fileId);
                 }
-                return fileService.putFile(file,filename,mimetype);
+                return global.fileService.putFile(file,filename,mimetype);
             }).then(function(savedFile) { 
                 fileHolder=savedFile;             
-                return userService.updateUserProfilePic(currentUserId,savedFile._id.toString());
+                return global.userService.updateUserProfilePic(currentUserId,savedFile._id.toString());
             }).then(function(user){   
 
                 //Wrapping for consistency in UI
@@ -90,8 +90,8 @@ module.exports = function(mongoose,fileService,userService) {
 
         if(currentUserId && fileId){
 
-            fileService.deleteFileById(fileId).then(function(resp) {                
-                return userService.updateUserProfilePic(currentUserId,null);
+            global.fileService.deleteFileById(fileId).then(function(resp) {                
+                return global.userService.updateUserProfilePic(currentUserId,null);
             }).then(function(reply){
                 return res.status(200).send("Deleted Successfully");    
             },function(error){

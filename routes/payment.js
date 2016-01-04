@@ -1,7 +1,7 @@
 var express = require('express');
 var app = express();
 
-module.exports = function(paymentService) {
+module.exports = function() {
 
     // routes
     app.put('/user/card', function(req,res,next) {
@@ -10,7 +10,7 @@ module.exports = function(paymentService) {
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
        
         if(currentUserId && data){            
-          paymentService.upsertCreditCard(currentUserId,data.stripeResponse.id,data.cardInfo).then(function(cardinfo) {
+          global.paymentService.upsertCreditCard(currentUserId,data.stripeResponse.id,data.cardInfo).then(function(cardinfo) {
               if (!cardinfo) {
                 return res.send(400, "Error: Something went wrong");
               }
@@ -32,7 +32,7 @@ module.exports = function(paymentService) {
         
 
         if(currentUserId){
-          paymentService.findCard(currentUserId).then(function(cardinfo) {
+          global.paymentService.findCard(currentUserId).then(function(cardinfo) {
               if (!cardinfo) {
                 return res.send(200, null);
               }

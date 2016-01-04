@@ -1,7 +1,7 @@
 var express = require('express');
 var app = express();
 
-module.exports = function(NotificationService) {
+module.exports = function() {
 
     //routes
     app.get('/notification/:skip/:limit', function(req,res,next) {
@@ -11,7 +11,7 @@ module.exports = function(NotificationService) {
         var limit=req.params.limit;
         
         if(currentUserId){                
-    		NotificationService.getNotifications(currentUserId,skip,limit).then(function(list) {            
+    		global.notificationService.getNotifications(currentUserId,skip,limit).then(function(list) {            
                 return res.status(200).json(list);
             },function(error){
                 return res.status(400).send(error);
@@ -26,7 +26,7 @@ module.exports = function(NotificationService) {
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
         
         if(currentUserId){                
-            NotificationService.updateNotificationsSeen(currentUserId).then(function(list) {            
+            global.notificationService.updateNotificationsSeen(currentUserId).then(function(list) {            
                 return res.status(200).json(list);
             },function(error){                
                 return res.status(400).send(error);

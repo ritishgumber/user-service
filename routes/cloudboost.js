@@ -1,12 +1,12 @@
 var express = require('express');
 var app = express();
 
-module.exports = function(CbServerService,UserService) {
+module.exports = function() {
 
     //routes
     app.get('/cloudboost/isNewServer', function(req,res,next) {       
                         
-		UserService.isNewServer().then(function(isNew) {            
+		global.userService.isNewServer().then(function(isNew) {            
             return res.status(200).send(isNew);
         },function(error){
             return res.send(500, error);
@@ -16,7 +16,7 @@ module.exports = function(CbServerService,UserService) {
 
     app.get('/cloudboost', function(req,res,next) {       
                         
-		CbServerService.getSettings().then(function(settings) {            
+		global.cbServerService.getSettings().then(function(settings) {            
             return res.status(200).json(settings);
         },function(error){
             return res.send(500, error);
@@ -26,7 +26,7 @@ module.exports = function(CbServerService,UserService) {
     app.post('/cloudboost', function(req,res,next) {       
         var data = req.body || {};
                         
-		CbServerService.upsertSettings(data.id,data.allowedSignUp).then(function(settings) {            
+		global.cbServerService.upsertSettings(data.id,data.allowedSignUp).then(function(settings) {            
             return res.status(200).json(settings);
         },function(error){
             return res.send(500, error);

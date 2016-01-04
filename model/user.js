@@ -1,8 +1,8 @@
 var Hash = require('password-hash');
 
-module.exports = function(mongoose){
+module.exports = function(){
 
-	var Schema = mongoose.Schema;
+	var Schema = global.mongoose.Schema;
 
 	var userSchema = new Schema({
 		email: String,
@@ -18,6 +18,6 @@ module.exports = function(mongoose){
 		isActive:Boolean,
 	});
 
-	return mongoose.model('User', userSchema);
+	return global.mongoose.model('User', userSchema);
 
 };

@@ -1,12 +1,12 @@
-module.exports = function(mongoose){
+module.exports = function(){
 
-	var Schema = mongoose.Schema;
+	var Schema = global.mongoose.Schema;
 
 	var stripeCustomerSchema = new Schema({		  
 	  _userId: String,
 	  stripeCustomerObject:Object
 	});
 
-	return mongoose.model('StripeCustomer', stripeCustomerSchema);
+	return global.mongoose.model('StripeCustomer', stripeCustomerSchema);
 };
 

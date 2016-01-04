@@ -1,7 +1,7 @@
 var express = require('express');
 var app = express();
 
-module.exports = function(invoiceService) {
+module.exports = function() {
 
     // routes
     app.get('/:appId/invoice', function(req,res,next) {
@@ -10,7 +10,7 @@ module.exports = function(invoiceService) {
         var appId=req.params.appId;
 
         if(currentUserId && appId){
-          invoiceService.getInvoice(currentUserId,appId).then(function(invoice) {
+          global.invoiceService.getInvoice(currentUserId,appId).then(function(invoice) {
               if (!invoice) {
                   return res.send(400, "Error: Invoice not found");
               }
@@ -32,7 +32,7 @@ module.exports = function(invoiceService) {
         var appId=req.params.appId;
 
         if(currentUserId && appId){
-          invoiceService.getInvoiceSettings(currentUserId,appId).then(function(invoiceSettings) {
+          global.invoiceService.getInvoiceSettings(currentUserId,appId).then(function(invoiceSettings) {
               if (!invoiceSettings) {
                   return res.send(400, "Error: invoice settings not found.");
               }
@@ -59,7 +59,7 @@ module.exports = function(invoiceService) {
 
         if(currentUserId && appId && spendingLimit>=0){
 
-            invoiceService.upsertInvoiceSettings(currentUserId,appId,spendingLimit).then(function(invoiceSettings) {
+            global.invoiceService.upsertInvoiceSettings(currentUserId,appId,spendingLimit).then(function(invoiceSettings) {
                 if (!invoiceSettings) {
                     return res.send(500, "Error: Something went wrong while updating");
                 }

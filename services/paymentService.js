@@ -12,7 +12,7 @@ var stripe = require("stripe")(keys.stripeSecretKey);
 var Mixpanel = require('mixpanel');
 var mixpanel = Mixpanel.init(keys.mixpanelToken);
 
-module.exports = function(StripeCustomer,CreditCardInfo,InvoiceService,UserService,ProjectService){
+module.exports = function(StripeCustomer,CreditCardInfo){
 
   return {
          
@@ -433,7 +433,7 @@ module.exports = function(StripeCustomer,CreditCardInfo,InvoiceService,UserServi
 
             var customerId=card.stripeCardObject.customer;
 
-            InvoiceService.getDueInvoiceListByUserId(userId)
+            global.invoiceService.getDueInvoiceListByUserId(userId)
             .then(function(invoiceList){
               if(invoiceList.length>0){         
                 var promises=[];
@@ -478,23 +478,23 @@ module.exports = function(StripeCustomer,CreditCardInfo,InvoiceService,UserServi
                 .then(function(charge){
                   if(charge){
                   
-                      InvoiceService.updateInvoice(userId,appId,charge)
+                      global.invoiceService.updateInvoice(userId,appId,charge)
                       .then(function(updatedInvoice){
                         if(updatedInvoice){
                             self.emailInvoice(updatedInvoice);
-                            InvoiceService.unblockUser(userId,appId);
+                            global.invoiceService.unblockUser(userId,appId);
 
                         }
                       });
                       deferred.resolve(null);
                   }else{
-                    InvoiceService.blockUser(userId,appId);
+                    global.invoiceService.blockUser(userId,appId);
                     deferred.resolve(null);
                   }                 
 
                 },function(error){ 
                   console.log(error);
-                  InvoiceService.blockUser(userId,appId);
+                  global.invoiceService.blockUser(userId,appId);
                   deferred.reject(error);
                 });                             
             }else{
@@ -514,11 +514,11 @@ module.exports = function(StripeCustomer,CreditCardInfo,InvoiceService,UserServi
             var userId=invoice._userId;
             var appId=invoice._appId; 
 
-            ProjectService.getProject(appId)
+            global.projectService.getProject(appId)
             .then(function(project){
               if(project){ 
 
-                UserService.getAccountById(userId)
+                global.userService.getAccountById(userId)
                 .then(function(user){
                   if(user){                
                     var userId=user._doc._id.toString();

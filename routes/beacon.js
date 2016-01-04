@@ -1,14 +1,14 @@
 var express = require('express');
 var app = express();
 
-module.exports = function(beaconService) {
+module.exports = function() {
 
     //routes
     app.get('/beacon/get', function(req,res,next) {
 	
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
                         
-		beaconService.getBeaconByUserId(currentUserId).then(function(beaconObj) {            
+		global.beaconService.getBeaconByUserId(currentUserId).then(function(beaconObj) {            
             return res.status(200).json(beaconObj);
         },function(error){
             return res.send(500, error);
@@ -22,7 +22,7 @@ module.exports = function(beaconService) {
        
         if(currentUserId && data){
         	if(currentUserId==data._userId){
-        		beaconService.updateBeacon(currentUserId,data).then(function(beaconObj) {
+        		global.beaconService.updateBeacon(currentUserId,data).then(function(beaconObj) {
 	              if (!beaconObj) {
 	                return res.send(400, 'Error : Beacon not found');
 	              }	              

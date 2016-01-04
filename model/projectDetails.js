@@ -1,6 +1,6 @@
-module.exports = function(mongoose){
+module.exports = function(){
 
-	var Schema = mongoose.Schema;
+	var Schema = global.mongoose.Schema;
 
 	var projectDetailsSchema = new Schema({	  
 	  appId: String,
@@ -11,5 +11,5 @@ module.exports = function(mongoose){
 	  url:String
 	});
 
-	return mongoose.model('ProjectDetails', projectDetailsSchema);
+	return global.mongoose.model('ProjectDetails', projectDetailsSchema);
 };

@@ -7,9 +7,9 @@ var request = require('request');
 var keys = require('../config/keys');
 var Grid = require('gridfs-stream');
 
-module.exports = function(mongoose) {
-    Grid.mongo = mongoose.mongo;
-    var gfs = new Grid(mongoose.connection.db);
+module.exports = function() {
+    Grid.mongo = global.mongoose.mongo;
+    var gfs = new Grid(global.mongoose.connection.db);
 
     return {
         putFile: function (file,filename,mimetype) { 
