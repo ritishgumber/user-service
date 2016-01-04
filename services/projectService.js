@@ -190,7 +190,6 @@ module.exports = function(Project){
             return deffered.promise;
 
           },
-
           delete: function (appId,userId) {
 
               var deferred = Q.defer();
@@ -214,6 +213,48 @@ module.exports = function(Project){
                 }else{
                   deferred.reject("Project not found with specified user");
                 }
+              });
+
+             return deferred.promise;
+
+          },
+          changeAppMasterKey: function (currentUserId,appId) {
+
+              var deferred = Q.defer();
+
+              var self = this;             
+
+              var newMasterKey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), global.keys.secureKey, 100, 32).toString("base64");        
+
+              Project.findOneAndUpdate({appId:appId,developers: {$elemMatch: {userId:currentUserId,role:"Admin"}}},{$set: {"keys.master":newMasterKey }},{'new': true}, function (err, newProject) {
+                if (err) deferred.reject(err);
+                if(newProject){
+                  deferred.resolve(newProject);
+                }else{
+                  deferred.resolve(null);
+                }
+                     
+              });
+
+             return deferred.promise;
+
+          },
+          changeAppClientKey: function (currentUserId,appId) {
+
+              var deferred = Q.defer();
+
+              var self = this;
+
+              var newClientkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), global.keys.secureKey, 100, 16).toString("base64");
+
+              Project.findOneAndUpdate({appId:appId,developers: {$elemMatch: {userId:currentUserId,role:"Admin"} }},{$set: {"keys.js":newClientkey }},{'new': true}, function (err, newProject) {
+                if (err) deferred.reject(err);
+                if(newProject){
+                  deferred.resolve(newProject);
+                }else{
+                  deferred.resolve(null);
+                }
+                     
               });
 
              return deferred.promise;
@@ -452,7 +493,7 @@ module.exports = function(Project){
                       });
 
                       if(currentUserObj.role=="Admin" && role=="User" && otherAdmins){
-                        processChangeDeveloperRole(project,userId)
+                        processChangeDeveloperRole(project,userId,role)
                         .then(function(data){
                           deferred.resolve(data);
                         },function(error){
@@ -470,7 +511,7 @@ module.exports = function(Project){
                     }
 
                   }else if(currentUserObj.role=="Admin"){
-                    processChangeDeveloperRole(project,userId)
+                    processChangeDeveloperRole(project,userId,role)
                     .then(function(data){
                       deferred.resolve(data);
                     },function(error){
@@ -505,7 +546,14 @@ function processRemoveDeveloper(foundProj,userId,currentUserId,self){
     }
   }
 
-  if(tempArray.length>0){
+  //Find Atleast one admin
+  var atleastOneAdmin=_.find(foundProj.developers, function(eachObj){ 
+    if(eachObj.role=="Admin"){ 
+      return;          
+    }
+  });
+
+  if(tempArray.length>0 && atleastOneAdmin){
     foundProj.developers=tempArray;
     foundProj.save(function (err, project) {
       if (err) deferred.reject(err);
@@ -580,10 +628,13 @@ function processInviteUser(project,email,foundUser){
   return deferred.promise;
 }
 
-function processChangeDeveloperRole(project,userId){
+function processChangeDeveloperRole(project,userId,role){
   var deferred = Q.defer();
 
     var tempArray=project.developers;
+    tempArray=JSON.stringify(tempArray);
+    tempArray=JSON.parse(tempArray);
+    
     var userThere=_.first(_.where(tempArray, {userId:userId}));
 
     if(userThere){
