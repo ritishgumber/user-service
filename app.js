@@ -169,11 +169,7 @@ module.exports = function(){
         var Project = require('./model/project.js')();
         var Subscriber = require('./model/subscriber.js')();
         var User = require('./model/user.js')();    
-        var ProjectDetails = require('./model/projectDetails.js')();
-        var StripeCustomer = require('./model/stripeCustomer.js')();
-        var CreditCardInfo = require('./model/creditCardInfo.js')();
-        var Invoice = require('./model/invoice.js')();
-        var InvoiceSettings = require('./model/invoiceSettings.js')();
+        var ProjectDetails = require('./model/projectDetails.js')();        
         var Beacon = require('./model/beacon.js')();
         var Tutorial = require('./model/tutorial.js')();
         var CbServer = require('./model/cbserver.js')();
@@ -182,11 +178,9 @@ module.exports = function(){
         //Services
         global.beaconService  = require('./services/beaconService.js')(Beacon);        
         global.userService = require('./services/userService')(User);
-        global.subscriberService  = require('./services/subscriberService.js')(Subscriber);
-        global.invoiceService  = require('./services/invoiceService.js')(Invoice,InvoiceSettings);
+        global.subscriberService  = require('./services/subscriberService.js')(Subscriber);        
         global.projectService  = require('./services/projectService.js')(Project);    
-        global.projectDetailsService  = require('./services/projectDetailsService.js')(ProjectDetails);
-        global.paymentService  = require('./services/paymentService.js')(StripeCustomer,CreditCardInfo); 
+        global.projectDetailsService  = require('./services/projectDetailsService.js')(ProjectDetails);         
         global.tutorialService  = require('./services/tutorialService.js')(Tutorial);
         global.fileService  = require('./services/fileService.js')();
         global.mailChimpService  = require('./services/mailChimpService.js')();
@@ -198,9 +192,7 @@ module.exports = function(){
         global.app.use('/', require('./routes/auth')(passport));
         global.app.use('/', require('./routes/subscriber.js')());
         global.app.use('/', require('./routes/project.js')());    
-        global.app.use('/', require('./routes/projectDetails.js')());
-        global.app.use('/', require('./routes/payment.js')());
-        global.app.use('/', require('./routes/invoice.js')());
+        global.app.use('/', require('./routes/projectDetails.js')());        
         global.app.use('/', require('./routes/beacon.js')());
         global.app.use('/', require('./routes/tutorial.js')());
         global.app.use('/', require('./routes/file.js')());
