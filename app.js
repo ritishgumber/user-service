@@ -172,7 +172,7 @@ module.exports = function(){
         var ProjectDetails = require('./model/projectDetails.js')();        
         var Beacon = require('./model/beacon.js')();
         var Tutorial = require('./model/tutorial.js')();
-        var CbServer = require('./model/cbserver.js')();
+        var _Settings = require('./model/_settings.js')();
         var Notification = require('./model/notification.js')();
 
         //Services
@@ -186,7 +186,7 @@ module.exports = function(){
         global.mailChimpService  = require('./services/mailChimpService.js')();
         global.mandrillService  = require('./services/mandrillService.js')();
         global.notificationService  = require('./services/notificationService.js')(Notification);
-        global.cbServerService = require('./services/cbServerService.js')(CbServer);
+        global.cbServerService = require('./services/cbServerService.js')(_Settings);
 
         //Routes(API)
         global.app.use('/', require('./routes/auth')(passport));

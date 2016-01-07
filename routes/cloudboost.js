@@ -33,6 +33,16 @@ module.exports = function() {
         });    
     });
 
+    app.post('/cloudboost/url', function(req,res,next) {       
+        var data = req.body || {};
+
+        global.cbServerService.upsertAPI_URL(data.apiURL).then(function(settings) {            
+            return res.status(200).json(settings);
+        },function(error){
+            return res.send(500, error);
+        });    
+    });
+
     return app;
 
 }

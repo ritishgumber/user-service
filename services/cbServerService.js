@@ -8,7 +8,7 @@ var _ = require('underscore');
 var crypto = require('crypto');
 var request = require('request');
 
-module.exports = function(CbServer){
+module.exports = function(_Settings){
 
   return {  
 
@@ -20,7 +20,7 @@ module.exports = function(CbServer){
 
         var self = this;
 
-        CbServer.findOne({}, function (err, cbServerSettings) {
+        _Settings.findOne({}, function (err, cbServerSettings) {
           if (err) deferred.reject(err);
           if(cbServerSettings){
             deferred.resolve(cbServerSettings);
@@ -41,7 +41,7 @@ module.exports = function(CbServer){
 
         var self = this;
 
-        CbServer.findOneAndUpdate({_id:id},{$set: {allowSignUp:allowSignUp }},{upsert: true, 'new': true}, function (err, cbServerSettings) {
+        _Settings.findOneAndUpdate({_id:id},{$set: {allowSignUp:allowSignUp }},{upsert: true, 'new': true}, function (err, cbServerSettings) {
           if (err) deferred.reject(err);
           if(cbServerSettings){
             deferred.resolve(cbServerSettings);
@@ -52,7 +52,31 @@ module.exports = function(CbServer){
         });
 
         return deferred.promise;
-    } 
+    },
+    upsertAPI_URL: function (apiURL) {
+
+        var _self = this;
+
+        var deferred = Q.defer();
+
+        var self = this;
+
+        _Settings.findOne({},function (err, settingsFound) {
+          if (err) deferred.reject(err);
+          if(settingsFound){            
+            settingsFound.myURL=apiURL;
+            settingsFound.save(function (err,savedSettings) {
+              if (err) deferred.reject(err);
+              else deferred.resolve(savedSettings);
+            });
+          }else{
+            deferred.reject("Document not found!");
+          }
+               
+        });
+
+        return deferred.promise;
+    }  
 
   }
 
