@@ -112,6 +112,7 @@ module.exports = function(){
             }else{
                 global.redisClient = new Redis(hosts[0]);
             }
+
             //Configure Session,Passport,bodyparse after redisClient
             sessionConfiguration();            
 
@@ -169,38 +170,32 @@ module.exports = function(){
         var Project = require('./model/project.js')();
         var Subscriber = require('./model/subscriber.js')();
         var User = require('./model/user.js')();    
-        var ProjectDetails = require('./model/projectDetails.js')();
-        var StripeCustomer = require('./model/stripeCustomer.js')();
-        var CreditCardInfo = require('./model/creditCardInfo.js')();
-        var Invoice = require('./model/invoice.js')();
-        var InvoiceSettings = require('./model/invoiceSettings.js')();
+        var ProjectDetails = require('./model/projectDetails.js')();        
         var Beacon = require('./model/beacon.js')();
         var Tutorial = require('./model/tutorial.js')();
-        var CbServer = require('./model/cbserver.js')();
+        var _Settings = require('./model/_settings.js')();
         var Notification = require('./model/notification.js')();
 
         //Services
         global.beaconService  = require('./services/beaconService.js')(Beacon);        
         global.userService = require('./services/userService')(User);
-        global.subscriberService  = require('./services/subscriberService.js')(Subscriber);
-        global.invoiceService  = require('./services/invoiceService.js')(Invoice,InvoiceSettings);
+        global.subscriberService  = require('./services/subscriberService.js')(Subscriber);        
         global.projectService  = require('./services/projectService.js')(Project);    
-        global.projectDetailsService  = require('./services/projectDetailsService.js')(ProjectDetails);
-        global.paymentService  = require('./services/paymentService.js')(StripeCustomer,CreditCardInfo); 
+        global.projectDetailsService  = require('./services/projectDetailsService.js')(ProjectDetails);         
         global.tutorialService  = require('./services/tutorialService.js')(Tutorial);
         global.fileService  = require('./services/fileService.js')();
         global.mailChimpService  = require('./services/mailChimpService.js')();
         global.mandrillService  = require('./services/mandrillService.js')();
         global.notificationService  = require('./services/notificationService.js')(Notification);
-        global.cbServerService = require('./services/cbServerService.js')(CbServer);
+        global.cbServerService = require('./services/cbServerService.js')(_Settings);
 
         //Routes(API)
+        require('./framework/config')(passport, User); 
+
         global.app.use('/', require('./routes/auth')(passport));
         global.app.use('/', require('./routes/subscriber.js')());
         global.app.use('/', require('./routes/project.js')());    
-        global.app.use('/', require('./routes/projectDetails.js')());
-        global.app.use('/', require('./routes/payment.js')());
-        global.app.use('/', require('./routes/invoice.js')());
+        global.app.use('/', require('./routes/projectDetails.js')());        
         global.app.use('/', require('./routes/beacon.js')());
         global.app.use('/', require('./routes/tutorial.js')());
         global.app.use('/', require('./routes/file.js')());
@@ -209,7 +204,7 @@ module.exports = function(){
 
         console.log("Models,Services,Routes Status : OK.");
         
-        require('./framework/config')(passport, User);        
+               
         require('./config/mongoConnect')().connect().then(function(db){
             global.mongoClient = db;
             //init encryption Key. 
