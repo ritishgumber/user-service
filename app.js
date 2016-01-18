@@ -112,6 +112,7 @@ module.exports = function(){
             }else{
                 global.redisClient = new Redis(hosts[0]);
             }
+
             //Configure Session,Passport,bodyparse after redisClient
             sessionConfiguration();            
 
@@ -189,6 +190,8 @@ module.exports = function(){
         global.cbServerService = require('./services/cbServerService.js')(_Settings);
 
         //Routes(API)
+        require('./framework/config')(passport, User); 
+
         global.app.use('/', require('./routes/auth')(passport));
         global.app.use('/', require('./routes/subscriber.js')());
         global.app.use('/', require('./routes/project.js')());    
@@ -201,7 +204,7 @@ module.exports = function(){
 
         console.log("Models,Services,Routes Status : OK.");
         
-        require('./framework/config')(passport, User);        
+               
         require('./config/mongoConnect')().connect().then(function(db){
             global.mongoClient = db;
             //init encryption Key. 

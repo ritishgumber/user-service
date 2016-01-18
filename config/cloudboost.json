@@ -10,7 +10,7 @@
   }],
   
   "redis" : [{
-                "host" : "cbredis.cloudapp.net",
+                "host" : "cbredis-081p042s.cloudapp.net",
                 "port" : 6379
             }]
 }
