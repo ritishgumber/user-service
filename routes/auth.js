@@ -8,7 +8,7 @@ var url = require('url');
 
 
 //setup passport
-module.exports = function(passport) {      
+module.exports = function(passport) {     
 
     var authCallback = function(req, res) {
         var user=req.user;
@@ -163,6 +163,7 @@ module.exports = function(passport) {
                 if (err) {
                     return next(err);
                 }
+                                
                 delete user._doc.emailVerificationCode;
                 delete user._doc.password; //delete this code form response for security
                 delete user._doc.salt;
