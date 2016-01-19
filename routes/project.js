@@ -9,8 +9,8 @@ module.exports = function() {
         var data = req.body || {};
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.body.userId;
        
-        if(currentUserId && data){
-          global.projectService.createProject(data.name, data.appId,currentUserId).then(function(project) {
+        if(currentUserId && data){            
+          global.projectService.createProject(data.name,currentUserId).then(function(project) {
               if (!project) {                  
                   return res.status(400).send('Error : Project not created'); 
               }            
