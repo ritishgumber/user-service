@@ -54,7 +54,6 @@ module.exports = function(){
     function addConnections(passport){ 
        //setUp Redis
        setUpRedis();
-
        //MONGO DB
        setUpMongoDB(passport);       
     }
@@ -67,7 +66,7 @@ module.exports = function(){
             
             var isCluster = false;
             
-            if(global.config.redis.length>0){
+            if(global.config && global.config.redis && global.config.redis.length>0){
                 //take from config file
                 for(var i=0;i<global.config.redis.length;i++){
                     hosts.push({
@@ -129,7 +128,7 @@ module.exports = function(){
        
        var isReplicaSet = false;
        
-       if(global.config.mongo.length>0){
+       if( global.config && global.config.mongo && global.config.mongo.length>0){
            //take from config file
            
             if(global.config.mongo.length>1){

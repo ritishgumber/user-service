@@ -1,5 +1,9 @@
-﻿//Load the configuration.
-global.config = require('./config/cloudboost');
+﻿try{//Load the configuration.
+    global.config = require('./config/cloudboost');
+}catch(e){
+    //File not found. 
+    global.config = null;
+}
 
 //Load keys.    
 global.keys = require('./config/keys.js');
