@@ -87,12 +87,12 @@ module.exports = function(){
                 //take from env variables.
                 var i=1;
                 
-                while(process.env["DOCKER_REDIS_"+i+"_PORT_6379_TCP_ADDR"] && process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"]){
+                while(process.env["REDIS_"+i+"_PORT_6379_TCP_ADDR"] && process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"]){
                     if(i>1){
                         isCluster = true;
                     }
                     var obj = {
-                        host : process.env["DOCKER_REDIS_"+i+"_PORT_6379_TCP_ADDR"],
+                        host : process.env["REDIS_"+i+"_PORT_6379_TCP_ADDR"],
                         port : process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"]
                     };
                     hosts.push(obj);       
@@ -141,11 +141,11 @@ module.exports = function(){
             }
        }else{
             var i=1;
-            while(process.env["DOCKER_MONGO_"+i+"_PORT_27017_TCP_ADDR"] && process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]){
+            while(process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"] && process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]){
                 if(i>1){
                     isReplicaSet = true;
                 }
-                mongoConnectionString+=process.env["DOCKER_MONGO_"+i+"_PORT_27017_TCP_ADDR"]+":"+process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]; 
+                mongoConnectionString+=process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"]+":"+process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]; 
                 mongoConnectionString+=",";
                 i++;
             }
