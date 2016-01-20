@@ -25,10 +25,12 @@ module.exports = function(Project){
               var appId;              
 
               generateNonExistingAppId().then(function (newAppId) { 
+                console.log("STEP3:got new AppId:"+newAppId); 
                 appId=newAppId;
                 return _createAppFromDS(appId);    
 
               }).then(function(project) {
+
                 project=JSON.parse(project);
                
                 //Adding default developer
@@ -43,16 +45,19 @@ module.exports = function(Project){
                 return _self.findOneAndUpdateProject(project._id,appendJson);                              
 
               }).then(function(newProject){ 
-
+                console.log("STEP7:Successfully updated app obj in frontendservices");
                 savedProject=newProject;
                 return _self.projectStatus(appId,userId); 
 
               }).then(function(statusObj){
 
                 savedProject._doc.status = statusObj;
+                console.log("STEP8:Return object");
                 deferred.resolve(savedProject);
 
               },function(error) {
+                console.log("STEP7:Could be any error in procees");
+                console.log(error);
                 deferred.reject(error);
               });
 
@@ -577,7 +582,7 @@ function generateNonExistingAppId(){
   });
   appId=appId.toLowerCase();  
   
-
+  console.log("STEP2:generate Unique ID(loop)!"); 
   global.projectService.getProject(appId).then(function (existedProject) {
     if(!existedProject){
       deferred.resolve(appId);
@@ -747,7 +752,9 @@ function _createAppFromDS(appId){
   post_data.secureKey = global.keys.secureKey;
   post_data = JSON.stringify(post_data);
 
+
   var url = global.keys.dataServiceUrl + '/app/'+appId;
+  console.log("STEP4:About to ping data services for creation:"+url);
   request.post(url,{
       headers: {
           'content-type': 'application/json',
@@ -755,9 +762,13 @@ function _createAppFromDS(appId){
       },
       body: post_data
   },function(err,response,body){
-      if(err || response.statusCode === 500 || body === 'Error')
+      if(err || response.statusCode === 500 || body === 'Error'){
+        console.log("STEP5:Error in pinging dataserivces");
+        console.log(body);
         deferred.reject(err);
-      else {                         
+      }
+      else {  
+        console.log("STEP5:Successfully app created from dataserivces end");                       
         deferred.resolve(body);
       }
   });
