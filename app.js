@@ -55,7 +55,16 @@ module.exports = function(){
        //setUp Redis
        setUpRedis();
        //MONGO DB
-       setUpMongoDB(passport);       
+       setUpMongoDB(passport);   
+
+       setUpDataServices();     
+    }
+
+    function  setUpDataServices() {
+        if(process.env["CLOUDBOOST_PORT_6379_TCP_ADDR"] || process.env["CLOUDBOOST_"+1+"_PORT_6379_TCP_ADDR"]){
+            global.keys.dataServiceUrl="http://"+(process.env["CLOUDBOOST_PORT_6379_TCP_ADDR"] || process.env["CLOUDBOOST_"+1+"_PORT_6379_TCP_ADDR"])+":4730";
+            console.log("Data Service URL:"+global.keys.dataServiceUrl)
+        }
     }
 
     function setUpRedis(){
