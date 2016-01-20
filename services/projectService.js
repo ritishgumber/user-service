@@ -764,7 +764,7 @@ function _createAppFromDS(appId){
   },function(err,response,body){
       if(err || response.statusCode === 500 || body === 'Error'){
         console.log("STEP5:Error in pinging dataserivces");
-        console.log(body);
+        console.log(err);
         deferred.reject(err);
       }
       else {  
