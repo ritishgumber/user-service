@@ -10,22 +10,20 @@ module.exports = function() {
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.body.userId;
        
         if(currentUserId && data){   
-            console.log("STEP1: Hola Nawaz, Just now App Create route connected!");         
+                   
           global.projectService.createProject(data.name,currentUserId).then(function(project) {
-              if (!project) {         
-                   console.log("STEP9:About to send 400 error");            
+              if (!project) {                               
                   return res.status(400).send('Error : Project not created'); 
-              }            
-              console.log("STEP9:About to send success msg back.");
+              }          
+              
             return res.status(200).json(project._doc);
 
           },function(error){    
-            console.log("STEP9:About to send 500 error");        
+                   
             return res.status(500).send(error); 
           });
 
-        }else{
-            console.log("STEP1:About to send 401 Unauthorised");
+        }else{            
             return res.status(401).send("Unauthorised");
         }
 

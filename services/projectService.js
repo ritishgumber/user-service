@@ -24,8 +24,7 @@ module.exports = function(Project){
               var savedProject;
               var appId;              
 
-              generateNonExistingAppId().then(function (newAppId) { 
-                console.log("STEP3:got new AppId:"+newAppId); 
+              generateNonExistingAppId().then(function (newAppId) {                 
                 appId=newAppId;
                 return _createAppFromDS(appId);    
 
@@ -45,49 +44,18 @@ module.exports = function(Project){
                 return _self.findOneAndUpdateProject(project._id,appendJson);                              
 
               }).then(function(newProject){ 
-                console.log("STEP7:Successfully updated app obj in frontendservices");
+                
                 savedProject=newProject;
                 return _self.projectStatus(appId,userId); 
 
               }).then(function(statusObj){
 
-                savedProject._doc.status = statusObj;
-                console.log("STEP8:Return object");
+                savedProject._doc.status = statusObj;                
                 deferred.resolve(savedProject);
 
-              },function(error) {
-                console.log("STEP7:Could be any error in procees");
-                console.log(error);
+              },function(error) {                
                 deferred.reject(error);
-              });
-
-             /* _createAppFromDS(appId).then(function(project) {
-                project=JSON.parse(project);
-               
-                //Adding default developer
-                var developers=[];
-                var newDeveloper={};
-                newDeveloper.userId=userId;
-                newDeveloper.role="Admin";
-                developers.push(newDeveloper);              
-                //End Adding default developer
-
-                var appendJson={_userId:userId,name:name,developers:developers};
-                return _self.findOneAndUpdateProject(project._id,appendJson);                              
-
-              }).then(function(newProject){ 
-
-                savedProject=newProject;
-                return _self.projectStatus(appId,userId); 
-
-              }).then(function(statusObj){
-
-                savedProject._doc.status = statusObj;
-                deferred.resolve(savedProject);
-
-              },function(error) {
-                deferred.reject(error);
-              }); */             
+              });            
 
               return deferred.promise;
           },
@@ -580,9 +548,8 @@ function generateNonExistingAppId(){
     letters: true,
     special: false
   });
-  appId=appId.toLowerCase();  
+  appId=appId.toLowerCase();    
   
-  console.log("STEP2:generate Unique ID(loop)!"); 
   global.projectService.getProject(appId).then(function (existedProject) {
     if(!existedProject){
       deferred.resolve(appId);
@@ -762,13 +729,9 @@ function _createAppFromDS(appId){
       },
       body: post_data
   },function(err,response,body){
-      if(err || response.statusCode === 500 || body === 'Error'){
-        console.log("STEP5:Error in pinging dataserivces");
-        console.log(err);
+      if(err || response.statusCode === 500 || body === 'Error'){       
         deferred.reject(err);
-      }
-      else {  
-        console.log("STEP5:Successfully app created from dataserivces end");                       
+      }else {                               
         deferred.resolve(body);
       }
   });
