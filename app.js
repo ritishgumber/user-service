@@ -84,26 +84,34 @@ module.exports = function(){
                 }
                 
             }else{
-                //take from env variables.
-                var i=1;
+                //take from env variables
                 
-                while(process.env["REDIS_"+i+"_PORT_6379_TCP_ADDR"] && process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"]){
-                    if(i>1){
-                        isCluster = true;
-                    }
+                if(process.env["REDIS_SENTINEL_SERVICE_HOST"]){
+                    //this is running on Kubernetes
+                    console.log("Redis is running on Kubernetes.");
+                    
                     var obj = {
-                        host : process.env["REDIS_"+i+"_PORT_6379_TCP_ADDR"],
-                        port : process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"]
-                    };
-                    hosts.push(obj);       
-                    i++;
+                                    host : process.env["REDIS_SENTINEL_SERVICE_HOST"],
+                                    port : process.env["REDIS_SENTINEL_SERVICE_PORT"],
+                                    enableReadyCheck : false
+                                };
+                    hosts.push(obj); 
+                }else{
+                    var i=1;
+                    while(process.env["REDIS_"+i+"_PORT_6379_TCP_ADDR"] && process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"]){
+                        if(i>1){
+                            isCluster = true;
+                        }
+                        var obj = {
+                            host : process.env["REDIS_"+i+"_PORT_6379_TCP_ADDR"],
+                            port : process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"]
+                        };
+                        hosts.push(obj);       
+                        i++;
+                    }
                 }
             }
 
-            //console.log("Redis Connection String");
-            //
-            //console.log(hosts);
-            
             var Redis = require('ioredis');
             
             if(isCluster){
@@ -140,18 +148,24 @@ module.exports = function(){
                 mongoConnectionString+=",";
             }
        }else{
-            var i=1;
-            while(process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"] && process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]){
-                if(i>1){
+            if(process.env["MONGO_SERVICE_HOST"]){
+                    console.log("MongoDB is running on Kubernetes");
                     isReplicaSet = true;
+                    mongoConnectionString+=process.env["MONGO_SERVICE_HOST"]+":"+process.env["MONGO_SERVICE_PORT"]; 
+                    mongoConnectionString+=",";
+            }else{
+                var i=1;
+                while(process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"] && process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]){
+                    if(i>1){
+                        isReplicaSet = true;
+                    }
+                    mongoConnectionString+=process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"]+":"+process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]; 
+                    mongoConnectionString+=",";
+                    i++;
                 }
-                mongoConnectionString+=process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"]+":"+process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]; 
-                mongoConnectionString+=",";
-                i++;
             }
        }
 
-      
        mongoConnectionString = mongoConnectionString.substring(0, mongoConnectionString.length - 1);
        mongoConnectionString += "/"; //de limitter. 
        
