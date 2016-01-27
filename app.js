@@ -162,7 +162,7 @@ module.exports = function(){
             }
        }else{
             if(process.env["MONGO_SERVICE_HOST"]){
-                    console.log("MongoDB is running on Kubernetes");
+                    console.log("MongoDB is running on Kubernetes.");
                     isReplicaSet = true;
                     mongoConnectionString+=process.env["MONGO_SERVICE_HOST"]+":"+process.env["MONGO_SERVICE_PORT"]; 
                     mongoConnectionString+=",";
@@ -185,11 +185,12 @@ module.exports = function(){
        global.keys.db = mongoConnectionString+global.keys.globalDb;
 
         if(isReplicaSet){
-          global.db+="?replicaSet=cloudboost&slaveOk=true";
+          console.log("MongoDB is running on a replica set");  
+          global.keys.db+="?replicaSet=cloudboost&slaveOk=true";
         }
 
         global.keys.mongoConnectionString = global.keys.db; 
-        console.log("Mongo DB : "+global.keys.db);       
+        console.log("Mongo DB : "+global.keys.mongoConnectionString);       
         global.mongoose = require('./config/db.js')();      
 
         //Models
