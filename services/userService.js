@@ -354,9 +354,13 @@ module.exports = function(User){
                 },
                 getUserBySkipLimit: function(skip,limit,skipUserIds){
                   var deffered = Q.defer();
-
+                  
+                  skip=parseInt(skip);
+                  limit=parseInt(limit);
+                  
                   User.find({_id:{$nin:skipUserIds}}).skip(skip).limit(limit).exec(function (err, users) {
-                    if (err) { return deffered.reject(err); }
+                    if (err) { return deffered.reject(err); 
+                    err}
                     if (users.length==0) {                      
                       return deffered.resolve(null);
                     }

@@ -9,18 +9,21 @@ module.exports = function() {
         var data = req.body || {};
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.body.userId;
        
-        if(currentUserId && data){
-          global.projectService.createProject(data.name, data.appId,currentUserId).then(function(project) {
-              if (!project) {                  
+        if(currentUserId && data){   
+                   
+          global.projectService.createProject(data.name,currentUserId).then(function(project) {
+              if (!project) {                               
                   return res.status(400).send('Error : Project not created'); 
-              }            
+              }          
+              
             return res.status(200).json(project._doc);
 
-          },function(error){            
+          },function(error){    
+                   
             return res.status(500).send(error); 
           });
 
-        }else{
+        }else{            
             return res.status(401).send("Unauthorised");
         }
 

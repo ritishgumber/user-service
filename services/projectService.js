@@ -7,12 +7,13 @@ var keys = require('../config/keys');
 var _ = require('underscore');
 var crypto = require('crypto');
 var request = require('request');
+var randomString = require('random-string');
 
 module.exports = function(Project){
 
   return {
 
-          createProject: function (name, appId ,userId) {
+          createProject: function (name,userId) {
 
               var _self = this;
 
@@ -21,8 +22,14 @@ module.exports = function(Project){
               var self = this;
 
               var savedProject;
+              var appId;              
 
-              _createAppFromDS(appId).then(function(project) {
+              generateNonExistingAppId().then(function (newAppId) {                 
+                appId=newAppId;
+                return _createAppFromDS(appId);    
+
+              }).then(function(project) {
+
                 project=JSON.parse(project);
                
                 //Adding default developer
@@ -37,18 +44,18 @@ module.exports = function(Project){
                 return _self.findOneAndUpdateProject(project._id,appendJson);                              
 
               }).then(function(newProject){ 
-
+                
                 savedProject=newProject;
                 return _self.projectStatus(appId,userId); 
 
               }).then(function(statusObj){
 
-                savedProject._doc.status = statusObj;
+                savedProject._doc.status = statusObj;                
                 deferred.resolve(savedProject);
 
-              },function(error) {
+              },function(error) {                
                 deferred.reject(error);
-              });              
+              });            
 
               return deferred.promise;
           },
@@ -532,7 +539,31 @@ module.exports = function(Project){
 
 };
 
+function generateNonExistingAppId(){
+  var deferred = Q.defer();
 
+  var appId=randomString({
+    length: 8,
+    numeric: false,
+    letters: true,
+    special: false
+  });
+  appId=appId.toLowerCase();    
+  
+  global.projectService.getProject(appId).then(function (existedProject) {
+    if(!existedProject){
+      deferred.resolve(appId);
+    }else if(existedProject){
+      return generateNonExistingAppId();     
+    }
+  }).then(function(nonExistAppId){
+    deferred.resolve(nonExistAppId);
+  },function(error){
+    deferred.reject(error);
+  });
+
+  return deferred.promise;
+}
 
 function processRemoveDeveloper(foundProj,userId,currentUserId,self){  
 
@@ -688,7 +719,9 @@ function _createAppFromDS(appId){
   post_data.secureKey = global.keys.secureKey;
   post_data = JSON.stringify(post_data);
 
+
   var url = global.keys.dataServiceUrl + '/app/'+appId;
+  console.log("STEP4:About to ping data services for creation:"+url);
   request.post(url,{
       headers: {
           'content-type': 'application/json',
@@ -696,9 +729,9 @@ function _createAppFromDS(appId){
       },
       body: post_data
   },function(err,response,body){
-      if(err || response.statusCode === 500 || body === 'Error')
+      if(err || response.statusCode === 500 || body === 'Error'){       
         deferred.reject(err);
-      else {                         
+      }else {                               
         deferred.resolve(body);
       }
   });
