@@ -25,8 +25,9 @@ module.exports = function() {
     
     app.post('/server', function(req,res,next) {       
         var data = req.body || {};
-                        
-		global.cbServerService.upsertSettings(data.id,data.allowedSignUp).then(function(settings) {            
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.body.userId;
+
+		global.cbServerService.upsertSettings(currentUserId,data.id,data.allowedSignUp).then(function(settings) {            
             return res.status(200).json(settings);
         },function(error){
             return res.send(500, error);
@@ -35,8 +36,9 @@ module.exports = function() {
 
     app.post('/server/url', function(req,res,next) {       
         var data = req.body || {};
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.body.userId;
 
-        global.cbServerService.upsertAPI_URL(data.apiURL).then(function(settings) {            
+        global.cbServerService.upsertAPI_URL(currentUserId,data.apiURL).then(function(settings) {            
             return res.status(200).json(settings);
         },function(error){
             return res.send(500, error);

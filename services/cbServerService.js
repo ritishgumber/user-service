@@ -23,6 +23,13 @@ module.exports = function(_Settings){
         _Settings.findOne({}, function (err, cbServerSettings) {
           if (err) deferred.reject(err);
           if(cbServerSettings){
+
+            if(cbServerSettings.clusterKey){
+              delete cbServerSettings._doc.clusterKey;
+            }
+            if(cbServerSettings.secureKey){
+              delete cbServerSettings._doc.secureKey;
+            }
             deferred.resolve(cbServerSettings);
           }else{
             deferred.resolve(null);
@@ -33,7 +40,7 @@ module.exports = function(_Settings){
         return deferred.promise;
     },
 
-    upsertSettings: function (id,allowSignUp) {
+    upsertSettings: function (currentUserId,id,allowSignUp) {
 
         var _self = this;
 
@@ -41,38 +48,80 @@ module.exports = function(_Settings){
 
         var self = this;
 
-        _Settings.findOneAndUpdate({_id:id},{$set: {allowSignUp:allowSignUp }},{upsert: true, 'new': true}, function (err, cbServerSettings) {
-          if (err) deferred.reject(err);
-          if(cbServerSettings){
-            deferred.resolve(cbServerSettings);
-          }else{
-            deferred.resolve(null);
-          }
-               
-        });
+        //Check User is Admin
+        global.userService.getAccountById(currentUserId)
+        .then(function(user) { 
 
-        return deferred.promise;
-    },
-    upsertAPI_URL: function (apiURL) {
+          if(user.isAdmin){
 
-        var _self = this;
-
-        var deferred = Q.defer();
-
-        var self = this;
-
-        _Settings.findOne({},function (err, settingsFound) {
-          if (err) deferred.reject(err);
-          if(settingsFound){            
-            settingsFound.myURL=apiURL;
-            settingsFound.save(function (err,savedSettings) {
+            _Settings.findOneAndUpdate({_id:id},{$set: {allowSignUp:allowSignUp }},{upsert: true, 'new': true}, function (err, cbServerSettings) {
               if (err) deferred.reject(err);
-              else deferred.resolve(savedSettings);
+              if(cbServerSettings){
+                if(cbServerSettings.clusterKey){
+                   delete cbServerSettings._doc.clusterKey;
+                }
+                if(cbServerSettings.secureKey){
+                  delete cbServerSettings._doc.secureKey;
+                }            
+
+                deferred.resolve(cbServerSettings);
+              }else{
+                deferred.resolve(null);
+              }
+                   
             });
+
           }else{
-            deferred.reject("Document not found!");
+            deferred.reject("Unauthorised")
           }
-               
+
+        },function(error){
+           deferred.reject(error);
+        });     
+
+        return deferred.promise;
+    },
+    upsertAPI_URL: function (currentUserId,apiURL) {
+
+        var _self = this;
+
+        var deferred = Q.defer();
+
+        var self = this;
+
+        //Check User is Admin
+        global.userService.getAccountById(currentUserId)
+        .then(function(user) {            
+          if(user.isAdmin){
+
+            _Settings.findOne({},function (err, settingsFound) {
+              if (err) deferred.reject(err);
+              if(settingsFound){            
+                settingsFound.myURL=apiURL;
+                settingsFound.save(function (err,savedSettings) {
+                  if (err){ 
+                    deferred.reject(err)
+                  }else {
+                    if(savedSettings.clusterKey){
+                      delete savedSettings._doc.clusterKey;
+                    }
+                    if(savedSettings.secureKey){
+                      delete savedSettings._doc.secureKey;
+                    }                
+                    deferred.resolve(savedSettings);
+                  }
+                });
+              }else{
+                deferred.reject("Document not found!");
+              }
+                   
+            });
+
+          }else{
+            deferred.reject("Unauthorised")
+          }
+        },function(error){
+          deferred.reject(error);
         });
 
         return deferred.promise;
