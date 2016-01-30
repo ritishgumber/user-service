@@ -226,7 +226,7 @@ module.exports = function(){
         global.app.use('/', require('./routes/cbServer.js')());
         global.app.use('/', require('./routes/notification.js')());
 
-        console.log("Models,Services,Routes Status : OK.");
+        console.log("Models,Services,Routes Status : OKay.");
         
                
         require('./config/mongoConnect')().connect().then(function(db){
