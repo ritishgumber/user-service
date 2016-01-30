@@ -176,8 +176,7 @@ module.exports = function(){
         //Models
         var Project = require('./model/project.js')();
         var Subscriber = require('./model/subscriber.js')();
-        var User = require('./model/user.js')();    
-        var ProjectDetails = require('./model/projectDetails.js')();        
+        var User = require('./model/user.js')();             
         var Beacon = require('./model/beacon.js')();
         var Tutorial = require('./model/tutorial.js')();
         var _Settings = require('./model/_settings.js')();
@@ -187,8 +186,7 @@ module.exports = function(){
         global.beaconService  = require('./services/beaconService.js')(Beacon);        
         global.userService = require('./services/userService')(User);
         global.subscriberService  = require('./services/subscriberService.js')(Subscriber);        
-        global.projectService  = require('./services/projectService.js')(Project);    
-        global.projectDetailsService  = require('./services/projectDetailsService.js')(ProjectDetails);         
+        global.projectService  = require('./services/projectService.js')(Project);              
         global.tutorialService  = require('./services/tutorialService.js')(Tutorial);
         global.fileService  = require('./services/fileService.js')();
         global.mailChimpService  = require('./services/mailChimpService.js')();
@@ -201,12 +199,11 @@ module.exports = function(){
 
         global.app.use('/', require('./routes/auth')(passport));
         global.app.use('/', require('./routes/subscriber.js')());
-        global.app.use('/', require('./routes/project.js')());    
-        global.app.use('/', require('./routes/projectDetails.js')());        
+        global.app.use('/', require('./routes/project.js')());                 
         global.app.use('/', require('./routes/beacon.js')());
         global.app.use('/', require('./routes/tutorial.js')());
         global.app.use('/', require('./routes/file.js')());
-        global.app.use('/', require('./routes/cloudboost.js')());
+        global.app.use('/', require('./routes/cbServer.js')());
         global.app.use('/', require('./routes/notification.js')());
 
         console.log("Models,Services,Routes Status : OK.");

@@ -44,35 +44,15 @@ module.exports = function(Project){
                 return _self.findOneAndUpdateProject(project._id,appendJson);                              
 
               }).then(function(newProject){ 
-                
-                savedProject=newProject;
-                return _self.projectStatus(appId,userId); 
 
-              }).then(function(statusObj){
-
-                savedProject._doc.status = statusObj;                
-                deferred.resolve(savedProject);
+                deferred.resolve(newProject);
 
               },function(error) {                
                 deferred.reject(error);
               });            
 
               return deferred.promise;
-          },
-
-          projectStatus: function (appId, userId) {
-
-              var deferred = Q.defer();
-
-              var self = this;
-
-              //TODO : Retrieve Proper App Status.
-
-              deferred.resolve({status:'online', appId : appId});
-
-              return deferred.promise;
-          },
-
+          },        
           projectList: function (userId) {
 
             var _self = this;
@@ -83,28 +63,7 @@ module.exports = function(Project){
 
               Project.find({ developers: {$elemMatch: {userId:userId} } }, function (err, list) {
                 if (err) deferred.reject(err);
-
-                var promise = [];
-
-                for(var i=0;i<list.length;i++){
-                    promise.push(_self.projectStatus(list[i]._doc.appId, userId));
-                }
-
-                Q.all(promise).then(function(statusList){
-                  //merge status with the list
-                  for(var i=0;i<list.length;i++){
-                    var statusObj = _.first(_.where(statusList, {appId : list[i]._doc.appId}));
-                    list[i]._doc.status = statusObj;
-                  }
-
-                 list = _.map(list, function(obj){ return obj._doc});
-
-                  deferred.resolve(list);
-
-                }, function(error){
-                  deferred.reject(error);
-                });
-                 
+                deferred.resolve(list);                 
               });
 
              return deferred.promise;
@@ -136,13 +95,7 @@ module.exports = function(Project){
                                   if(!project)
                                       deferred.reject('Cannot save the app right now.');
                                   else{
-                                    _self.projectStatus(id, userId).then(function(status){
-                                      project._doc.status = status;
-                                      deferred.resolve(project._doc);
-                                    }, function(error){
-                                      project._doc.status = {status : 'Unknown'};
-                                      deferred.resolve(project._doc);
-                                    });
+                                    deferred.resolve(project._doc);                             
                                   }
                               });
                           }else{
@@ -343,27 +296,7 @@ module.exports = function(Project){
 
               Project.find({}, function (err, list) {
                 if (err) deferred.reject(err);
-
-                var promise = [];
-
-                for(var i=0;i<list.length;i++){
-                    promise.push(_self.projectStatus(list[i]._doc.appId, list[i]._doc._userId));
-                }
-
-                Q.all(promise).then(function(statusList){
-                  //merge status with the list
-                  for(var i=0;i<list.length;i++){
-                    var statusObj = _.first(_.where(statusList, {appId : list[i]._doc.appId}));
-                    list[i]._doc.status = statusObj;
-                  }
-
-                 list = _.map(list, function(obj){ return obj._doc});
-
-                  deferred.resolve(list);
-
-                }, function(error){
-                  deferred.reject(error);
-                });
+                deferred.resolve(list);              
                  
               });
 
@@ -430,13 +363,13 @@ module.exports = function(Project){
 
                   if(!checkValidUser(project,currentUserId,null)){
 
-                    //Adding default developer                      
+                    //Adding developer                      
                       var newDeveloper={};
                       newDeveloper.userId=currentUserId;
                       newDeveloper.role="User";
 
                       project.developers.push(newDeveloper); 
-                    //End Adding default developer 
+                    //End Adding developer 
 
                       var inviteeIndex=project.invited.indexOf(email);
                       if(inviteeIndex==0 || inviteeIndex>0){
@@ -449,16 +382,7 @@ module.exports = function(Project){
                         deferred.reject('Cannot save the app right now.');
                       }else{
                         global.notificationService.removeNotificationByAppId(savedProject.appId); 
-
-                        //Get the status
-                        self.projectStatus(savedProject._doc.appId, currentUserId)
-                        .then(function(statusObj){
-                          savedProject._doc.status=statusObj;
-                          deferred.resolve(savedProject);
-                        },function(error) {
-                          deferred.resolve(error);
-                        });                       
-                                            
+                        deferred.resolve(savedProject);                                            
                       }
                     });
 
@@ -473,7 +397,7 @@ module.exports = function(Project){
              return deferred.promise;
 
           },
-          changeDeveloperRole: function (currentUserId,appId,userId,role) {
+          /*changeDeveloperRole: function (currentUserId,appId,userId,role) {
 
               var deferred = Q.defer();
 
@@ -534,7 +458,7 @@ module.exports = function(Project){
 
              return deferred.promise;
 
-          },
+          },*/
     }
 
 };
@@ -659,7 +583,7 @@ function processInviteUser(project,email,foundUser){
   return deferred.promise;
 }
 
-function processChangeDeveloperRole(project,userId,role){
+/*function processChangeDeveloperRole(project,userId,role){
   var deferred = Q.defer();
 
     var tempArray=project.developers;
@@ -688,7 +612,7 @@ function processChangeDeveloperRole(project,userId,role){
     }
 
   return deferred.promise;
-}
+}*/
 
 function checkValidUser(app,userId,role){
   if(app.developers && app.developers.length>0){
@@ -720,8 +644,7 @@ function _createAppFromDS(appId){
   post_data = JSON.stringify(post_data);
 
 
-  var url = global.keys.dataServiceUrl + '/app/'+appId;
-  console.log("STEP4:About to ping data services for creation:"+url);
+  var url = global.keys.dataServiceUrl + '/app/'+appId;  
   request.post(url,{
       headers: {
           'content-type': 'application/json',

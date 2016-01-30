@@ -288,7 +288,7 @@ module.exports = function() {
         }
     });
 
-    app.post('/app/changerole', function(req,res,next) {
+    /*app.post('/app/changerole', function(req,res,next) {
 
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
         var data = req.body || {};
@@ -315,7 +315,7 @@ module.exports = function() {
         }else{
             return res.send(401);
         }
-    });
+    });*/
 
     return app;
 
