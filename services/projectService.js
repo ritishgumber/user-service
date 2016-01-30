@@ -397,68 +397,7 @@ module.exports = function(Project){
              return deferred.promise;
 
           },
-          /*changeDeveloperRole: function (currentUserId,appId,userId,role) {
-
-              var deferred = Q.defer();
-
-              var self = this;              
-
-              Project.findOne({appId:appId,developers: {$elemMatch: {userId:currentUserId} }}, function (err, project) {
-                if (err) deferred.reject(err);
-                if(!project){
-                  deferred.reject("App not found or Unauthorized!");
-                }else{
-                  var tempArray=project.developers;
-                  var currentUserObj=_.first(_.where(tempArray, {userId:currentUserId}));
-                  
-
-                  if(currentUserId==userId){
-
-                    if((currentUserObj.role=="Admin" && role=="User") || (currentUserObj.role=="Admin" && role=="Admin")){
-
-                      //Check if other Admins in APP
-                      var otherAdmins = _.find(tempArray, function(eachDev){ 
-                        if(eachDev.userId!=currentUserId && eachDev.role=="Admin"){
-                          return true;
-                        }
-                      });
-
-                      if(currentUserObj.role=="Admin" && role=="User" && otherAdmins){
-                        processChangeDeveloperRole(project,userId,role)
-                        .then(function(data){
-                          deferred.resolve(data);
-                        },function(error){
-                          deferred.reject(error);
-                        });
-                      }else{
-                        deferred.reject("You cannot remove all admins from an app!");
-                      }
-                      
-
-                    }else if(currentUserObj.role=="User" && role=="Admin"){
-                      deferred.reject("You cannot perform this task!");
-                    }else if(currentUserObj.role=="User" && role=="User"){
-                      deferred.resolve("Already is a User!");
-                    }
-
-                  }else if(currentUserObj.role=="Admin"){
-                    processChangeDeveloperRole(project,userId,role)
-                    .then(function(data){
-                      deferred.resolve(data);
-                    },function(error){
-                      deferred.reject(error);
-                    });
-
-                  }else{
-                    deferred.reject("You cannot perform this task!");
-                  }                  
-                }
-                     
-              });
-
-             return deferred.promise;
-
-          },*/
+   
     }
 
 };
@@ -583,36 +522,6 @@ function processInviteUser(project,email,foundUser){
   return deferred.promise;
 }
 
-/*function processChangeDeveloperRole(project,userId,role){
-  var deferred = Q.defer();
-
-    var tempArray=project.developers;
-    tempArray=JSON.stringify(tempArray);
-    tempArray=JSON.parse(tempArray);
-    
-    var userThere=_.first(_.where(tempArray, {userId:userId}));
-
-    if(userThere){
-
-      var index=tempArray.indexOf(userThere);
-      tempArray[index].role=role;
-
-      project.developers=tempArray;
-      project.save(function (err, savedProject) {
-        if (err) deferred.reject(err);
-        if(!savedProject){
-          deferred.reject('Cannot save the app right now.');
-        }else{                                            
-          deferred.resolve(savedProject);                    
-        }
-      });
-
-    }else{
-      deferred.reject("User not found!");
-    }
-
-  return deferred.promise;
-}*/
 
 function checkValidUser(app,userId,role){
   if(app.developers && app.developers.length>0){
