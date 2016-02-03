@@ -194,7 +194,6 @@ module.exports = function(User){
                           if(data.isAdmin){
                             global.cbServerService.upsertSettings(null,false);
                             global.notificationService.linkUserId(user.email,user._id);
-
                           }
                           deffered.resolve(user);
                         } 

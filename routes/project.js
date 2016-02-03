@@ -69,7 +69,7 @@ module.exports = function() {
 
     app.put('/app/:appId', function(req,res,next) {
 
-       var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
         var appId=req.params.appId;
         var data = req.body || {};
         var name=data.name;       
