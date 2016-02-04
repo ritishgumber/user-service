@@ -406,7 +406,7 @@ function generateNonExistingAppId(){
   var deferred = Q.defer();
 
   var appId=randomString({
-    length: 8,
+    length: 12,
     numeric: false,
     letters: true,
     special: false
