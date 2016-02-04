@@ -57,7 +57,7 @@ function _getApiAnalytics(appId){
   post_data = JSON.stringify(post_data);
 
 
-  var url = global.keys.analyticsServiceUrl + '/userapi';  
+  var url = global.keys.analyticsServiceUrl + '/'+appId+'/api';  
   request.post(url,{
       headers: {
           'content-type': 'application/json',
@@ -86,7 +86,7 @@ function _getStorageAnalytics(appId){
   post_data = JSON.stringify(post_data);
 
 
-  var url = global.keys.analyticsServiceUrl + '/userstorage';  
+  var url = global.keys.analyticsServiceUrl +'/'+appId+'/storage';  
   request.post(url,{
       headers: {
           'content-type': 'application/json',
