@@ -9,6 +9,7 @@
   },
   "version": "0.1.1",
   "dependencies": {
+    "2checkout-node": "0.0.1",
     "async": "^1.4.2",
     "body-parser": "^1.0.2",
     "busboy": "^0.2.12",

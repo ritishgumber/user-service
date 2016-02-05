@@ -47,7 +47,7 @@ module.exports = function(){
     
     global.app.get('/', function(req, res) {
         res.setHeader('Content-Type', 'application/json');
-        res.send(JSON.stringify({ status : 200, version : pjson.version }));
+        res.send(JSON.stringify({ status : 200,message:"Service Status - OK", version : pjson.version }));
     });
 
     //this fucntion add connections to the DB.

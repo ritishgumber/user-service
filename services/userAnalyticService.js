@@ -52,8 +52,7 @@ function _getApiAnalytics(appId){
   var deferred = Q.defer();
  
   var post_data = {};
-  post_data.secureKey = global.keys.secureKey;
-  post_data.appId = appId;
+  post_data.secureKey = global.keys.secureKey; 
   post_data = JSON.stringify(post_data);
 
 
@@ -81,8 +80,7 @@ function _getStorageAnalytics(appId){
   var deferred = Q.defer();
  
   var post_data = {};
-  post_data.secureKey = global.keys.secureKey;
-  post_data.appId = appId;
+  post_data.secureKey = global.keys.secureKey;  
   post_data = JSON.stringify(post_data);
 
 

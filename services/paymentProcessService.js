@@ -12,15 +12,19 @@ module.exports = function(){
 
   return {
 
-    upsertCard: function (userId,cardObj) {
+    createSale: function (userId,appId,dataObj) {
 
         var _self = this;
 
         var deferred = Q.defer();  
 
-        _sendToAnalytics(cardObj);
+        dataObj.userId=userId;
 
-        deferred.resolve("Yes");
+        _createSaleInAnalytics(appId,dataObj).then(function(data){
+          deferred.resolve(data);
+        },function(error){
+          deferred.reject(error);
+        });
 
         return deferred.promise;
     }
@@ -31,30 +35,26 @@ module.exports = function(){
 
 /***********************Pinging Analytics Services*********************************/
 
-function _sendToAnalytics(card){
-  var deferred = Q.defer();
- 
-  var post_data = {};
-  post_data.secureKey = global.keys.secureKey;
-  post_data.card = card;
-  post_data = JSON.stringify(post_data);
+function _createSaleInAnalytics(appId,dataObj){
+  var deferred = Q.defer(); 
+  
+  dataObj.secureKey = global.keys.secureKey; 
+  dataObj = JSON.stringify(dataObj);
 
 
-  var url = global.keys.analyticsServiceUrl + '/app';  
+  var url = global.keys.analyticsServiceUrl + '/'+appId+'/sale';  
   request.post(url,{
       headers: {
           'content-type': 'application/json',
-          'content-length': post_data.length
+          'content-length': dataObj.length
       },
-      body: post_data
+      body: dataObj
   },function(err,response,body){
-  	console.log(err);
-  	console.log(body);
-
       if(err || response.statusCode === 500 || body === 'Error'){       
         deferred.reject(err);
-      }else {                               
-        deferred.resolve(body);
+      }else {    
+        var respBody=JSON.parse(body);
+        deferred.resolve(respBody);
       }
   });
 

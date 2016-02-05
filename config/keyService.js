@@ -10,7 +10,7 @@ module.exports = function () {
 
                 var key = null;
 
-                if (global.keys.secureKey) {
+                if (global.keys.secureKey) {                                   
                     console.log("Secure Key : " + global.keys.secureKey);
                     deferred.resolve(global.keys.secureKey);
                 } else {
@@ -31,7 +31,7 @@ module.exports = function () {
 
                             if (docs.length >= 1) {
                                 if (docs[0].secureKey) {
-                                    global.keys.secureKey = docs[0].secureKey;
+                                    global.keys.secureKey = docs[0].secureKey;                                   
                                     console.log("Secure Key : " + global.keys.secureKey);
                                     deferred.resolve(global.keys.secureKey);
                                 } else {
@@ -53,6 +53,10 @@ module.exports = function () {
                                             //resolve if not an error
                                             global.keys.secureKey = key;
                                             console.log("Secure Key : " + global.keys.secureKey);
+
+                                            //Register SecureKey in AnalyticsServer
+                                            global.cbServerService.registerServer(global.keys.secureKey);  
+
                                             deferred.resolve(key);
                                         }
                                     });

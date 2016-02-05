@@ -4,25 +4,32 @@ var app = express();
 module.exports = function() {
 
     //routes  
-    app.post('/payment/card', function(req,res,next) {
+    app.post('/:appId/sale', function(req,res,next) {
 
         var data = req.body || {};
+        var appId=req.params.appId;
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
        
         if(currentUserId){
         	
-    		global.paymentProcessService.upsertCard(currentUserId,data).then(function(beaconObj) {
-              if (!beaconObj) {
-                return res.send(400, 'Error : Went wrong not found');
-              }	              
-              return res.status(200).json(beaconObj);
+            if(data && appId && data.token){
 
-            },function(error){
-              return res.send(400, error);
-            });
+               global.paymentProcessService.createSale(currentUserId,appId,data).then(function(data) {
+                  if (!data) {
+                    return res.status(400).send('Error : Something went wrong, try again.');
+                  }               
+                  return res.status(200).json(data);
+
+                },function(error){
+                  return res.status(400).send(error);                    
+                }); 
+
+            }else{  
+                return res.status(400).send("Bad Request");  
+            }    		
         	
-        }else{
-            return res.send(400, "Unauthorized");
+        }else{           
+            return res.status(400).send("Unauthorized");
         }
 
     });
