@@ -268,7 +268,11 @@ module.exports = function(){
 }
 
 function initSecureKey(){
-    require('./config/keyService.js')().initSecureKey();
+    require('./config/keyService.js')().initSecureKey().then(function(secureKey){
+        //Register SecureKey in AnalyticsServer
+        global.cbServerService.registerServer(secureKey);
+    });
+    
 }
 
 function initClusterKey(){

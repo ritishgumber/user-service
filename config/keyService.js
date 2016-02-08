@@ -52,10 +52,7 @@ module.exports = function () {
                                         } else {
                                             //resolve if not an error
                                             global.keys.secureKey = key;
-                                            console.log("Secure Key : " + global.keys.secureKey);
-
-                                            //Register SecureKey in AnalyticsServer
-                                            global.cbServerService.registerServer(global.keys.secureKey);  
+                                            console.log("Secure Key : " + global.keys.secureKey);                                              
 
                                             deferred.resolve(key);
                                         }

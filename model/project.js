@@ -8,7 +8,8 @@ module.exports = function(){
 	     _userId: String,
 	       keys : Object,
 	     invited: Array,
-	  developers: Array
+	  developers: Array,
+	      planId: Number
 	});
 
 	return global.mongoose.model('Project', projectSchema);

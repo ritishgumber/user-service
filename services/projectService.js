@@ -134,17 +134,35 @@ module.exports = function(Project){
 
             var deffered = Q.defer();
 
-            var self = this;
+            var self = this;              
 
-              Project.findOneAndUpdate({_id:projectId}, { $set: newJson},{new:true},function (err, user) {
-                if (err) { 
-                  return deffered.reject(err); 
+              Project.findOneAndUpdate({_id:projectId}, { $set: newJson},{new:true},function (err, project) {
+                if (err) {                  
+                  return deffered.reject(err);         
                 }
-
-                if (!user) {
+                if (!project) {                  
                   return deffered.reject(null);
+                }                
+                return deffered.resolve(project);                    
+              });
+
+            return deffered.promise;
+
+          },
+          updatePlanByAppId: function (appId,planId) {
+
+            var deffered = Q.defer();
+
+            var self = this;            
+             
+              Project.findOneAndUpdate({appId:appId}, { $set: {planId:planId}},{new:true},function (err, project) {
+                if (err) {                 
+                  return deffered.reject(err);         
                 }
-                return deffered.resolve(user);                    
+                if (!project) {                 
+                  return deffered.reject(null);
+                }                
+                return deffered.resolve(project);                    
               });
 
             return deffered.promise;
