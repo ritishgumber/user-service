@@ -39,8 +39,6 @@ module.exports = function() {
         var appId=req.params.appId;
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
        
-       console.log("Remove card Route");
-
         if(currentUserId){
             
             if(appId){
@@ -60,7 +58,7 @@ module.exports = function() {
             }           
             
         }else{           
-            return res.status(400).send("Unauthorized User");
+            return res.status(400).send("Unauthorized");
         }
 
     });
