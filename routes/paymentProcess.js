@@ -9,7 +9,7 @@ module.exports = function() {
         var data = req.body || {};
         var appId=req.params.appId;
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
-       
+       console.log("userId:"+currentUserId);
         if(currentUserId){
         	
             if(data && appId && data.token){
@@ -29,7 +29,7 @@ module.exports = function() {
             }    		
         	
         }else{           
-            return res.status(400).send("Unauthorized");
+            return res.status(400).send("Unauthorized User");
         }
 
     });
