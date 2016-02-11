@@ -22,7 +22,8 @@ module.exports = function(Project){
               var self = this;
 
               var savedProject;
-              var appId;              
+              var appId;
+              var newAppPlanId=1;              
 
               generateNonExistingAppId().then(function (newAppId) {                 
                 appId=newAppId;
@@ -46,6 +47,7 @@ module.exports = function(Project){
               }).then(function(newProject){ 
 
                 deferred.resolve(newProject);
+                _createPlanInAnalytics(appId,newAppPlanId);
 
               },function(error) {                
                 deferred.reject(error);
@@ -619,6 +621,34 @@ function _deleteAppFromDS(appId){
       deferred.reject("Unable to delete!");
     }
      
+  });
+
+  return deferred.promise;
+}
+
+
+function _createPlanInAnalytics(appId,planId){
+  var deferred = Q.defer();
+ 
+  var post_data = {};
+  post_data.secureKey = global.keys.secureKey;
+  post_data.planId = planId;
+  post_data = JSON.stringify(post_data);
+
+
+  var url = global.keys.dataServiceUrl + '/plan/'+appId;  
+  request.post(url,{
+      headers: {
+          'content-type': 'application/json',
+          'content-length': post_data.length
+      },
+      body: post_data
+  },function(err,response,body){
+      if(err || response.statusCode === 500 || body === 'Error'){       
+        deferred.reject(err);
+      }else {                               
+        deferred.resolve(body);
+      }
   });
 
   return deferred.promise;
