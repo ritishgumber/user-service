@@ -51,8 +51,10 @@ module.exports = function(Notification){
         var self = this;
 
         Notification.find({user:userId}).skip(skip).limit(limit).exec(function (err, notificatonList) {      
-          if (err) deferred.reject(err);
-          if(notificatonList){
+          if (err) {
+            deferred.reject(err);
+          }
+          if(notificatonList && notificatonList.length>0){
             deferred.resolve(notificatonList);
           }else{
             deferred.resolve(null);
