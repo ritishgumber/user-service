@@ -389,12 +389,15 @@ module.exports = function(Project){
                       newDeveloper.role="User";
 
                       project.developers.push(newDeveloper); 
-                    //End Adding developer 
+                    //End Adding developer                      
 
-                      var inviteeIndex=project.invited.indexOf(email);
-                      if(inviteeIndex==0 || inviteeIndex>0){
-                        project.invited.splice(inviteeIndex,1);  
-                      }                    
+                    if(project.invited && project.invited.length>0){
+                      for(var i=0;i<project.invited.length;++i){
+                        if(project.invited[i].email==email){
+                          project.invited.splice(i,1);
+                        }
+                      }
+                    }                                          
 
                     project.save(function (err, savedProject) {
                       if (err) deferred.reject(err);
@@ -493,10 +496,13 @@ function processRemoveInvitee(foundProj,email){
   var deferred = Q.defer();
 
   var tempArray=foundProj.invited;
-  var inviteeIndex=foundProj.invited.indexOf(email);
-  if(inviteeIndex==0 || inviteeIndex>0){
-    tempArray.splice(inviteeIndex,1);
-  }
+  if(tempArray && tempArray.length>0){
+    for(var i=0;i<tempArray.length;++i){
+      if(tempArray[i].email==email){
+        tempArray.splice(i,1);
+      }
+    }
+  }   
 
   foundProj.invited=tempArray;
   foundProj.save(function (err, project) {
@@ -514,26 +520,50 @@ function processRemoveInvitee(foundProj,email){
 
 function processInviteUser(project,email,foundUser){
   var deferred = Q.defer();
+     
+  var alreadyInvited=_.first(_.where(project.invited, {email:email}));
 
-  //Invitation 
-  var alreadyInvited=project.invited.indexOf(email);
-  if(alreadyInvited<0){
-    project.invited.push(email);
+  //Invitation
+  if(!alreadyInvited){
 
-    project.save(function (err, savedProject) {
-      if (err) deferred.reject(err);
-      if(!savedProject){
-        deferred.reject('Cannot save the app right now.');
-      }else{
-        deferred.resolve("successfully Invited!"); 
 
-        var notificationType="Confirm";
-        var type="invited-project";
-        var text="You have been invited to collaborate on <span style='font-weight:bold;'>"+savedProject.name+"</span>. Do you want to accept the invite?";
-        global.notificationService.createNotification(savedProject.appId,foundUser._id,notificationType,type,text); 
-        global.mandrillService.inviteDeveloper(email,savedProject.name);
-      }
+    var notificationType="confirm";
+    var type="invited-project";
+    var text="You have been invited to collaborate on <span style='font-weight:bold;'>"+project.name+"</span>. Do you want to accept the invite?";
+    
+    var userIdOREmail=null;
+    if(foundUser && foundUser._id){
+      userIdOREmail=foundUser._id;
+    }else{
+      userIdOREmail=email;
+    }
+
+    global.notificationService.createNotification(project.appId,userIdOREmail,notificationType,type,text)
+    .then(function(notificationId){
+
+      var inviteeObj={
+        email:email,
+        notificationId:notificationId._id
+      };
+
+      project.invited.push(inviteeObj);
+ 
+      project.save(function (err, savedProject) {
+        if (err) deferred.reject(err);
+        if(!savedProject){
+          deferred.reject('Cannot save the app right now.');
+        }else{
+          deferred.resolve("successfully Invited!");         
+          global.mandrillService.inviteDeveloper(email,savedProject.name);
+        }
+      });
+
+
+    },function(error){
+      deferred.reject(error);
     });
+
+    
 
   }else{
     deferred.reject("Already Invited!");
@@ -636,7 +666,8 @@ function _createPlanInAnalytics(appId,planId){
   post_data = JSON.stringify(post_data);
 
 
-  var url = global.keys.dataServiceUrl + '/plan/'+appId;  
+  var url = global.keys.analyticsServiceUrl + '/plan/'+appId;  
+
   request.post(url,{
       headers: {
           'content-type': 'application/json',
@@ -644,10 +675,12 @@ function _createPlanInAnalytics(appId,planId){
       },
       body: post_data
   },function(err,response,body){
-      if(err || response.statusCode === 500 || body === 'Error'){       
+    
+      if(err || response.statusCode === 500 || response.statusCode === 400 || body === 'Error'){       
         deferred.reject(err);
-      }else {                               
-        deferred.resolve(body);
+      }else {    
+        var respBody=JSON.parse(body);                           
+        deferred.resolve(respBody);
       }
   });
 

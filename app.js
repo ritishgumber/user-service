@@ -215,6 +215,7 @@ module.exports = function(){
         global.cbServerService = require('./services/cbServerService.js')(_Settings);
         global.paymentProcessService = require('./services/paymentProcessService.js')();
         global.userAnalyticService = require('./services/userAnalyticService.js')();
+        global.analyticsNotificationsService = require('./services/analyticsNotificationsService.js')();
 
         //Routes(API)
         require('./framework/config')(passport, User); 
@@ -229,6 +230,7 @@ module.exports = function(){
         global.app.use('/', require('./routes/notification.js')());
         global.app.use('/', require('./routes/paymentProcess.js')());
         global.app.use('/', require('./routes/userAnalytics.js')());
+        global.app.use('/', require('./routes/analyticsNotifications.js')());
 
         console.log("Models,Services,Routes Status : OKay.");
         

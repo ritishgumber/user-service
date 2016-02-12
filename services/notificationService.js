@@ -34,7 +34,7 @@ module.exports = function(Notification){
             if (err) deferred.reject(err);
 
             if(!notificationObj)
-              deferred.reject('Cannot save the beacon right now.');
+              deferred.reject('Cannot save the notification right now.');
             else{
               deferred.resolve(notificationObj);
             }
@@ -93,15 +93,21 @@ module.exports = function(Notification){
 
         var self = this;
 
-        Notification.findOneAndUpdate({user:userId},{ $set: { seen:true}},{new:true},function (err, savedNotification) {
+        Notification.find({user:userId,seen:false},function (err, list) {
           if (err) deferred.reject(err);
-          if(savedNotification){
-            deferred.resolve(savedNotification);
+          if(list && list.length>0){
+
+            for(var i=0;i<list.length;++i){
+              list[i].seen=true;
+              list[i].save();
+            }
+
+            deferred.resolve({message:"success"});
           }else{
             deferred.resolve(null);
-          }
-               
-        });       
+          }               
+        });
+
 
         return deferred.promise;
     },

@@ -1,6 +1,6 @@
 module.exports = {
 	dataServiceUrl : 'http://localhost:4730',
-	analyticsServiceUrl : 'https://analytics.cloudboost.io',
+	analyticsServiceUrl : 'http://localhost:5555',
     cacheSchemaPrefix : 'schema',
     globalDb : "_GLOBAL",
     globalSettings : "_Settings",

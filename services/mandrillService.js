@@ -170,7 +170,180 @@ module.exports = function(){
                 console.log(result);
             }
         });
-    }  
+    },
+    changePlan : function(userName,email,appName,planName){
+
+        var message = {                   
+            "to": [{
+                    "email": email,                    
+                    "type": "to"
+                }],
+
+            "global_merge_vars": [{
+                    "name": "name",
+                    "content": userName
+                },{
+                    "name": "appname",
+                    "content": appName
+                },{
+                    "name": "planname",
+                    "content": planName
+                }]           
+        };
+
+
+        //send the verification email.
+        mandrill_client.messages.sendTemplate({"template_name": 'changeplan', 
+            "message" : message,
+            "template_content": [
+                {
+                    "name": "name",
+                    "content": userName
+                },{
+                    "name": "appname",
+                    "content": appName
+                },{
+                    "name": "planname",
+                    "content": planName
+                }
+            ], "async": true}, function(result){
+            if(result.length>0 && result[0].status === 'sent'){
+                console.log('++++++Mandrill Change App Plan Email Sent +++++++++++++');
+            }else{
+                console.log('++++++Mandrill Change App Plan Email Error +++++++++++++');
+                console.log(result);
+            }
+        });
+    },
+    cancelPlan : function(userName,email,appName,planName){
+
+        var message = {                   
+            "to": [{
+                    "email": email,                    
+                    "type": "to"
+                }],
+
+            "global_merge_vars": [{
+                    "name": "name",
+                    "content": userName
+                },{
+                    "name": "appname",
+                    "content": appName
+                },{
+                    "name": "planname",
+                    "content": planName
+                }]           
+        };
+
+        //send the verification email.
+        mandrill_client.messages.sendTemplate({"template_name": 'cancelplan', 
+            "message" : message,
+            "template_content": [
+                {
+                    "name": "name",
+                    "content": userName
+                },{
+                    "name": "appname",
+                    "content": appName
+                },{
+                    "name": "planname",
+                    "content": planName
+                }
+            ], "async": true}, function(result){
+            if(result.length>0 && result[0].status === 'sent'){
+                console.log('++++++Mandrill Cancel Plan Email Sent +++++++++++++');
+            }else{
+                console.log('++++++Mandrill Cancel Plan Plan Email Error +++++++++++++');
+                console.log(result);
+            }
+        });
+    },
+    over80Limit : function(userName,email,appName,planName){
+
+        var message = {                   
+            "to": [{
+                    "email": email,                    
+                    "type": "to"
+                }],
+
+            "global_merge_vars": [{
+                    "name": "name",
+                    "content": userName
+                },{
+                    "name": "appname",
+                    "content": appName
+                },{
+                    "name": "planname",
+                    "content": planName
+                }]           
+        };
+
+        //send the verification email.
+        mandrill_client.messages.sendTemplate({"template_name": 'over80limit', 
+            "message" : message,
+            "template_content": [
+                {
+                    "name": "name",
+                    "content": userName
+                },{
+                    "name": "appname",
+                    "content": appName
+                },{
+                    "name": "planname",
+                    "content": planName
+                }
+            ], "async": true}, function(result){
+            if(result.length>0 && result[0].status === 'sent'){
+                console.log('++++++Mandrill Over 80% Plan Email Sent +++++++++++++');
+            }else{
+                console.log('++++++Mandrill Over 80% Plan Email Error +++++++++++++');
+                console.log(result);
+            }
+        });
+    },
+    over100Limit : function(userName,email,appName,planName){
+
+        var message = {                   
+            "to": [{
+                    "email": email,                    
+                    "type": "to"
+                }],
+
+            "global_merge_vars": [{
+                    "name": "name",
+                    "content": userName
+                },{
+                    "name": "appname",
+                    "content": appName
+                },{
+                    "name": "planname",
+                    "content": planName
+                }]           
+        };
+
+        //send the verification email.
+        mandrill_client.messages.sendTemplate({"template_name": 'overlimit', 
+            "message" : message,
+            "template_content": [
+                {
+                    "name": "name",
+                    "content": userName
+                },{
+                    "name": "appname",
+                    "content": appName
+                },{
+                    "name": "planname",
+                    "content": planName
+                }
+            ], "async": true}, function(result){
+            if(result.length>0 && result[0].status === 'sent'){
+                console.log('++++++Mandrill Over 100% Plan Email Sent +++++++++++++');
+            }else{
+                console.log('++++++Mandrill Over 100% Plan Email Error +++++++++++++');
+                console.log(result);
+            }
+        });
+    }        
 
   }
 

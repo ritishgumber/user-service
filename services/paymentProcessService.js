@@ -7,6 +7,7 @@ var keys = require('../config/keys');
 var _ = require('underscore');
 var crypto = require('crypto');
 var request = require('request');
+var pricingPlans = require('../config/pricingPlans.js')();
 
 module.exports = function(){
 
@@ -18,19 +19,30 @@ module.exports = function(){
 
         var deferred = Q.defer();  
 
+        var user=null;
+        var saleDocument;
+
         global.userService.getAccountById(userId).then(function(userObj){
+          user=userObj;
 
           dataObj.userId=userId;
           dataObj.userEmail=userObj.email;
           return _createSaleInAnalytics(appId,dataObj); 
 
         }).then(function(data){  
-
+          saleDocument=data;
           //Update Project with PlanId
           return global.projectService.updatePlanByAppId(appId,data.planId); 
 
         }).then(function(updatedProject){
           deferred.resolve(updatedProject);
+
+          var notificationType="inform";
+          var type="app-upgraded";
+          var text="Your app <span style='font-weight:bold;'>"+updatedProject.name+"</span> has been upgraded to <span style='font-weight:bold;'>"+saleDocument.planName+"</span>.";
+          global.notificationService.createNotification(appId,user._id,notificationType,type,text);
+          global.mandrillService.changePlan(user.name,user.email,updatedProject.name,saleDocument.planName); 
+
         },function(error){
           deferred.reject(error);
         });
@@ -41,14 +53,39 @@ module.exports = function(){
 
         var _self = this;
 
-        var deferred = Q.defer();          
+        var deferred = Q.defer(); 
+        var project=null;
 
-        _stopRecurringInAnalytics(appId,userId).then(function(response){
+        global.projectService.getProject(appId).then(function(projectObj){
+
+          project=projectObj;
+
+          return _stopRecurringInAnalytics(appId,userId);
+
+        }).then(function(response){
          
           return global.projectService.updatePlanByAppId(appId,1);          
 
         }).then(function(updatedProject){
+
           deferred.resolve({"message":"Success"});
+
+
+          global.userService.getAccountById(userId).then(function(userObj){
+
+            var previousPlan=_.first(_.where(pricingPlans.plans, {id: project.planId}));
+
+            var notificationType="inform";
+            var type="app-payment-stopped";
+            var text="Your app <span style='font-weight:bold;'>"+updatedProject.name+"</span> has been cancelled for the <span style='font-weight:bold;'>"+previousPlan.planName+"</span>.";
+            global.notificationService.createNotification(appId,userObj._id,notificationType,type,text);
+            global.mandrillService.cancelPlan(userObj.name,userObj.email,updatedProject.name,previousPlan.planName);
+
+          },function(error){
+            console.log("Error in getting User details after cancelling Plan");
+          });  
+          
+
         },function(error){
           deferred.reject(error);
         });
