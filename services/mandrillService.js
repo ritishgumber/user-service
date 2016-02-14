@@ -40,9 +40,9 @@ module.exports = function(){
                 {name:'link',content:"<a href='https://dashboard.cloudboost.io/accounts/#/forgotpassword?code="+user.emailVerificationCode+"' class='btn-primary'>Reset your password</a>"}
             ], "async": true}, function(result){
             if(result.length>0 && result[0].status === 'sent'){
-                console.log('++++++Mandrill Email Sent +++++++++++++');
+                console.log('++++++Mandrill Reset Password Email Sent +++++++++++++');
             }else{
-                console.log('++++++Mandrill Email Error +++++++++++++');
+                console.log('++++++Mandrill Reset Password Error +++++++++++++');
                 console.log(result);
             }
         });
@@ -70,9 +70,9 @@ module.exports = function(){
                 {name:'name',content:user.name},
             ], "async": true}, function(result){
             if(result.length>0 && result[0].status === 'sent'){
-                console.log('++++++Mandrill Email Sent +++++++++++++');
+                console.log('++++++Mandrill Password Changed Email Sent +++++++++++++');
             }else{
-                console.log('++++++Mandrill Email Error +++++++++++++');
+                console.log('++++++Mandrill Password Changed Email Error +++++++++++++');
                 console.log(result);
             }
         });
@@ -104,9 +104,9 @@ module.exports = function(){
                 {name:'link',content:"<a href='https://dashboard.cloudboost.io/accounts/#/activate?code="+user.emailVerificationCode+"' class='btn-primary'>Activate your account</a>"}
             ], "async": true}, function(result){
             if(result.length>0 && result[0].status === 'sent'){
-                console.log('++++++Mandrill Email Sent +++++++++++++');
+                console.log('++++++Mandrill Signed up Email Sent +++++++++++++');
             }else{
-                console.log('++++++Mandrill Email Error +++++++++++++');
+                console.log('++++++Mandrill Signed up Email Error +++++++++++++');
                 console.log(result);
             }
         });

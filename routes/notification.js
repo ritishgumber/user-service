@@ -14,6 +14,8 @@ module.exports = function() {
     		global.notificationService.getNotifications(currentUserId,skip,limit).then(function(list) {            
                 return res.status(200).json(list);
             },function(error){
+                console.log("NOTIFICATION ERRR:");
+                console.log(error);
                 return res.status(400).send(error);
             });
         }else{
