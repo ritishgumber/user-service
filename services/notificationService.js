@@ -50,6 +50,9 @@ module.exports = function(Notification){
 
         var self = this;
 
+        skip=parseInt(skip);
+        limit=parseInt(limit);
+
         Notification.find({user:userId}).sort({timestamp:-1}).skip(skip).limit(limit).exec(function (err, notificatonList) {      
           if (err) {
             deferred.reject(err);
