@@ -198,6 +198,22 @@ module.exports = function(Project){
              return deferred.promise;
 
           },
+          allProjectList: function () {
+
+            var _self = this;
+
+             var deferred = Q.defer();
+
+              var self = this;
+
+              Project.find({}, function (err, list) {
+                if (err) deferred.reject(err);
+                deferred.resolve(list);              
+                 
+              });
+
+             return deferred.promise;
+          },
           changeAppMasterKey: function (currentUserId,appId) {
 
               var deferred = Q.defer();
@@ -274,7 +290,7 @@ module.exports = function(Project){
 
               var self = this;             
 
-              Project.findOne({appId:appId,invited: {$in: [email]}}, function (err,foundProj) {
+              Project.findOne({appId:appId,invited: {$elemMatch:{email:email} }}, function (err,foundProj) {
                 if(err){                  
                   deferred.reject(err);
                 }else if(!foundProj){
@@ -306,22 +322,7 @@ module.exports = function(Project){
              return deferred.promise;
 
           },
-          allProjectList: function () {
-
-            var _self = this;
-
-             var deferred = Q.defer();
-
-              var self = this;
-
-              Project.find({}, function (err, list) {
-                if (err) deferred.reject(err);
-                deferred.resolve(list);              
-                 
-              });
-
-             return deferred.promise;
-          },
+         
           inviteUser: function (appId,email) {
 
               var deferred = Q.defer();
@@ -384,16 +385,18 @@ module.exports = function(Project){
                   if(!checkValidUser(project,currentUserId,null)){
 
                     //Adding developer                      
-                      var newDeveloper={};
-                      newDeveloper.userId=currentUserId;
-                      newDeveloper.role="User";
+                    var newDeveloper={};
+                    newDeveloper.userId=currentUserId;
+                    newDeveloper.role="User";
 
-                      project.developers.push(newDeveloper); 
+                    project.developers.push(newDeveloper); 
                     //End Adding developer                      
 
+                    var notificationId=null;
                     if(project.invited && project.invited.length>0){
                       for(var i=0;i<project.invited.length;++i){
                         if(project.invited[i].email==email){
+                          notificationId=project.invited[i].notificationId;
                           project.invited.splice(i,1);
                         }
                       }
@@ -403,9 +406,11 @@ module.exports = function(Project){
                       if (err) deferred.reject(err);
                       if(!savedProject){
                         deferred.reject('Cannot save the app right now.');
-                      }else{
-                        global.notificationService.removeNotificationByAppId(savedProject.appId); 
-                        deferred.resolve(savedProject);                                            
+                      }else{                         
+                        deferred.resolve(savedProject);  
+                        if(notificationId){
+                          global.notificationService.removeNotificationById(notificationId);
+                        }                                                                  
                       }
                     });
 
@@ -496,9 +501,12 @@ function processRemoveInvitee(foundProj,email){
   var deferred = Q.defer();
 
   var tempArray=foundProj.invited;
+  var notificationId=null;
+
   if(tempArray && tempArray.length>0){
     for(var i=0;i<tempArray.length;++i){
       if(tempArray[i].email==email){
+        notificationId=tempArray[i].notificationId;
         tempArray.splice(i,1);
       }
     }
@@ -511,7 +519,9 @@ function processRemoveInvitee(foundProj,email){
       deferred.reject('Cannot save the app right now.');
     }else{
       deferred.resolve(project);
-      global.notificationService.removeNotificationByAppId(foundProj.appId);                     
+      if(notificationId){
+        global.notificationService.removeNotificationById(notificationId); 
+      }                          
     }
   });
 

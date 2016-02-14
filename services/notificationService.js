@@ -28,7 +28,7 @@ module.exports = function(Notification){
         notification.type=type;
         notification.text=text;
         notification.seen=false;
-        notification.date=new Date();
+        notification.timestamp=new Date().getTime();
      
         notification.save(function (err, notificationObj) {
             if (err) deferred.reject(err);
@@ -50,7 +50,7 @@ module.exports = function(Notification){
 
         var self = this;
 
-        Notification.find({user:userId}).skip(skip).limit(limit).exec(function (err, notificatonList) {      
+        Notification.find({user:userId}).sort({timestamp:-1}).skip(skip).limit(limit).exec(function (err, notificatonList) {      
           if (err) {
             deferred.reject(err);
           }
@@ -111,13 +111,13 @@ module.exports = function(Notification){
 
         return deferred.promise;
     },
-    removeNotificationByAppId: function(appId){
+    removeNotificationById: function(notifyId){
       var deferred = Q.defer();
-      Notification.remove({appId:appId}, function (err) {
+      Notification.remove({_id:notifyId}, function (err) {
         if(err){          
           deferred.reject(err);
         }else{
-          deferred.reject("Success!");
+          deferred.resolve({message:"Success."});
         }
       });
       return deferred.promise;

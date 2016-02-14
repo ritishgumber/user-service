@@ -34,7 +34,23 @@ module.exports = function() {
         }else{
             return res.send(401);
         }    
-    });   
+    }); 
+
+    app.delete('/notification/:id', function(req,res,next) {
+    
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+        var notifyId=req.params.id;
+        
+        if(currentUserId){                
+            global.notificationService.removeNotificationById(notifyId).then(function(resp) {            
+                return res.status(200).json(resp);
+            },function(error){                
+                return res.status(400).send(error);
+            });
+        }else{
+            return res.send(401);
+        }    
+    });  
 
     return app;
 

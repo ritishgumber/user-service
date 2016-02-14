@@ -3,7 +3,7 @@
 #
 
 # Pull base image ununtu image.
-FROM node:5.2
+FROM node:5.6
 
 #Maintainer.
 MAINTAINER Nawaz Dhandala <nawazdhandala@outlook.com>
