@@ -57,7 +57,12 @@ module.exports = function(){
        //MONGO DB
        setUpMongoDB(passport);   
 
-       setUpDataServices();     
+       setUpDataServices(); 
+
+       setUpAnalyticsServer(); 
+        if(global.config){
+            global.keys.analyticsServiceUrl="http://localhost:5555";
+        }   
     }
 
     function setUpDataServices() {
@@ -69,6 +74,19 @@ module.exports = function(){
         }
         
         console.log("Data Services URL : "+global.keys.dataServiceUrl);
+    }
+
+    function setUpAnalyticsServer(){
+      if(process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"]){
+        console.log("Analytics is running on Kubernetes");      
+
+        global.keys.analyticsServiceUrl="http://"+process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"]+":"+process.env["CLOUDBOOST_ANALYTICS_SERVICE_PORT"]; 
+        console.log("Analytics URL:"+global.keys.analyticsServiceUrl);
+            
+      }else{
+        global.keys.analyticsServiceUrl="https://analytics.cloudboost.io";
+        console.log("Analytics URL:"+global.keys.analyticsServiceUrl);
+      }
     }
 
     function setUpRedis(){
@@ -272,7 +290,7 @@ module.exports = function(){
 function initSecureKey(){
     require('./config/keyService.js')().initSecureKey().then(function(secureKey){
         //Register SecureKey in AnalyticsServer
-        global.cbServerService.registerServer(secureKey);
+        global.cbServerService.registerServer(secureKey);        
     });
     
 }

@@ -41,7 +41,7 @@ module.exports = function(Project){
                 developers.push(newDeveloper);              
                 //End Adding default developer
 
-                var appendJson={_userId:userId,name:name,developers:developers};
+                var appendJson={_userId:userId,name:name,developers:developers,planId:newAppPlanId};
                 return _self.findOneAndUpdateProject(project._id,appendJson);                              
 
               }).then(function(newProject){ 
