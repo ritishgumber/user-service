@@ -14,11 +14,14 @@ module.exports = function() {
     		global.userAnalyticService.apiUsage(appId).then(function(result) {                           
               return res.status(200).json(result);
             },function(error){
+              console.log("Error in getting api Usage");
+              console.log(error);  
               return res.send(400, error);
             });
         	
         }else{
-            return res.send(400, "Unauthorized");
+            console.log("Unauthorized-User not found");
+            return res.send(400, "Unauthorized-User not found");
         }
 
     });
@@ -33,11 +36,14 @@ module.exports = function() {
             global.userAnalyticService.storageUsage(appId).then(function(result) {                           
               return res.status(200).json(result);
             },function(error){
+              console.log("Error in getting storage Usage");
+              console.log(error);  
               return res.send(400, error);
             });
             
         }else{
-            return res.send(400, "Unauthorized");
+            console.log("Unauthorized-User not found");
+            return res.send(400, "Unauthorized-User not found");
         }
 
     });
@@ -52,11 +58,14 @@ module.exports = function() {
             global.userAnalyticService.apiCount(appId).then(function(result) {                           
               return res.status(200).json(result);
             },function(error){
+              console.log("Error in getting api Count");
+              console.log(error);  
               return res.send(400, error);
             });
             
         }else{
-            return res.send(400, "Unauthorized");
+            console.log("Unauthorized-User not found");
+            return res.send(400, "Unauthorized-User not found");
         }
 
     });
@@ -71,11 +80,14 @@ module.exports = function() {
             global.userAnalyticService.storageLastRecord(appId).then(function(result) {                           
               return res.status(200).json(result);
             },function(error){
+              console.log("Error in getting storage Usage");
+              console.log(error);  
               return res.send(400, error);
             });
             
         }else{
-            return res.send(400, "Unauthorized");
+            console.log("Unauthorized-User not found");
+            return res.send(400, "Unauthorized-User not found");
         }
 
     });
