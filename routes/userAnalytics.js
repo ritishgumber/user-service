@@ -92,6 +92,30 @@ module.exports = function() {
 
     });
 
+
+    app.post('/analytics/api-storage/bulk/count', function(req,res,next) {
+
+        var appId=req.params.appId;
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+        var data = req.body || {};
+
+        if(currentUserId){
+            
+            global.userAnalyticService.bulkApiStorageDetails(data.appIdArray).then(function(result) {                           
+              return res.status(200).json(result);
+            },function(error){
+              console.log("Error in getting Api-Storage Bulk Usage Details");
+              console.log(error);  
+              return res.send(400, error);
+            });
+            
+        }else{
+            console.log("Unauthorized-User not found");
+            return res.send(400, "Unauthorized-User not found");
+        }
+
+    });
+
     return app;
 
 }
