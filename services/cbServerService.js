@@ -140,7 +140,22 @@ module.exports = function(_Settings){
         });           
 
         return deferred.promise;
+    },
+    isHosted: function () {
+
+        var _self = this;
+
+        var deferred = Q.defer();
+
+        _isHostedAnalytics().then(function(result) {
+          deferred.resolve(result);
+        },function(error){
+          deferred.reject(error);
+        });           
+
+        return deferred.promise;
     },  
+  
 
   }
 
@@ -170,6 +185,32 @@ function _registerServerAnalytics(secureKey){
       }else {    
         var respBody=JSON.parse(body);
         deferred.resolve(respBody);
+      }
+  });
+
+  return deferred.promise;
+}
+
+
+function _isHostedAnalytics(){
+  var deferred = Q.defer();
+ 
+  var post_data = {};
+  post_data.secureKey = global.keys.secureKey; 
+  post_data = JSON.stringify(post_data);
+
+  var url = global.keys.analyticsServiceUrl +'/server/isHosted';  
+  request.post(url,{
+      headers: {
+          'content-type': 'application/json',
+          'content-length': post_data.length
+      },
+      body: post_data
+  },function(err,response,body){
+      if(err || response.statusCode === 500 || body === 'Error'){       
+        deferred.reject(err);
+      }else {         
+        deferred.resolve(body);
       }
   });
 

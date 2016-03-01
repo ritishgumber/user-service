@@ -6,7 +6,7 @@
  }],
  
  "elasticsearch" : [{
-   "host" : "cbelasticdb1.cloudapp.net",
+   "host" : "cloudboostelasticsearch.cloudapp.net",
    "port" : "9200"
  }],
  
