@@ -469,8 +469,12 @@ module.exports = function(passport) {
 }
 
 function fullUrl(req) {
-  return url.format({
-    protocol: req.protocol,
-    host: req.get('host')
-  });
+    var protocol=req.protocol;    
+    if(!global.config){
+        protocol="https";
+    }  
+    return url.format({
+        protocol: protocol,
+        host: req.get('host')
+    });
 }

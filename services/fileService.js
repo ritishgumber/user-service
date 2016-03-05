@@ -27,6 +27,11 @@ module.exports = function() {
             writestream.on('close', function (file) {             
                 //console.log(file.filename + ' is written To DB');                
                 deferred.resolve(file);
+            });
+
+            writestream.on('error', function (error) {             
+                console.log("error writing file");       
+                deferred.reject(error);
             });          
 
             return deferred.promise;        
