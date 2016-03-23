@@ -6,6 +6,8 @@ module.exports = function() {
     // routes
     app.post('/app/create', function(req,res,next) {
 
+        console.log("App Creation");
+
         var data = req.body || {};
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.body.userId;
        
@@ -19,11 +21,11 @@ module.exports = function() {
             return res.status(200).json(project._doc);
 
           },function(error){    
-                   
+            console.log(error);       
             return res.status(500).send(error); 
           });
 
-        }else{            
+        }else{ 
             return res.status(401).send("Unauthorised");
         }
 

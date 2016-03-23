@@ -621,6 +621,8 @@ function _createAppFromDS(appId){
       },
       body: post_data
   },function(err,response,body){
+      console.log("Error Creating App from DataServices");
+      console.log(err);      
       if(err || response.statusCode === 500 || body === 'Error'){       
         deferred.reject(err);
       }else {                               
