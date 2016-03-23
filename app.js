@@ -186,9 +186,9 @@ module.exports = function(){
                     mongoConnectionString+=",";
 
                     var i=2;
-                    while(process.env["MONGO_"+i+"_SERVICE_HOST"]){
+                    while(process.env["MONGO"+i+"_SERVICE_HOST"]){
                        
-                        mongoConnectionString+=process.env["MONGO_"+i+"_SERVICE_HOST"]+":"+process.env["MONGO_"+i+"_SERVICE_PORT"]; 
+                        mongoConnectionString+=process.env["MONGO"+i+"_SERVICE_HOST"]+":"+process.env["MONGO"+i+"_SERVICE_PORT"]; 
                         mongoConnectionString+=",";
                         ++i;
                     } 
