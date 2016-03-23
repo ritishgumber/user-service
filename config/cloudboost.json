@@ -1,18 +1,17 @@
 
 {
  "mongo" : [{
-   "host" : "cbmongodb1.cloudapp.net",
+   "host" : "localhost",
    "port" : "27017"
  }],
  
  "elasticsearch" : [{
-   "host" : "cloudboostelasticsearch.cloudapp.net",
+   "host" : "localhost",
    "port" : "9200"
  }],
  
  "redis" : [{
-               "host" : "cbcachetest.redis.cache.windows.net",
-               "port" : 6379,
-               "password" : "bXmhmbA3Y5h+ay1DjP+QvD0w89JArE75gEIJh8FZ1HQ="
+               "host" : "127.0.0.1",
+               "port" : 6379               
            }]
 }

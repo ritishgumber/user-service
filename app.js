@@ -181,9 +181,19 @@ module.exports = function(){
        }else{
             if(process.env["MONGO_SERVICE_HOST"]){
                     console.log("MongoDB is running on Kubernetes.");
-                    isReplicaSet = true;
+                    
                     mongoConnectionString+=process.env["MONGO_SERVICE_HOST"]+":"+process.env["MONGO_SERVICE_PORT"]; 
                     mongoConnectionString+=",";
+
+                    var i=2;
+                    while(process.env["MONGO_"+i+"_SERVICE_HOST"]){
+                       
+                        mongoConnectionString+=process.env["MONGO_"+i+"_SERVICE_HOST"]+":"+process.env["MONGO_"+i+"_SERVICE_PORT"]; 
+                        mongoConnectionString+=",";
+                        ++i;
+                    } 
+
+                    isReplicaSet = true;
             }else{
                 var i=1;
                 while(process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"] && process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]){
