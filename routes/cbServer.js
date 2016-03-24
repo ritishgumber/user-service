@@ -84,7 +84,7 @@ module.exports = function() {
 
         Q.all(promises).then(function(resultList){
             if(resultList && resultList[0] && resultList[1]){
-                return res.status(200).send("MongoDB and RedisDB statuses:OK!");
+                return res.status(200).json({status:200, message : "Service Status : OK"});
             }else{
                 return res.status(500).send("Something went wrong!");
             }
