@@ -15,67 +15,97 @@ module.exports = function(){
 
     updateUserOver80: function (appId,exceededArray) {
 
+        console.log("Update User Over 80...");
+
         var _self = this;
 
-        var deferred = Q.defer();     
+        var deferred = Q.defer();  
 
-        var project=null;
+        try{   
 
-        global.projectService.getProject(appId).then(function(projectObj){
-          project=projectObj;
+          var project=null;
 
-          var adminUser=_.first(_.where(project.developers, {role:"Admin"}));
-          return global.userService.getAccountById(adminUser.userId);
-          
-        }).then(function(userObj){
+          global.projectService.getProject(appId).then(function(projectObj){
 
-          var presentPlan=_.first(_.where(pricingPlans.plans, {id: project.planId}));
+            console.log("Retrieved project");
 
-          var notificationType="payment";
-          var type="upgrade-app";
-          var text="Your app <span style='font-weight:bold;'>"+project.name+"</span> has reached 80% of its current plan. Upgrade to next plan now.";
-          global.notificationService.createNotification(appId,userObj._id,notificationType,type,text);
-           
-          global.mandrillService.over80Limit(userObj.name,userObj.email,project.name,presentPlan.planName);
+            project=projectObj;
 
-          deferred.resolve({message:"success"});
-          
-        },function(error){
-          deferred.reject(error);
-        });
+            var adminUser=_.first(_.where(project.developers, {role:"Admin"}));
+            return global.userService.getAccountById(adminUser.userId);
+            
+          }).then(function(userObj){
+
+            console.log("Retrieved User account");
+            var presentPlan=_.first(_.where(pricingPlans.plans, {id: project.planId}));
+
+            var notificationType="payment";
+            var type="upgrade-app";
+            var text="Your app <span style='font-weight:bold;'>"+project.name+"</span> has reached 80% of its current plan. Upgrade to next plan now.";
+            global.notificationService.createNotification(appId,userObj._id,notificationType,type,text);
+             
+            global.mandrillService.over80Limit(userObj.name,userObj.email,project.name,presentPlan.planName);
+
+            console.log("Successfully sent email for over 80% usage.");
+            deferred.resolve({message:"success"});
+            
+          },function(error){
+            console.log("Error on update over 80% usage");
+            deferred.reject(error);
+          });
+
+        }catch(err){        
+          global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+          deferred.reject(err);
+        }
 
         return deferred.promise;
     },
     updateUserOver100: function (appId,details) {
 
+        console.log("Update over 100% usage..");
+
         var _self = this;
 
         var deferred = Q.defer();     
 
-        var project=null;
+        try{
+          var project=null;
 
-        global.projectService.getProject(appId).then(function(projectObj){
-          project=projectObj;
+          global.projectService.getProject(appId).then(function(projectObj){
+            console.log("Retrieved project");
+            project=projectObj;
 
-          var adminUser=_.first(_.where(project.developers, {role:"Admin"}));
-          return global.userService.getAccountById(adminUser.userId);
-          
-        }).then(function(userObj){
+            var adminUser=_.first(_.where(project.developers, {role:"Admin"}));
+            return global.userService.getAccountById(adminUser.userId);
+            
+          }).then(function(userObj){
 
-          var presentPlan=_.first(_.where(pricingPlans.plans, {id: project.planId}));
+            console.log("Retrieved user account");
 
-          var notificationType="payment";
-          var type="upgrade-app";
-          var text="Your app <span style='font-weight:bold;'>"+project.name+"</span> has been over the limit of its current plan. Upgrade to next plan now.";
-          global.notificationService.createNotification(appId,userObj._id,notificationType,type,text);
-           
-          global.mandrillService.over100Limit(userObj.name,userObj.email,project.name,presentPlan.planName);
+            var presentPlan=_.first(_.where(pricingPlans.plans, {id: project.planId}));
 
-          deferred.resolve({message:"success"});
-          
-        },function(error){
-          deferred.reject(error);
-        });
+            var notificationType="payment";
+            var type="upgrade-app";
+            var text="Your app <span style='font-weight:bold;'>"+project.name+"</span> has been over the limit of its current plan. Upgrade to next plan now.";
+            global.notificationService.createNotification(appId,userObj._id,notificationType,type,text);
+             
+            global.mandrillService.over100Limit(userObj.name,userObj.email,project.name,presentPlan.planName);
+
+            console.log("Successfully sent email for usage over 100%");
+
+            deferred.resolve({message:"success"});
+            
+          },function(error){
+            console.log("Error on update over 100% usage");
+            deferred.reject(error);
+          });
+
+        
+        }catch(err){
+          global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+          deferred.reject(err);
+        }
 
         return deferred.promise;
     } 

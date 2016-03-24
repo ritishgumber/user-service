@@ -13,6 +13,8 @@ module.exports = function() {
     //routes
     app.get('/file/:id', function(req,res,next) { 
 
+        console.log("Get user Image by id");
+
         var fileId=req.params.id;
         if(fileId){
             global.fileService.getFileById(fileId).then(function(file) { 
@@ -31,16 +33,21 @@ module.exports = function() {
 
                 readstream.pipe(res);
 
+                console.log("Successfull Get user Image by id")
             },function(error){
+                console.log("error Get user Image by id");
                 return res.send(500, error);
             });
         }else{
+            console.log("Found no image id in the url");
             return res.send(500, "Found no file id in the url");
         }
 		    
     }); 
 
     app.post('/file', function(req, res, next) {
+
+        console.log("Upload user image");
 
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
         var serverUrl=fullUrl(req);
@@ -69,8 +76,10 @@ module.exports = function() {
                 var wrapper={};
                 wrapper.document=fileObject;
 
+                console.log("Successfull Upload user image");
                 return res.status(200).send(wrapper); 
             },function(error){
+                console.log("Error Upload user image");
                 return res.status(500).send(error); 
             });
 
@@ -85,6 +94,8 @@ module.exports = function() {
 
     app.delete('/file/:id', function(req,res,next) {
 
+        console.log("delete user image");
+
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.body.userId;
         var fileId=req.params.id;
 
@@ -93,12 +104,15 @@ module.exports = function() {
             global.fileService.deleteFileById(fileId).then(function(resp) {                
                 return global.userService.updateUserProfilePic(currentUserId,null);
             }).then(function(reply){
+                console.log("Successfully delete user image");
                 return res.status(200).send("Deleted Successfully");    
             },function(error){
+                console.log("error delete user image");
                 return res.send(500, error);
             });
 
         }else{
+            console.log("unauthorized delete user image");
             return res.status(401).send("unauthorized");
         }
 

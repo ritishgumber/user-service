@@ -6,6 +6,7 @@ module.exports = function(){
   return {
 
         generateRandomString: function() {
+        	try{
               var text = "";
               var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
@@ -13,6 +14,10 @@ module.exports = function(){
                   text += possible.charAt(Math.floor(Math.random() * possible.length));
 
               return text;
+
+            }catch(err){
+              global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                       
+            } 
         }
 
     }

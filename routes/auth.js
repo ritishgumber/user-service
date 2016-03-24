@@ -22,6 +22,8 @@ module.exports = function(passport) {
     // routes
     app.post('/user/signup', function(req, res, next) {       
 
+        console.log("User SignUp");
+
         var data = req.body || {};
 
         global.userService.register(data).then(function(user) {
@@ -154,6 +156,9 @@ module.exports = function(passport) {
 
 
     app.post('/user/signin', function(req, res, next) {
+
+        console.log("User SignIn");
+
         passport.authenticate('local',  function(err, user, info) {
 
             if (err || !user) {
@@ -161,6 +166,7 @@ module.exports = function(passport) {
             }
             req.login(user, function(err) {
                 if (err) {
+                     console.log("User login failed.");
                     return next(err);
                 }
                                 
@@ -168,6 +174,7 @@ module.exports = function(passport) {
                 delete user._doc.password; //delete this code form response for security
                 delete user._doc.salt;
 
+                console.log("User successfully logged in");
                 return res.status(200).send(user);
 
             });
@@ -176,6 +183,8 @@ module.exports = function(passport) {
 
 
     app.get('/user', function(req, res, next) {
+
+        console.log("Get User");
 
         var serverUrl=fullUrl(req);
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
@@ -208,18 +217,23 @@ module.exports = function(passport) {
                 }else{
                     respJson.file=null; 
                 }                
-
+                console.log("Successfully retrieved the user.");
                 return res.status(200).send(respJson);
-            },function(error){            
+            },function(error){  
+                console.log("Error on getting user");          
                 return res.send(500, error);
             });
         }else{
+            console.log("Unauthorized on getting user");
             return res.send(401);
         }
         
     });
 
     app.post('/user/update', function(req, res, next) {
+
+        console.log("Update user");
+
         var data = req.body || {};
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
 
@@ -235,16 +249,21 @@ module.exports = function(passport) {
                 req.logout();
                 return res.status(200).json(user);                    
             },function(error){
+                console.log("Error on updating user");
                 return res.send(500, error);
             });
 
         }else{
+            console.log("Unauthorized on updating user");
             return res.send(401);
         }        
 
     });
 
     app.post('/user/list', function(req, res, next) {
+
+        console.log("Get user list");
+
         var data = req.body || {};
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
 
@@ -268,8 +287,10 @@ module.exports = function(passport) {
                         }
                     }                            
 
+                    console.log("Successfully retrieved the user list.");
                     return res.status(200).json(usersList);                    
                 },function(error){
+                    console.log("Error on getting user list");
                     return res.status(500).send(error);
                 });
             }else{
@@ -277,11 +298,15 @@ module.exports = function(passport) {
             }  
             
         }else{
+            console.log("Unauthorized on getting user list");
             return res.send(401);
         }       
     });
 
     app.post('/user/list/bykeyword', function(req, res, next) {
+
+        console.log("Get User List by Keyword");
+
         var data = req.body || {};
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
 
@@ -304,19 +329,23 @@ module.exports = function(passport) {
                         }                                                       
                     }
                 }                            
-
+                console.log("Successfully retrieved user list by keyword");
                 return res.status(200).json(usersList);                    
             },function(error){
+                console.log("error on getting user list by keyword");
                 return res.send(500, error);
             });           
             
         }else{
+            console.log("Unauthorized on getting user list by keyword");
             return res.send(401);
         }       
     });            
 
     app.put('/user/list/:skip/:limit', function(req, res, next) {
      
+        console.log("get user list by skipLimit");
+
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user; 
         var skip=req.params.skip;
         var limit=req.params.limit;
@@ -341,13 +370,17 @@ module.exports = function(passport) {
                             delete usersList[i]._doc.provider;
                         }                                                       
                     }
-                }                  
+                }    
+
+                console.log("Successfully retrieved user list by skipLimit");              
                 return res.status(200).json(usersList);               
-            },function(error){            
+            },function(error){  
+                console.log("Error on getting user list by skipLimit");          
                 return res.send(500, error);
             });
 
         }else{
+            console.log("Unauthorized on getting user list by skipLimit");
             return res.send(401);
         }
         
@@ -355,6 +388,8 @@ module.exports = function(passport) {
 
     app.get('/user/active/:userId/:isActive', function(req, res, next) {
      
+        console.log("Activate/Deactivate user");
+
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user; 
         var userId=req.params.userId;
         var isActive=req.params.isActive;              
@@ -375,9 +410,12 @@ module.exports = function(passport) {
                         if(user.provider){
                             delete user._doc.provider;
                         } 
-                    }                              
+                    }  
+
+                    console.log("Successfully activate/deactivated the user");                            
                     return res.status(200).json(user);               
-                },function(error){            
+                },function(error){ 
+                    console.log("Error or activate or Deactivate user");           
                     return res.send(500, error);
                 });
 
@@ -386,6 +424,7 @@ module.exports = function(passport) {
             }
 
         }else{
+            console.log("Unauthorized on activate or Deactivate user");
             return res.send(401);
         }
         
@@ -393,6 +432,8 @@ module.exports = function(passport) {
 
     app.get('/user/changerole/:userId/:isAdmin', function(req, res, next) {
      
+        console.log("Change user role");
+
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user; 
         var userId=req.params.userId;
         var isAdmin=req.params.isAdmin;             
@@ -413,17 +454,20 @@ module.exports = function(passport) {
                         if(user.provider){
                             delete user._doc.provider;
                         } 
-                    }                              
+                    } 
+                    console.log("Successfully changed the user role.");                             
                     return res.status(200).json(user);               
-                },function(error){            
+                },function(error){ 
+                    console.log("Error on user role change");           
                     return res.send(500, error);
                 });
-            }else{
+            }else{                
                 return res.status(500).send("You can't perform this action");
 
             }            
 
         }else{
+            console.log("Unauthorized on user role change");
             return res.send(401);
         }      
         
@@ -431,6 +475,8 @@ module.exports = function(passport) {
 
 
     app.post('/user/byadmin', function(req,res,next) {
+
+        console.log("Get user by email and by admin");
 
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.body.userId;
         var data = req.body || {};
@@ -451,14 +497,17 @@ module.exports = function(passport) {
                     if(user.provider){
                         delete user._doc.provider;
                     } 
-                }                              
+                } 
+                console.log("Successfull on get user by email by admin");                             
                 return res.status(200).json(user);                              
 
             },function(error){
+                console.log("Error on get user by email by admin");
                 return res.send(500, error);
             });           
 
         }else{
+            console.log("Unauthorized on get user by email by admin");
             return res.status(401).send("unauthorized");
         }
 

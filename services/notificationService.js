@@ -14,115 +14,181 @@ module.exports = function(Notification){
 
     createNotification: function (appId,email,notificationType,type,text) {
 
+        console.log("Create notifications....");
+
         var _self = this;
 
         var deferred = Q.defer();
 
-        var self = this;
+        try{
 
-        var notification = new Notification();        
+          var self = this;
 
-        notification.user=email;   
-        notification.appId=appId;
-        notification.notificationType=notificationType;
-        notification.type=type;
-        notification.text=text;
-        notification.seen=false;
-        notification.timestamp=new Date().getTime();
-     
-        notification.save(function (err, notificationObj) {
-            if (err) deferred.reject(err);
+          var notification = new Notification();        
 
-            if(!notificationObj)
-              deferred.reject('Cannot save the notification right now.');
-            else{
-              deferred.resolve(notificationObj);
-            }
-        });
+          notification.user=email;   
+          notification.appId=appId;
+          notification.notificationType=notificationType;
+          notification.type=type;
+          notification.text=text;
+          notification.seen=false;
+          notification.timestamp=new Date().getTime();
+       
+          notification.save(function (err, notificationObj) {
+              if (err){ 
+                console.log("Error on Create notifications....");
+                deferred.reject(err);
+              }
+              if(!notificationObj){
+                console.log("Cannot save the notification right now.");
+                deferred.reject('Cannot save the notification right now.');
+              }
+              else{
+                console.log("Success on Create notifications....");
+                deferred.resolve(notificationObj);
+              }
+          });
+
+        }catch(err){
+          global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+          deferred.reject(err)         
+        }
 
         return deferred.promise;
     },
     getNotifications: function (userId,skip,limit) {
 
+        console.log("Get Notification..");
+
         var _self = this;
 
         var deferred = Q.defer();
 
-        var self = this;
+        try{
 
-        skip=parseInt(skip);
-        limit=parseInt(limit);
+          var self = this;
 
-        Notification.find({user:userId}).sort({timestamp:-1}).skip(skip).limit(limit).exec(function (err, notificatonList) {      
-          if (err) {
-            deferred.reject(err);
-          }
-          if(notificatonList && notificatonList.length>0){
-            deferred.resolve(notificatonList);
-          }else{
-            deferred.resolve(null);
-          }
-               
-        });
+          skip=parseInt(skip);
+          limit=parseInt(limit);
+
+          Notification.find({user:userId}).sort({timestamp:-1}).skip(skip).limit(limit).exec(function (err, notificatonList) {      
+            if (err) {
+              console.log("Error on Get Notification..");
+              deferred.reject(err);
+            }
+            if(notificatonList && notificatonList.length>0){
+              console.log("Success on Get Notification..");
+              deferred.resolve(notificatonList);
+            }else{
+              console.log("notification not found..");
+              deferred.resolve(null);
+            }
+                 
+          });
+
+        }catch(err){
+          global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+          deferred.reject(err)         
+        }
        
 
         return deferred.promise;
     },
     linkUserId: function (email,userId) {
 
+        console.log("Link userId to notification");
+
         var _self = this;
 
         var deferred = Q.defer();
 
-        var self = this;
+        try{
 
-        Notification.findOneAndUpdate({user:email},{ $set: { user:userId}},{new:true},function (err, savedNotification) {
-          if (err) deferred.reject(err);
-          if(savedNotification){
-            deferred.resolve(savedNotification);
-          }else{
-            deferred.resolve(null);
-          }
-               
-        });       
+          var self = this;
+
+          Notification.findOneAndUpdate({user:email},{ $set: { user:userId}},{new:true},function (err, savedNotification) {
+            if (err){
+              console.log("Error on Link userId to notification");
+              deferred.reject(err);
+            }  
+            if(savedNotification){
+              console.log("Success on Link userId to notification");
+              deferred.resolve(savedNotification);
+            }else{
+              console.log("Unable to Link userId to notification");
+              deferred.resolve(null);
+            }
+                 
+          });  
+
+        }catch(err){
+          global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+          deferred.reject(err)         
+        }     
 
         return deferred.promise;
     },
     updateNotificationsSeen: function (userId) {
 
+        console.log("Update as notification seen by user..");
+
         var _self = this;
 
         var deferred = Q.defer();
 
-        var self = this;
+        try{
 
-        Notification.find({user:userId,seen:false},function (err, list) {
-          if (err) deferred.reject(err);
-          if(list && list.length>0){
+          var self = this;
 
-            for(var i=0;i<list.length;++i){
-              list[i].seen=true;
-              list[i].save();
-            }
+          Notification.find({user:userId,seen:false},function (err, list) {
+            if (err){
+              console.log("Error on Update as notification seen by user..");
+              deferred.reject(err);
+            }  
+            if(list && list.length>0){
 
-            deferred.resolve({message:"success"});
-          }else{
-            deferred.resolve(null);
-          }               
-        });
+              for(var i=0;i<list.length;++i){
+                list[i].seen=true;
+                list[i].save();
+              }
 
+              console.log("Success on Update as notification seen by user..");
+              deferred.resolve({message:"success"});
+            }else{
+              console.log("Unable to Update as notification seen by user..");
+              deferred.resolve(null);
+            }               
+          });
+        }catch(err){
+          global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+          deferred.reject(err)         
+        }
 
         return deferred.promise;
     },
     removeNotificationById: function(notifyId){
+
+      console.log("remove notification by id..");
+
       var deferred = Q.defer();
-      Notification.remove({_id:notifyId}, function (err) {
-        if(err){          
-          deferred.reject(err);
-        }else{
-          deferred.resolve({message:"Success."});
-        }
-      });
+
+      try{
+
+        Notification.remove({_id:notifyId}, function (err) {
+          if(err){   
+            console.log("Error on remove notification by id..");       
+            deferred.reject(err);
+          }else{
+            console.log("Success remove notification by id..");
+            deferred.resolve({message:"Success."});
+          }
+        });
+
+      }catch(err){
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+        deferred.reject(err)         
+      }
+      
       return deferred.promise;
     }
 

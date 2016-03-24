@@ -15,80 +15,105 @@ module.exports = function(){
 
     createSale: function (userId,appId,dataObj) {
 
+        console.log("Create sale/charge card..");
+
         var _self = this;
 
         var deferred = Q.defer();  
 
-        var user=null;
-        var saleDocument;
+        try{
+          var user=null;
+          var saleDocument;
 
-        global.userService.getAccountById(userId).then(function(userObj){
-          user=userObj;
+          global.userService.getAccountById(userId).then(function(userObj){
+            console.log("User is retrieved for create sale..");
+            user=userObj;
 
-          dataObj.userId=userId;
-          dataObj.userEmail=userObj.email;
-          return _createSaleInAnalytics(appId,dataObj); 
+            dataObj.userId=userId;
+            dataObj.userEmail=userObj.email;
+            return _createSaleInAnalytics(appId,dataObj); 
 
-        }).then(function(data){  
-          saleDocument=data;
-          //Update Project with PlanId
-          return global.projectService.updatePlanByAppId(appId,data.planId); 
+          }).then(function(data){  
+            console.log("Success on create sale from analyticsService");
+            saleDocument=data;
+            //Update Project with PlanId
+            return global.projectService.updatePlanByAppId(appId,data.planId); 
 
-        }).then(function(updatedProject){
-          deferred.resolve(updatedProject);
+          }).then(function(updatedProject){
+            console.log("Updated project by planId in after create sale..");
+            deferred.resolve(updatedProject);
 
-          var notificationType="inform";
-          var type="app-upgraded";
-          var text="Your app <span style='font-weight:bold;'>"+updatedProject.name+"</span> has been upgraded to <span style='font-weight:bold;'>"+saleDocument.planName+"</span>.";
-          global.notificationService.createNotification(appId,user._id,notificationType,type,text);
-          global.mandrillService.changePlan(user.name,user.email,updatedProject.name,saleDocument.planName); 
+            var notificationType="inform";
+            var type="app-upgraded";
+            var text="Your app <span style='font-weight:bold;'>"+updatedProject.name+"</span> has been upgraded to <span style='font-weight:bold;'>"+saleDocument.planName+"</span>.";
+            global.notificationService.createNotification(appId,user._id,notificationType,type,text);
+            global.mandrillService.changePlan(user.name,user.email,updatedProject.name,saleDocument.planName); 
 
-        },function(error){
-          deferred.reject(error);
-        });
+          },function(error){
+            console.log("Error on create sale..");
+            deferred.reject(error);
+          });
+
+        }catch(err){
+          global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+          deferred.reject(err)         
+        }
 
         return deferred.promise;
     },
     stopRecurring: function (appId,userId) {
 
+        console.log("Stop recurring...");
+
         var _self = this;
 
         var deferred = Q.defer(); 
-        var project=null;
 
-        global.projectService.getProject(appId).then(function(projectObj){
+        try{
+          var project=null;
 
-          project=projectObj;
+          global.projectService.getProject(appId).then(function(projectObj){
 
-          return _stopRecurringInAnalytics(appId,userId);
+            console.log("Retrieved project for Stop recurring...");
+            project=projectObj;
 
-        }).then(function(response){
-         
-          return global.projectService.updatePlanByAppId(appId,1);          
+            return _stopRecurringInAnalytics(appId,userId);
 
-        }).then(function(updatedProject){
+          }).then(function(response){
+            console.log("Stopped recurring from analyticsService");
+            return global.projectService.updatePlanByAppId(appId,1);          
 
-          deferred.resolve({"message":"Success"});
+          }).then(function(updatedProject){
+
+            console.log("updated project with planId after stopped recurring..");
+
+            deferred.resolve({"message":"Success"});
 
 
-          global.userService.getAccountById(userId).then(function(userObj){
+            global.userService.getAccountById(userId).then(function(userObj){
 
-            var previousPlan=_.first(_.where(pricingPlans.plans, {id: project.planId}));
+              var previousPlan=_.first(_.where(pricingPlans.plans, {id: project.planId}));
 
-            var notificationType="inform";
-            var type="app-payment-stopped";
-            var text="Your app <span style='font-weight:bold;'>"+updatedProject.name+"</span> has been cancelled for the <span style='font-weight:bold;'>"+previousPlan.planName+"</span>.";
-            global.notificationService.createNotification(appId,userObj._id,notificationType,type,text);
-            global.mandrillService.cancelPlan(userObj.name,userObj.email,updatedProject.name,previousPlan.planName);
+              var notificationType="inform";
+              var type="app-payment-stopped";
+              var text="Your app <span style='font-weight:bold;'>"+updatedProject.name+"</span> has been cancelled for the <span style='font-weight:bold;'>"+previousPlan.planName+"</span>.";
+              global.notificationService.createNotification(appId,userObj._id,notificationType,type,text);
+              global.mandrillService.cancelPlan(userObj.name,userObj.email,updatedProject.name,previousPlan.planName);
+
+            },function(error){
+              console.log("Error in getting User details after cancelling Plan");
+            });  
+            
 
           },function(error){
-            console.log("Error in getting User details after cancelling Plan");
-          });  
-          
+            console.log("Error on stop recurring..");
+            deferred.reject(error);
+          });
 
-        },function(error){
-          deferred.reject(error);
-        });
+        }catch(err){
+          global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+          deferred.reject(err)         
+        }
 
         return deferred.promise;
     },
@@ -100,55 +125,78 @@ module.exports = function(){
 /***********************Pinging Analytics Services*********************************/
 
 function _createSaleInAnalytics(appId,dataObj){
+
+  console.log("Create Sale in Analytics");
+
   var deferred = Q.defer(); 
+
+  try{
   
-  dataObj.secureKey = global.keys.secureKey; 
-  dataObj = JSON.stringify(dataObj);
+    dataObj.secureKey = global.keys.secureKey; 
+    dataObj = JSON.stringify(dataObj);
 
 
-  var url = global.keys.analyticsServiceUrl + '/'+appId+'/sale';  
-  request.post(url,{
-      headers: {
-          'content-type': 'application/json',
-          'content-length': dataObj.length
-      },
-      body: dataObj
-  },function(err,response,body){
-      if(err || response.statusCode === 500 || response.statusCode === 400 || body === 'Error'){       
-        deferred.reject(err);
-      }else {    
-        var respBody=JSON.parse(body);
-        deferred.resolve(respBody);
-      }
-  });
+    var url = global.keys.analyticsServiceUrl + '/'+appId+'/sale';  
+    request.post(url,{
+        headers: {
+            'content-type': 'application/json',
+            'content-length': dataObj.length
+        },
+        body: dataObj
+    },function(err,response,body){
+        if(err || response.statusCode === 500 || response.statusCode === 400 || body === 'Error'){  
+          console.log("Error on Create Sale in Analytics");     
+          deferred.reject(err);
+        }else {   
+          console.log("Success on Create Sale in Analytics"); 
+          var respBody=JSON.parse(body);
+          deferred.resolve(respBody);
+        }
+    });
+
+  }catch(err){
+    global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+    deferred.reject(err)         
+  }
 
   return deferred.promise;
 }
 
 function _stopRecurringInAnalytics(appId,userId){
+
+  console.log("Stop recurring in Analytics");
+
   var deferred = Q.defer(); 
   
-  var dataObj={};
-  dataObj.secureKey = global.keys.secureKey; 
-  dataObj.userId = userId;
-  dataObj = JSON.stringify(dataObj);
+  try{
+    var dataObj={};
+    dataObj.secureKey = global.keys.secureKey; 
+    dataObj.userId = userId;
+    dataObj = JSON.stringify(dataObj);
 
-  var url = global.keys.analyticsServiceUrl + '/'+appId+'/cancel'; 
+    var url = global.keys.analyticsServiceUrl + '/'+appId+'/cancel'; 
 
-  request.post(url,{
-      headers: {
-          'content-type': 'application/json',
-          'content-length': dataObj.length
-      },
-      body: dataObj
-  },function(err,response,body){
-      if(err || response.statusCode === 500 || response.statusCode === 400 || body === 'Error'){       
-        deferred.reject(err);
-      }else {    
-        var respBody=JSON.parse(body);
-        deferred.resolve(respBody);
-      }
-  });
+    request.post(url,{
+        headers: {
+            'content-type': 'application/json',
+            'content-length': dataObj.length
+        },
+        body: dataObj
+    },function(err,response,body){
+        if(err || response.statusCode === 500 || response.statusCode === 400 || body === 'Error'){
+          console.log("Error stop recurring in Analytics");       
+          deferred.reject(err);
+        }else { 
+          console.log("Success on stop recurring in Analytics");   
+          var respBody=JSON.parse(body);
+          deferred.resolve(respBody);
+        }
+    });
+
+  }catch(err){
+    global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+    deferred.reject(err)         
+  }
 
   return deferred.promise;
 }

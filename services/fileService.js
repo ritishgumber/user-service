@@ -13,55 +13,88 @@ module.exports = function() {
 
     return {
         putFile: function (file,filename,mimetype) { 
+
+            console.log("Upload user image");
+
             var deferred = Q.defer();          
             
-            // streaming to gridfs
-            //filename to store in mongodb
-            var writestream = gfs.createWriteStream({
-                filename: filename,
-                mode: 'w',
-                content_type:mimetype
-            });
-            file.pipe(writestream);
-        
-            writestream.on('close', function (file) {             
-                //console.log(file.filename + ' is written To DB');                
-                deferred.resolve(file);
-            });
+            try{
+                // streaming to gridfs
+                //filename to store in mongodb
+                var writestream = gfs.createWriteStream({
+                    filename: filename,
+                    mode: 'w',
+                    content_type:mimetype
+                });
+                file.pipe(writestream);
+            
+                writestream.on('close', function (file) {             
+                    //console.log(file.filename + ' is written To DB'); 
+                    console.log("Success on Upload user image")               
+                    deferred.resolve(file);
+                });
 
-            writestream.on('error', function (error) {             
-                console.log("error writing file");       
-                deferred.reject(error);
-            });          
+                writestream.on('error', function (error) {             
+                    console.log("error writing file");       
+                    deferred.reject(error);
+                });
+
+            }catch(err){
+              global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+              deferred.reject(err);
+            }          
 
             return deferred.promise;        
         },
 
         getFileById: function (fileId) { 
+
+            console.log("Get image by id");
+
             var deferred = Q.defer();          
             
-            gfs.findOne({_id: fileId},function (err, file) {
-                if (err) return deferred.reject(err);
-                if(!file){
-                    return deferred.reject(null);                    
-                }                     
-                
-                return deferred.resolve(file);  
-            });          
+            try{
+                gfs.findOne({_id: fileId},function (err, file) {
+                    if (err){ 
+                        console.log("Error Get image by id");
+                        return deferred.reject(err);
+                    }    
+                    if(!file){
+                        console.log("Image not found..");
+                        return deferred.reject(null);                    
+                    }                     
+                    
+                    console.log("Image retrieved..");
+                    return deferred.resolve(file);  
+                });
+
+            }catch(err){
+              global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+              deferred.reject(err);
+            }          
 
             return deferred.promise;        
         },
 
         deleteFileById: function (fileId) { 
+            console.log("Delete image by id..");
             var deferred = Q.defer();          
             
-            gfs.remove({_id: fileId},function (err) {
-                if (err){
-                    return deferred.reject(err);     
-                }                            
-                
-                return deferred.resolve("Success");  
-            });          
+            try{
+                gfs.remove({_id: fileId},function (err) {
+                    if (err){
+                        console.log("Error on Delete image by id..");
+                        return deferred.reject(err);     
+                    }                            
+                    
+                    console.log("Success on delete image by id..");
+                    return deferred.resolve("Success");  
+                });
+
+            }catch(err){
+              global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+              deferred.reject(err);
+            }          
 
             return deferred.promise;        
         }

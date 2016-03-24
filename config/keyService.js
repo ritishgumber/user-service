@@ -84,6 +84,7 @@ module.exports = function () {
             }catch(e){
                 console.log("Error Init Encrypt Key");
                 console.log(e);
+                global.winston.log('error',{"error":String(e),"stack": new Error().stack});
             }
         },
 
@@ -165,43 +166,49 @@ module.exports = function () {
         }catch(e){
             console.log("Error Init Cluster Key");
             console.log(e);
+            global.winston.log('error',{"error":String(e),"stack": new Error().stack});
         }
     },
 
         getMyUrl : function () { 
 
                 var deferred = q.defer();
-                
-                if (global.keys.myURL) {
-                    deferred.resolve(global.keys.myURL);
-                } else {
-                    console.log("Retrieving Cluster URL...");
-                    //get it from mongodb, If does not exist, create a new random key and return; 
-                    var deferred = q.defer();
-                    
-                    var collection = global.mongoClient.db(global.keys.globalDb).collection(global.keys.globalSettings);
-                    
-                    collection.find({}).toArray(function (err, docs) {
-                        if (err) {
-                            console.log("Error retrieving Global Settings");
-                            console.log(err);
-                            deferred.reject(err);
-                        } else {
+                try{  
+                    if (global.keys.myURL) {
+                        deferred.resolve(global.keys.myURL);
+                    } else {
+                        console.log("Retrieving Cluster URL...");
+                        //get it from mongodb, If does not exist, create a new random key and return; 
+                        var deferred = q.defer();
+                        
+                        var collection = global.mongoClient.db(global.keys.globalDb).collection(global.keys.globalSettings);
+                        
+                        collection.find({}).toArray(function (err, docs) {
+                            if (err) {
+                                console.log("Error retrieving Global Settings");
+                                console.log(err);
+                                deferred.reject(err);
+                            } else {
 
-                            if (docs.length >= 1) {
-                                if (docs[0].myURL) {
-                                    console.log("Cluster URL : "+docs[0].myURL);
-                                    global.keys.myURL = docs[0].myURL;
-                                    deferred.resolve(global.keys.myURL);
+                                if (docs.length >= 1) {
+                                    if (docs[0].myURL) {
+                                        console.log("Cluster URL : "+docs[0].myURL);
+                                        global.keys.myURL = docs[0].myURL;
+                                        deferred.resolve(global.keys.myURL);
+                                    } else {
+                                        deferred.reject("URL not found.");
+                                    }
                                 } else {
                                     deferred.reject("URL not found.");
                                 }
-                            } else {
-                                deferred.reject("URL not found.");
                             }
-                        }
-                    });
+                        });
 
+                    }
+
+                }catch(err){
+                  global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+                  deferred.reject(err);
                 }
                 
                 return deferred.promise;
@@ -211,35 +218,41 @@ module.exports = function () {
 
         var deferred = q.defer();
 
-        var collection = global.mongoClient.db(global.keys.globalDb).collection(global.keys.globalSettings);
+        try{
+            var collection = global.mongoClient.db(global.keys.globalDb).collection(global.keys.globalSettings);
 
-        collection.find({}).toArray(function (err, docs) {
-            if (err) {
-                console.log("Error retrieving Global Settings");
-                console.log(err);
-                deferred.reject(err);
-            } else {
-
-                if (docs.length >= 1) {
-                    console.log("URL Record Found");
-                    docs[0].myURL = url;
-                    console.log("Updating...");
-                    collection.save(docs[0], function(err, doc){
-
-                        if(err){
-                            console.log("Error Updating");
-                            deferred.reject("Error, cannot change the cluster URL.");
-                        }else{
-                            console.log("Updated.");
-                            global.keys.myURL = url;
-                            deferred.resolve(url);
-                        }
-                    });
+            collection.find({}).toArray(function (err, docs) {
+                if (err) {
+                    console.log("Error retrieving Global Settings");
+                    console.log(err);
+                    deferred.reject(err);
                 } else {
-                    deferred.reject("Global record not found. Restart the cluster.");
+
+                    if (docs.length >= 1) {
+                        console.log("URL Record Found");
+                        docs[0].myURL = url;
+                        console.log("Updating...");
+                        collection.save(docs[0], function(err, doc){
+
+                            if(err){
+                                console.log("Error Updating");
+                                deferred.reject("Error, cannot change the cluster URL.");
+                            }else{
+                                console.log("Updated.");
+                                global.keys.myURL = url;
+                                deferred.resolve(url);
+                            }
+                        });
+                    } else {
+                        deferred.reject("Global record not found. Restart the cluster.");
+                    }
                 }
-            }
-        });
+            });
+
+        }catch(err){
+          global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+          deferred.reject(err);
+        }
 
         return deferred.promise;
 

@@ -12,6 +12,17 @@ module.exports = function(){
     var RedisStore = require('connect-redis')(session);
     var CronJob = require('cron').CronJob;
     var Q = require('q');
+
+    global.winston = require('winston');
+    expressWinston = require('express-winston');
+    require('winston-loggly');   
+
+    global.winston.add(global.winston.transports.Loggly, {
+        inputToken: global.keys.logToken,
+        subdomain: "cloudboost",
+        tags: ["frontend-server"],
+        json:true
+    });
    
     global.app.use(function(req, res, next) {
         
@@ -66,27 +77,37 @@ module.exports = function(){
     }
 
     function setUpDataServices() {
-        if(process.env["CLOUDBOOST_PORT_4730_TCP_ADDR"] || process.env["CLOUDBOOST_"+1+"_PORT_4730_TCP_ADDR"]){
-            global.keys.dataServiceUrl="http://"+(process.env["CLOUDBOOST_PORT_4730_TCP_ADDR"] || process.env["CLOUDBOOST_"+1+"_PORT_4730_TCP_ADDR"])+":4730";            
+        try{
+            if(process.env["CLOUDBOOST_PORT_4730_TCP_ADDR"] || process.env["CLOUDBOOST_"+1+"_PORT_4730_TCP_ADDR"]){
+                global.keys.dataServiceUrl="http://"+(process.env["CLOUDBOOST_PORT_4730_TCP_ADDR"] || process.env["CLOUDBOOST_"+1+"_PORT_4730_TCP_ADDR"])+":4730";            
+            }
+            if(process.env["CLOUDBOOST_ENGINE_SERVICE_HOST"]){
+                global.keys.dataServiceUrl="http://"+process.env["CLOUDBOOST_ENGINE_SERVICE_HOST"]+":"+process.env["CLOUDBOOST_ENGINE_SERVICE_PORT"]; 
+            }
+            
+            console.log("Data Services URL : "+global.keys.dataServiceUrl);
+
+        }catch(err){
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});        
         }
-        if(process.env["CLOUDBOOST_ENGINE_SERVICE_HOST"]){
-            global.keys.dataServiceUrl="http://"+process.env["CLOUDBOOST_ENGINE_SERVICE_HOST"]+":"+process.env["CLOUDBOOST_ENGINE_SERVICE_PORT"]; 
-        }
-        
-        console.log("Data Services URL : "+global.keys.dataServiceUrl);
     }
 
     function setUpAnalyticsServer(){
-      if(process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"]){
-        console.log("Analytics is running on Kubernetes");      
+       try{ 
+          if(process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"]){
+            console.log("Analytics is running on Kubernetes");      
 
-        global.keys.analyticsServiceUrl="http://"+process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"]+":"+process.env["CLOUDBOOST_ANALYTICS_SERVICE_PORT"]; 
-        console.log("Analytics URL:"+global.keys.analyticsServiceUrl);
-            
-      }else{
-        global.keys.analyticsServiceUrl="https://analytics.cloudboost.io";
-        console.log("Analytics URL:"+global.keys.analyticsServiceUrl);
-      }
+            global.keys.analyticsServiceUrl="http://"+process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"]+":"+process.env["CLOUDBOOST_ANALYTICS_SERVICE_PORT"]; 
+            console.log("Analytics URL:"+global.keys.analyticsServiceUrl);
+                
+          }else{
+            global.keys.analyticsServiceUrl="https://analytics.cloudboost.io";
+            console.log("Analytics URL:"+global.keys.analyticsServiceUrl);
+          }
+
+        }catch(err){
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});        
+        }
     }
 
     function setUpRedis(){
@@ -157,154 +178,187 @@ module.exports = function(){
         }catch(e){
            console.log("Error connecting to Redis : ");
            console.log(e);
+           global.winston.log('error',{"error":String(e),"stack": new Error().stack}); 
         }
     }
 
 
     function setUpMongoDB(passport){
-       //MongoDB connections. 
-       var mongoConnectionString = "mongodb://";
-       
-       var isReplicaSet = false;
-       
-       if( global.config && global.config.mongo && global.config.mongo.length>0){
-           //take from config file
+
+        try{
+           //MongoDB connections. 
+           var mongoConnectionString = "mongodb://";
            
-            if(global.config.mongo.length>1){
-               isReplicaSet = true;
-            }
+           var isReplicaSet = false;
            
-            for(var i=0;i<global.config.mongo.length;i++){
-                mongoConnectionString+=global.config.mongo[i].host +":"+global.config.mongo[i].port;
-                mongoConnectionString+=",";
-            }
-       }else{
-            if(process.env["MONGO_SERVICE_HOST"]){
-                    console.log("MongoDB is running on Kubernetes.");
-                    
-                    mongoConnectionString+=process.env["MONGO_SERVICE_HOST"]+":"+process.env["MONGO_SERVICE_PORT"]; 
-                    mongoConnectionString+=",";
-
-                    var i=2;
-                    while(process.env["MONGO"+i+"_SERVICE_HOST"]){
-                       
-                        mongoConnectionString+=process.env["MONGO"+i+"_SERVICE_HOST"]+":"+process.env["MONGO"+i+"_SERVICE_PORT"]; 
-                        mongoConnectionString+=",";
-                        ++i;
-                    } 
-
-                    isReplicaSet = true;
-            }else{
-                var i=1;
-                while(process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"] && process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]){
-                    if(i>1){
-                        isReplicaSet = true;
-                    }
-                    mongoConnectionString+=process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"]+":"+process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]; 
-                    mongoConnectionString+=",";
-                    i++;
-                }
-            }
-       }
-
-       mongoConnectionString = mongoConnectionString.substring(0, mongoConnectionString.length - 1);
-       mongoConnectionString += "/"; //de limitter. 
-       
-       global.keys.db = mongoConnectionString+global.keys.globalDb;
-
-        if(isReplicaSet){
-          console.log("MongoDB is running on a replica set");  
-          global.keys.db+="?replicaSet=cloudboost&slaveOk=true";
-        }
-
-        global.keys.mongoConnectionString = global.keys.db; 
-        console.log("Mongo DB : "+global.keys.mongoConnectionString);       
-        global.mongoose = require('./config/db.js')();      
-
-        //Models
-        var Project = require('./model/project.js')();
-        var Subscriber = require('./model/subscriber.js')();
-        var User = require('./model/user.js')();             
-        var Beacon = require('./model/beacon.js')();
-        var Tutorial = require('./model/tutorial.js')();
-        var _Settings = require('./model/_settings.js')();
-        var Notification = require('./model/notification.js')();
-
-        //Services
-        global.beaconService  = require('./services/beaconService.js')(Beacon);        
-        global.userService = require('./services/userService')(User);
-        global.subscriberService  = require('./services/subscriberService.js')(Subscriber);        
-        global.projectService  = require('./services/projectService.js')(Project);              
-        global.tutorialService  = require('./services/tutorialService.js')(Tutorial);
-        global.fileService  = require('./services/fileService.js')();
-        global.mailChimpService  = require('./services/mailChimpService.js')();
-        global.mandrillService  = require('./services/mandrillService.js')();
-        global.notificationService  = require('./services/notificationService.js')(Notification);
-        global.cbServerService = require('./services/cbServerService.js')(_Settings);
-        global.paymentProcessService = require('./services/paymentProcessService.js')();
-        global.userAnalyticService = require('./services/userAnalyticService.js')();
-        global.analyticsNotificationsService = require('./services/analyticsNotificationsService.js')();
-
-        //Routes(API)
-        require('./framework/config')(passport, User); 
-
-        global.app.use('/', require('./routes/auth')(passport));
-        global.app.use('/', require('./routes/subscriber.js')());
-        global.app.use('/', require('./routes/project.js')());                 
-        global.app.use('/', require('./routes/beacon.js')());
-        global.app.use('/', require('./routes/tutorial.js')());
-        global.app.use('/', require('./routes/file.js')());
-        global.app.use('/', require('./routes/cbServer.js')());
-        global.app.use('/', require('./routes/notification.js')());
-        global.app.use('/', require('./routes/paymentProcess.js')());
-        global.app.use('/', require('./routes/userAnalytics.js')());
-        global.app.use('/', require('./routes/analyticsNotifications.js')());
-
-        console.log("Models,Services,Routes Status : OKay.");
-        
+           if( global.config && global.config.mongo && global.config.mongo.length>0){
+               //take from config file
                
-        require('./config/mongoConnect')().connect().then(function(db){
-            global.mongoClient = db;
-            //init encryption Key. 
-            initSecureKey();
-            initClusterKey();
-        }, function(error){
-            //error
-            console.log("Error  : MongoDB failed to connect.");
-            console.log(error);
-        });
+                if(global.config.mongo.length>1){
+                   isReplicaSet = true;
+                }
+               
+                for(var i=0;i<global.config.mongo.length;i++){
+                    mongoConnectionString+=global.config.mongo[i].host +":"+global.config.mongo[i].port;
+                    mongoConnectionString+=",";
+                }
+           }else{
+                if(process.env["MONGO_SERVICE_HOST"]){
+                        console.log("MongoDB is running on Kubernetes.");
+                        
+                        mongoConnectionString+=process.env["MONGO_SERVICE_HOST"]+":"+process.env["MONGO_SERVICE_PORT"]; 
+                        mongoConnectionString+=",";
+
+                        var i=2;
+                        while(process.env["MONGO"+i+"_SERVICE_HOST"]){
+                           
+                            mongoConnectionString+=process.env["MONGO"+i+"_SERVICE_HOST"]+":"+process.env["MONGO"+i+"_SERVICE_PORT"]; 
+                            mongoConnectionString+=",";
+                            ++i;
+                        } 
+
+                        isReplicaSet = true;
+                }else{
+                    var i=1;
+                    while(process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"] && process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]){
+                        if(i>1){
+                            isReplicaSet = true;
+                        }
+                        mongoConnectionString+=process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"]+":"+process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]; 
+                        mongoConnectionString+=",";
+                        i++;
+                    }
+                }
+           }
+
+           mongoConnectionString = mongoConnectionString.substring(0, mongoConnectionString.length - 1);
+           mongoConnectionString += "/"; //de limitter. 
+           
+           global.keys.db = mongoConnectionString+global.keys.globalDb;
+
+            if(isReplicaSet){
+              console.log("MongoDB is running on a replica set");  
+              global.keys.db+="?replicaSet=cloudboost&slaveOk=true";
+            }
+
+            global.keys.mongoConnectionString = global.keys.db; 
+            console.log("Mongo DB : "+global.keys.mongoConnectionString);       
+            global.mongoose = require('./config/db.js')();      
+
+            //Models
+            var Project = require('./model/project.js')();
+            var Subscriber = require('./model/subscriber.js')();
+            var User = require('./model/user.js')();             
+            var Beacon = require('./model/beacon.js')();
+            var Tutorial = require('./model/tutorial.js')();
+            var _Settings = require('./model/_settings.js')();
+            var Notification = require('./model/notification.js')();
+
+            //Services
+            global.beaconService  = require('./services/beaconService.js')(Beacon);        
+            global.userService = require('./services/userService')(User);
+            global.subscriberService  = require('./services/subscriberService.js')(Subscriber);        
+            global.projectService  = require('./services/projectService.js')(Project);              
+            global.tutorialService  = require('./services/tutorialService.js')(Tutorial);
+            global.fileService  = require('./services/fileService.js')();
+            global.mailChimpService  = require('./services/mailChimpService.js')();
+            global.mandrillService  = require('./services/mandrillService.js')();
+            global.notificationService  = require('./services/notificationService.js')(Notification);
+            global.cbServerService = require('./services/cbServerService.js')(_Settings);
+            global.paymentProcessService = require('./services/paymentProcessService.js')();
+            global.userAnalyticService = require('./services/userAnalyticService.js')();
+            global.analyticsNotificationsService = require('./services/analyticsNotificationsService.js')();
+
+            //Routes(API)
+            require('./framework/config')(passport, User); 
+
+            global.app.use('/', require('./routes/auth')(passport));
+            global.app.use('/', require('./routes/subscriber.js')());
+            global.app.use('/', require('./routes/project.js')());                 
+            global.app.use('/', require('./routes/beacon.js')());
+            global.app.use('/', require('./routes/tutorial.js')());
+            global.app.use('/', require('./routes/file.js')());
+            global.app.use('/', require('./routes/cbServer.js')());
+            global.app.use('/', require('./routes/notification.js')());
+            global.app.use('/', require('./routes/paymentProcess.js')());
+            global.app.use('/', require('./routes/userAnalytics.js')());
+            global.app.use('/', require('./routes/analyticsNotifications.js')());
+
+            global.app.use(expressWinston.errorLogger({
+              transports: [   
+                new winston.transports.Console({
+                  json: true,
+                  colorize: true
+                }),        
+                new global.winston.transports.Loggly({
+                  subdomain: 'cloudboost',
+                  inputToken: global.keys.logToken,
+                  json: true,
+                  tags: ["frontend-server"]
+                })
+              ]
+            }));
+
+            console.log("Models,Services,Routes Status : OKay.");        
+                   
+            require('./config/mongoConnect')().connect().then(function(db){
+                global.mongoClient = db;
+                //init encryption Key. 
+                initSecureKey();
+                initClusterKey();
+            }, function(error){
+                //error
+                console.log("Error  : MongoDB failed to connect.");
+                console.log(error);
+            });
+        }catch(err){
+          global.winston.log('error',{"error":String(err),"stack": new Error().stack})         
+        }    
     }
 
     function sessionConfiguration(){
-        global.app.use(cookieParser());
-        global.app.use(bodyParser.json());
-        global.app.use(bodyParser.urlencoded({extended:true}));
-        global.app.use(session({        
-            key: 'session',
-            resave: false, //does not forces session to be saved even when unmodified
-            saveUninitialized: false, //doesnt forces a session that is "uninitialized"(new but unmodified) to be saved to the store
-            secret: 'azuresample',       
-            store: new RedisStore({
-                client: global.redisClient,
-                ttl   : 30 * 24 * 60 * 60 // 30 * 24 * 60 * 60 = 30 days.
-            }),
-            cookie:{maxAge: (2600000000)}// 2600000000 is for 1 month
-        }));
+        try{
+            global.app.use(cookieParser());
+            global.app.use(bodyParser.json());
+            global.app.use(bodyParser.urlencoded({extended:true}));
+            global.app.use(session({        
+                key: 'session',
+                resave: false, //does not forces session to be saved even when unmodified
+                saveUninitialized: false, //doesnt forces a session that is "uninitialized"(new but unmodified) to be saved to the store
+                secret: 'azuresample',       
+                store: new RedisStore({
+                    client: global.redisClient,
+                    ttl   : 30 * 24 * 60 * 60 // 30 * 24 * 60 * 60 = 30 days.
+                }),
+                cookie:{maxAge: (2600000000)}// 2600000000 is for 1 month
+            }));
 
-        global.app.use(passport.initialize());
-        global.app.use(passport.session());
+            global.app.use(passport.initialize());
+            global.app.use(passport.session());
+        }catch(err){
+          global.winston.log('error',{"error":String(err),"stack": new Error().stack})         
+        }
+    }
+
+    function initSecureKey(){
+        try{
+            require('./config/keyService.js')().initSecureKey().then(function(secureKey){
+                //Register SecureKey in AnalyticsServer
+                global.cbServerService.registerServer(secureKey);        
+            });
+
+        }catch(err){
+          global.winston.log('error',{"error":String(err),"stack": new Error().stack})         
+        }        
+    }
+
+    function initClusterKey(){
+        try{
+            require('./config/keyService.js')().initClusterKey();
+        }catch(err){
+          global.winston.log('error',{"error":String(err),"stack": new Error().stack})         
+        }
     }
  
 }
 
-function initSecureKey(){
-    require('./config/keyService.js')().initSecureKey().then(function(secureKey){
-        //Register SecureKey in AnalyticsServer
-        global.cbServerService.registerServer(secureKey);        
-    });
-    
-}
-
-function initClusterKey(){
-    require('./config/keyService.js')().initClusterKey();
-}
