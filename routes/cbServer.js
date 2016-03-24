@@ -1,5 +1,6 @@
 var express = require('express');
 var app = express();
+var Q = require('q');
 
 module.exports = function() {
 
@@ -72,6 +73,87 @@ module.exports = function() {
 
     });
 
+    app.get('/status', function(req,res,next) {
+
+        console.log("MongoDb & RedisDB Status..");
+
+        var promises=[];      
+
+        promises.push(_mongoDbStatus());
+        promises.push(_redisDbStatus());
+
+        Q.all(promises).then(function(resultList){
+            if(resultList && resultList[0] && resultList[1]){
+                return res.status(200).send("MongoDB and RedisDB statuses:OK!");
+            }else{
+                return res.status(500).send("Something went wrong!");
+            }
+        },function(error){
+            return res.status(500).send("Something went wrong!");
+        });
+                  
+    });
+
     return app;
 
+}
+
+function _mongoDbStatus(){
+
+    console.log("MongoDB Status Function...");
+
+    var deferred = Q.defer();
+
+    try{
+
+        global.mongoClient.command({ serverStatus: 1},function(err, status){
+          if(err) { 
+            console.log(err);
+            deferred.reject(err);                                    
+          }
+
+          console.log("MongoDB Status:"+status.ok);
+          if(status && status.ok===1){         
+            deferred.resolve("Ok");                                              
+          }else{        
+            deferred.reject("Failed");
+          }
+        });
+
+    }catch(err){
+      global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+      deferred.reject(err);
+    }
+
+    return deferred.promise;
+}
+
+function _redisDbStatus(){
+
+    console.log("RedisDB Status Function...");
+
+    var deferred = Q.defer();
+
+    try{
+        
+        //Simple ping/pong with callback
+        global.redisClient.call('PING', function (error, result) {                
+            if(error){
+                console.log(error);
+                deferred.reject("Failed"); 
+            }
+            console.log("RedisDB Status:"+result);
+            if(result==="PONG"){
+                deferred.resolve("Ok"); 
+            }else{
+                deferred.reject("Failed");
+            }
+        });        
+
+    }catch(err){
+      global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+      deferred.reject(err);
+    }
+
+    return deferred.promise;
 }

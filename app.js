@@ -170,7 +170,7 @@ module.exports = function(){
                 global.redisClient = new Redis.Cluster(hosts);
             }else{
                 global.redisClient = new Redis(hosts[0]);
-            }
+            }  
 
             //Configure Session,Passport,bodyparse after redisClient
             sessionConfiguration();            
@@ -282,7 +282,7 @@ module.exports = function(){
             global.app.use('/', require('./routes/notification.js')());
             global.app.use('/', require('./routes/paymentProcess.js')());
             global.app.use('/', require('./routes/userAnalytics.js')());
-            global.app.use('/', require('./routes/analyticsNotifications.js')());
+            global.app.use('/', require('./routes/analyticsNotifications.js')());            
 
             global.app.use(expressWinston.errorLogger({
               transports: [   
@@ -311,6 +311,7 @@ module.exports = function(){
                 console.log("Error  : MongoDB failed to connect.");
                 console.log(error);
             });
+            
         }catch(err){
           global.winston.log('error',{"error":String(err),"stack": new Error().stack})         
         }    
