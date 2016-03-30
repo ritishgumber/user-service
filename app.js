@@ -209,13 +209,13 @@ module.exports = function(){
                         mongoConnectionString+=process.env["MONGO_SERVICE_HOST"]+":"+process.env["MONGO_SERVICE_PORT"]; 
                         mongoConnectionString+=",";
 
-                        /*var i=2;
+                        var i=2;
                         while(process.env["MONGO"+i+"_SERVICE_HOST"]){
                            
                             mongoConnectionString+=process.env["MONGO"+i+"_SERVICE_HOST"]+":"+process.env["MONGO"+i+"_SERVICE_PORT"]; 
                             mongoConnectionString+=",";
                             ++i;
-                        } */
+                        }
 
                         isReplicaSet = true;
                 }else{
@@ -238,7 +238,7 @@ module.exports = function(){
 
             if(isReplicaSet){
               console.log("MongoDB is running on a replica set");  
-              global.keys.db+="?replicaSet=cloudboost&slaveOk=true";
+              global.keys.db+="?replicaSet=cloudboost&slaveOk=true&maxPoolSize=200&ssl=false&connectTimeoutMS=30000&socketTimeoutMS=30000&w=1&wtimeoutMS=30000";
             }
 
             global.keys.mongoConnectionString = global.keys.db; 

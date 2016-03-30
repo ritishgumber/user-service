@@ -863,9 +863,9 @@ function _createAppFromDS(appId){
 
   console.log("Create app From Data services...");
 
-  var deferred = Q.defer();
+  var deferred = Q.defer();  
  
- try{
+  try{
     var post_data = {};
     post_data.secureKey = global.keys.secureKey;
     post_data = JSON.stringify(post_data);
