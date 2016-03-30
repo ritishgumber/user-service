@@ -209,13 +209,13 @@ module.exports = function(){
                         mongoConnectionString+=process.env["MONGO_SERVICE_HOST"]+":"+process.env["MONGO_SERVICE_PORT"]; 
                         mongoConnectionString+=",";
 
-                        var i=2;
+                        /*var i=2;
                         while(process.env["MONGO"+i+"_SERVICE_HOST"]){
                            
                             mongoConnectionString+=process.env["MONGO"+i+"_SERVICE_HOST"]+":"+process.env["MONGO"+i+"_SERVICE_PORT"]; 
                             mongoConnectionString+=",";
                             ++i;
-                        } 
+                        } */
 
                         isReplicaSet = true;
                 }else{

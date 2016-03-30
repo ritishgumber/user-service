@@ -1,8 +1,8 @@
 
 {
  "mongo" : [{
-   "host" : "localhost",
-   "port" : "27017"
+   "host" : "104.196.51.62",
+   "port" : "30017"
  }],
  
  "elasticsearch" : [{
