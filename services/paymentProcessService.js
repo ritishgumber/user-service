@@ -149,8 +149,13 @@ function _createSaleInAnalytics(appId,dataObj){
           deferred.reject(err);
         }else {   
           console.log("Success on Create Sale in Analytics"); 
-          var respBody=JSON.parse(body);
-          deferred.resolve(respBody);
+          try{
+            var respBody=JSON.parse(body);
+            deferred.resolve(respBody);
+          }catch(e){
+            deferred.reject(e);
+          }
+          
         }
     });
 
@@ -187,9 +192,13 @@ function _stopRecurringInAnalytics(appId,userId){
           console.log("Error stop recurring in Analytics");       
           deferred.reject(err);
         }else { 
-          console.log("Success on stop recurring in Analytics");   
-          var respBody=JSON.parse(body);
-          deferred.resolve(respBody);
+          console.log("Success on stop recurring in Analytics");         
+          try{
+            var respBody=JSON.parse(body);
+            deferred.resolve(respBody);
+          }catch(e){
+            deferred.reject(e);
+          }
         }
     });
 

@@ -884,14 +884,18 @@ function _createAppFromDS(appId){
           console.log(err);    
           deferred.reject(err);
         }else { 
-          console.log("Successfull on create app from data services..");                               
-          deferred.resolve(body);
+          console.log("Successfull on create app from data services..");  
+          try{                             
+            deferred.resolve(body);
+          }catch(e){
+            deferred.reject(e); 
+          }
         }
     });
 
   }catch(err){
     global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-    deferred.reject(err)         
+    deferred.reject(err);         
   }
 
   return deferred.promise;
@@ -917,15 +921,18 @@ function _deleteAppFromDS(appId){
       body:    post_data
     }, function(error, response, body){
       if(response){
-        var respData=JSON.parse(response.body);
-
-        if(respData.status === 'Success'){
-          console.log('successfully Delete app from data services.');
-          deferred.resolve('Successfully deleted');
-        }else{
-          console.log('unable Delete app from data services.');
-          deferred.reject("Unable to delete!");
-        }
+        try{
+            var respData=JSON.parse(response.body); 
+            if(respData.status === 'Success'){
+              console.log('successfully Delete app from data services.');
+              deferred.resolve('Successfully deleted');
+            }else{
+              console.log('unable Delete app from data services.');
+              deferred.reject("Unable to delete!");
+            }          
+        }catch(e){
+          deferred.reject(e);
+        }       
 
       }else{
         console.log('unable Delete app from data services.');
@@ -970,9 +977,14 @@ function _createPlanInAnalytics(appId,planId){
           console.log("Error on  Create Plan in analyticsServices..");      
           deferred.reject(err);
         }else {    
-          console.log("Success on Create Plan in analyticsServices..");
-          var respBody=JSON.parse(body);                           
-          deferred.resolve(respBody);
+          console.log("Success on Create Plan in analyticsServices..");       
+
+          try{
+            var respBody=JSON.parse(body);                           
+            deferred.resolve(respBody);
+          }catch(e){
+            deferred.reject(e);
+          }
         }
     });
 

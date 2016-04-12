@@ -44,7 +44,13 @@ module.exports = function(){
             var text="Your app <span style='font-weight:bold;'>"+project.name+"</span> has reached 80% of its current plan. Upgrade to next plan now.";
             global.notificationService.createNotification(appId,userObj._id,notificationType,type,text);
              
-            global.mandrillService.over80Limit(userObj.name,userObj.email,project.name,presentPlan.planName);
+            console.log("Also send mandril email over 80% usage..."); 
+
+            try{
+              global.mandrillService.over80Limit(userObj.name,userObj.email,project.name,presentPlan.planName);
+            }catch(e){
+              console.log(e);
+            }
 
             console.log("Successfully sent email for over 80% usage.");
             deferred.resolve({message:"success"});

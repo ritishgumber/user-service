@@ -63,14 +63,15 @@ module.exports = function(){
 
     //this fucntion add connections to the DB.
     function addConnections(passport){ 
-       //setUp Redis
-       setUpRedis();
-       //MONGO DB
-       setUpMongoDB(passport);   
+        //setUp Redis
+        setUpRedis();
+        
+        //MONGO DB
+        setUpMongoDB(passport);   
 
-       setUpDataServices(); 
+        setUpDataServices(); 
 
-       setUpAnalyticsServer(); 
+        setUpAnalyticsServer(); 
         if(global.config){
             global.keys.analyticsServiceUrl="http://localhost:5555";
         }   
