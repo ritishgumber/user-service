@@ -47,7 +47,9 @@ module.exports = function(){
             console.log("Also send mandril email over 80% usage..."); 
 
             try{
-              global.mandrillService.over80Limit(userObj.name,userObj.email,project.name,presentPlan.planName);
+              if(userObj.name && userObj.email && project.name && presentPlan && presentPlan.planName){
+                global.mandrillService.over80Limit(userObj.name,userObj.email,project.name,presentPlan.planName);
+              }              
             }catch(e){
               console.log(e);
             }

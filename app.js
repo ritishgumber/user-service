@@ -12,6 +12,7 @@ module.exports = function(){
     var RedisStore = require('connect-redis')(session);
     var CronJob = require('cron').CronJob;
     var Q = require('q');
+    var json2xls = require('json2xls');
 
     global.winston = require('winston');
     expressWinston = require('express-winston');
@@ -24,6 +25,7 @@ module.exports = function(){
         json:true
     });
    
+    global.app.use(json2xls.middleware);
     global.app.use(function(req, res, next) {
         
         //if req body is a string, convert it to JSON. 
@@ -254,6 +256,7 @@ module.exports = function(){
             var Tutorial = require('./model/tutorial.js')();
             var _Settings = require('./model/_settings.js')();
             var Notification = require('./model/notification.js')();
+            var Cbpartner = require('./model/cbpartner.js')();
 
             //Services
             global.beaconService  = require('./services/beaconService.js')(Beacon);        
@@ -269,6 +272,7 @@ module.exports = function(){
             global.paymentProcessService = require('./services/paymentProcessService.js')();
             global.userAnalyticService = require('./services/userAnalyticService.js')();
             global.analyticsNotificationsService = require('./services/analyticsNotificationsService.js')();
+            global.cbPartnerService = require('./services/cbPartnerService.js')(Cbpartner);
 
             //Routes(API)
             require('./framework/config')(passport, User); 
@@ -283,7 +287,8 @@ module.exports = function(){
             global.app.use('/', require('./routes/notification.js')());
             global.app.use('/', require('./routes/paymentProcess.js')());
             global.app.use('/', require('./routes/userAnalytics.js')());
-            global.app.use('/', require('./routes/analyticsNotifications.js')());            
+            global.app.use('/', require('./routes/analyticsNotifications.js')());  
+            global.app.use('/', require('./routes/cbPartner.js')());           
 
             global.app.use(expressWinston.errorLogger({
               transports: [   
