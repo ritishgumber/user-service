@@ -677,7 +677,7 @@ function processRemoveDeveloper(foundProj,userId,currentUserId,self){
     //Find Atleast one admin
     var atleastOneAdmin=_.find(foundProj.developers, function(eachObj){ 
       if(eachObj.role=="Admin"){ 
-        return;          
+        return true;          
       }
     });
 

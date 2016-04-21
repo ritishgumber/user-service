@@ -259,6 +259,7 @@ module.exports = function(){
             var Cbpartner = require('./model/cbpartner.js')();
 
             //Services
+            global.helperService  = require('./services/helperService.js')();
             global.beaconService  = require('./services/beaconService.js')(Beacon);        
             global.userService = require('./services/userService')(User);
             global.subscriberService  = require('./services/subscriberService.js')(Subscriber);        
