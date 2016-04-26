@@ -86,7 +86,7 @@ module.exports = function(Project){
                   console.log("Error on Get project list..");
                   deferred.reject(err);
                 }  
-                console.log("Success on Get project list..");
+                console.log("Success on Get project list..");                
                 deferred.resolve(list);                 
               });
 

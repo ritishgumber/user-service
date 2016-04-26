@@ -258,8 +258,7 @@ module.exports = function(){
             var Notification = require('./model/notification.js')();
             var Cbpartner = require('./model/cbpartner.js')();
 
-            //Services
-            global.helperService  = require('./services/helperService.js')();
+            //Services            
             global.beaconService  = require('./services/beaconService.js')(Beacon);        
             global.userService = require('./services/userService')(User);
             global.subscriberService  = require('./services/subscriberService.js')(Subscriber);        
