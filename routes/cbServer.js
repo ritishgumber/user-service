@@ -80,7 +80,7 @@ module.exports = function() {
         global.cbServerService.getDBStatuses().then(function(response){           
             return res.status(200).json({status:200, message : "Service Status : OK"});            
         },function(error){
-            return res.status(500).send("Something went wrong!");
+            return res.status(500).send(error);
         });
                   
     });

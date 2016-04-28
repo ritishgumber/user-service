@@ -237,16 +237,17 @@ module.exports = function(_Settings){
           var promises=[];      
 
           promises.push(_mongoDbStatus());
-          promises.push(_redisDbStatus());          
+          promises.push(_redisDbStatus());
+          promises.push(_cloudboostEngineStatus());                       
 
           Q.all(promises).then(function(resultList){
-              if(resultList && resultList[0] && resultList[1]){
+              if(resultList && resultList[0] && resultList[1] && resultList[2]){
                 deferred.resolve("All are running..");                
-              }else{
-                deferred.reject("Something went wrong..");
               }
-          },function(error){  
-              deferred.reject(error);          
+              console.log("hello");
+          },function(error){ 
+            console.log(error); 
+              deferred.reject(error.error);          
           });
 
         }catch(err){
@@ -270,18 +271,25 @@ function _mongoDbStatus(){
     var deferred = Q.defer();
 
     try{
+        var responseJson={};
+        responseJson.serviceName="mongodb";
+        responseJson.success=null;
+        responseJson.error=null;
 
         global.mongoClient.command({ serverStatus: 1},function(err, status){
           if(err) { 
             console.log(err);
-            deferred.reject(err);                                    
+            responseJson.error="Unable to know CBService Mongodb status";
+            deferred.reject(responseJson);                                    
           }
 
           console.log("MongoDB Status:"+status.ok);
-          if(status && status.ok===1){         
-            deferred.resolve("Ok");                                              
-          }else{        
-            deferred.reject("Failed");
+          if(status && status.ok===1){ 
+            responseJson.success="CBService Mongodb status is okay";        
+            deferred.resolve(responseJson);                                              
+          }else{   
+            responseJson.error="CBService Mongodb status is failed";
+            deferred.reject(responseJson);
           }
         });
 
@@ -301,17 +309,25 @@ function _redisDbStatus(){
 
     try{
         
+        var responseJson={};
+        responseJson.serviceName="redisdb";
+        responseJson.success=null;
+        responseJson.error=null;
+
         //Simple ping/pong with callback
         global.redisClient.call('PING', function (error, result) {                
             if(error){
                 console.log(error);
-                deferred.reject("Failed"); 
+                responseJson.error="Unable to know CBService Redisdb status";
+                deferred.reject(responseJson); 
             }
             console.log("RedisDB Status:"+result);
             if(result==="PONG"){
-                deferred.resolve("Ok"); 
+              responseJson.success="CBService Redisdb PING is successfull";
+              deferred.resolve(responseJson); 
             }else{
-                deferred.reject("Failed");
+              responseJson.error="CBService Redisdb PING is failed";
+              deferred.reject(responseJson);
             }
         });        
 
@@ -387,6 +403,44 @@ function _isHostedAnalytics(){
           deferred.resolve(body);
         }
   });
+
+  }catch(err){
+    global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+    deferred.reject(err);
+  }
+
+  return deferred.promise;
+}
+
+
+function _cloudboostEngineStatus(){
+  var deferred = Q.defer();
+ 
+  try{   
+
+    var url = global.keys.dataServiceUrl +'/status'; 
+
+    request.get(url,function(err,response,body){
+        if(err || response.statusCode === 500 || body === 'Error'){  
+          
+          if(body){
+            deferred.reject({error:body});
+          }else{
+            deferred.reject({error:err});
+          }     
+          
+          console.log(body);
+        }else {  
+
+          try{
+            var respBody=JSON.parse(body);
+            deferred.resolve(respBody);            
+          }catch(e){
+            deferred.reject(e);
+          }       
+          
+        }
+    });
 
   }catch(err){
     global.winston.log('error',{"error":String(err),"stack": new Error().stack});
