@@ -806,7 +806,18 @@ function processInviteUser(project,email,foundUser){
           }else{
             console.log("Successfull on Private function for Process Invite User");
             deferred.resolve("successfully Invited!");         
-            global.mandrillService.inviteDeveloper(email,savedProject.name);
+            //global.mandrillService.inviteDeveloper(email,savedProject.name);
+
+            var mailName="invitedeveloper";
+            var emailTo=email;
+            var subject="Invite Developer";
+
+            var variableArray=[{
+                "domClass": "projectname",
+                "content": savedProject.name
+            }];   
+
+            global.mailService.sendMail(mailName, emailTo, subject, variableArray);
           }
         });
 

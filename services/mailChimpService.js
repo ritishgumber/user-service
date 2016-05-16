@@ -7,12 +7,13 @@ var keys = require('../config/keys');
 var _ = require('underscore');
 var crypto = require('crypto');
 var request = require('request');
+var mailgun = require('mailgun-js')({apiKey: keys.mailGunApiKey, domain: keys.mailGunDomain});
 
 module.exports = function(){
 
   return {
 
-    addSubscriber: function (listId,email) {
+    /*addSubscriber: function (listId,email) {
 
       console.log("Add subscriber in mail chimp..");
 
@@ -52,7 +53,40 @@ module.exports = function(){
         }
 
       return deferred.promise;
-    }    
+    },*/
+
+    addSubscriber: function (aliasEmail, email) {
+
+      console.log("Add subscriber in mailgun List..");
+
+      var deferred = Q.defer();
+
+        try{
+          
+          var list = mailgun.lists(aliasEmail);
+
+          var body = {
+            subscribed: true,
+            address: email         
+          };
+
+          list.members().create(body, function (err, data) {
+            if(err){
+              deferred.reject(err);
+            }else{
+              console.log(data);
+              deferred.resolve(data);
+            }
+            
+          });
+
+        }catch(err){
+          global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+          deferred.reject(err);
+        }
+
+      return deferred.promise;
+    }     
 
   }
 

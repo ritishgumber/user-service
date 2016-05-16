@@ -55,7 +55,23 @@ module.exports = function(passport) {
                 });
 
             }else{
-                global.mandrillService.sendSignupEmail(user);
+
+                //global.mandrillService.sendSignupEmail(user);
+
+                var mailName="signupwelcome";
+                var emailTo=user.email;
+                var subject="Signup Welcome";
+
+                var variableArray=[{
+                    "domClass": "username",
+                    "content": user.name
+                },{
+                    "domClass": "link",
+                    "content": "<a href='https://dashboard.cloudboost.io/accounts/#/activate?code='"+user.emailVerificationCode+" class='btn-primary'>Activate your account</a>"
+                }];
+
+                global.mailService.sendMail(mailName, emailTo, subject, variableArray);
+
                 return res.status(200).send('You have signed up Successfully!');  
             }                
         },function(error){
@@ -73,7 +89,18 @@ module.exports = function(passport) {
 
             console.log('++++++ Activation Successful +++++++++++++');
             //send activated email.
-            global.mandrillService.sendActivatedEmail(user);
+            //global.mandrillService.sendActivatedEmail(user);
+
+            var mailName="accountactivated";
+            var emailTo=user.email;
+            var subject="Account Activated";
+
+            var variableArray=[{
+                "domClass": "username",
+                "content": user.name
+            }]; 
+
+            global.mailService.sendMail(mailName, emailTo, subject, variableArray);
 
             req.login(user, function(err) {
 
@@ -121,7 +148,21 @@ module.exports = function(passport) {
 
             console.log('++++++ Request Reset Password Successful +++++++++++++');
             //send activated email.
-            global.mandrillService.sendRequestResetPasswordEmail(user);
+            //global.mandrillService.sendRequestResetPasswordEmail(user);
+
+            var mailName="forgotpassword";
+            var emailTo=user.email;
+            var subject="Reset Password";
+
+            var variableArray=[{
+                "domClass": "name",
+                "content": user.name
+            },{
+                "domClass": "link",
+                "content": "<a href='https://dashboard.cloudboost.io/accounts/#/forgotpassword?code='"+user.emailVerificationCode+" class='btn-primary'>Reset your password</a>"
+            }];
+
+            global.mailService.sendMail(mailName, emailTo, subject, variableArray);
             return res.send(200);
         },function(error){
             console.log('++++++ Request Reset Password Failed +++++++++++++');
@@ -138,7 +179,18 @@ module.exports = function(passport) {
 
             console.log('++++++ Request Reset Password Successful +++++++++++++');
             //send activated email.
-            global.mandrillService.sendPasswordResetSuccessful(user);              
+            //global.mandrillService.sendPasswordResetSuccessful(user);
+
+            var mailName="passwordchanged";
+            var emailTo=user.email;
+            var subject="Password Changed";
+
+            var variableArray=[{
+                "domClass": "username",
+                "content": user.name
+            }];
+
+            global.mailService.sendMail(mailName, emailTo, subject, variableArray);              
 
             return res.status(200).send('You have changed password successfully!');    
         },function(error){

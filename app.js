@@ -267,6 +267,7 @@ module.exports = function(){
             global.fileService  = require('./services/fileService.js')();
             global.mailChimpService  = require('./services/mailChimpService.js')();
             global.mandrillService  = require('./services/mandrillService.js')();
+            global.mailService  = require('./services/mailService.js')();
             global.notificationService  = require('./services/notificationService.js')(Notification);
             global.cbServerService = require('./services/cbServerService.js')(_Settings);
             global.paymentProcessService = require('./services/paymentProcessService.js')();

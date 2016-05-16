@@ -47,7 +47,24 @@ module.exports = function(){
             var type="app-upgraded";
             var text="Your app <span style='font-weight:bold;'>"+updatedProject.name+"</span> has been upgraded to <span style='font-weight:bold;'>"+saleDocument.planName+"</span>.";
             global.notificationService.createNotification(appId,user._id,notificationType,type,text);
-            global.mandrillService.changePlan(user.name,user.email,updatedProject.name,saleDocument.planName); 
+            //global.mandrillService.changePlan(user.name,user.email,updatedProject.name,saleDocument.planName);
+
+            var mailName="changeplan";
+            var emailTo=user.email;
+            var subject="App Plan Changed";
+
+            var variableArray=[{
+                "domClass": "username",
+                "content": user.name
+            },{
+                "domClass": "appname",
+                "content": updatedProject.name
+            },{
+                "domClass": "planname",
+                "content": saleDocument.planName
+            }]; 
+
+            global.mailService.sendMail(mailName, emailTo, subject, variableArray); 
 
           },function(error){
             console.log("Error on create sale..");
@@ -98,7 +115,24 @@ module.exports = function(){
               var type="app-payment-stopped";
               var text="Your app <span style='font-weight:bold;'>"+updatedProject.name+"</span> has been cancelled for the <span style='font-weight:bold;'>"+previousPlan.planName+"</span>.";
               global.notificationService.createNotification(appId,userObj._id,notificationType,type,text);
-              global.mandrillService.cancelPlan(userObj.name,userObj.email,updatedProject.name,previousPlan.planName);
+              //global.mandrillService.cancelPlan(userObj.name,userObj.email,updatedProject.name,previousPlan.planName);
+
+              var mailName="cancelplan";
+              var emailTo=userObj.email;
+              var subject="Canceled Plan";
+
+              var variableArray=[{
+                    "domClass": "name",
+                    "content": userObj.name
+                },{
+                    "domClass": "appname",
+                    "content": updatedProject.name
+                },{
+                    "domClass": "planname",
+                    "content": previousPlan.planName
+                }]; 
+
+              global.mailService.sendMail(mailName, emailTo, subject, variableArray); 
 
             },function(error){
               console.log("Error in getting User details after cancelling Plan");

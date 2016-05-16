@@ -48,7 +48,25 @@ module.exports = function(){
 
             try{
               if(userObj.name && userObj.email && project.name && presentPlan && presentPlan.planName){
-                global.mandrillService.over80Limit(userObj.name,userObj.email,project.name,presentPlan.planName);
+                //global.mandrillService.over80Limit(userObj.name,userObj.email,project.name,presentPlan.planName);
+
+                var mailName="over80limit";
+                var emailTo=userObj.email;
+                var subject="App reached 80% Calls";
+
+                var variableArray=[{
+                    "domClass": "name",
+                    "content": userObj.name
+                },{
+                    "domClass": "appname",
+                    "content": project.name
+                },{
+                    "domClass": "planname",
+                    "content": presentPlan.planName
+                }]; 
+
+                global.mailService.sendMail(mailName, emailTo, subject, variableArray);
+
               }              
             }catch(e){
               console.log(e);
@@ -98,7 +116,24 @@ module.exports = function(){
             var text="Your app <span style='font-weight:bold;'>"+project.name+"</span> has been over the limit of its current plan. Upgrade to next plan now.";
             global.notificationService.createNotification(appId,userObj._id,notificationType,type,text);
              
-            global.mandrillService.over100Limit(userObj.name,userObj.email,project.name,presentPlan.planName);
+            //global.mandrillService.over100Limit(userObj.name,userObj.email,project.name,presentPlan.planName);
+
+              var mailName="overlimit";
+              var emailTo=userObj.email;
+              var subject="Over the limit";
+
+              var variableArray=[{
+                  "domClass": "username",
+                  "content": userObj.name
+              },{
+                  "domClass": "appname",
+                  "content": project.name
+              },{
+                  "domClass": "planname",
+                  "content": presentPlan.planName
+              }]; 
+
+              global.mailService.sendMail(mailName, emailTo, subject, variableArray);
 
             console.log("Successfully sent email for usage over 100%");
 
