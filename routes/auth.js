@@ -54,9 +54,7 @@ module.exports = function(passport) {
                     return res.status(200).json(user);    
                 });
 
-            }else{
-
-                //global.mandrillService.sendSignupEmail(user);
+            }else{               
 
                 var mailName="signupwelcome";
                 var emailTo=user.email;
@@ -64,10 +62,12 @@ module.exports = function(passport) {
 
                 var variableArray=[{
                     "domClass": "username",
-                    "content": user.name
+                    "content": user.name,
+                    "contentType": "text"
                 },{
                     "domClass": "link",
-                    "content": "<a href='https://dashboard.cloudboost.io/accounts/#/activate?code='"+user.emailVerificationCode+" class='btn-primary'>Activate your account</a>"
+                    "content": "<a href='https://dashboard.cloudboost.io/accounts/#/activate?code="+user.emailVerificationCode+"' class='btn-primary'>Activate your account</a>",
+                    "contentType": "html"
                 }];
 
                 global.mailService.sendMail(mailName, emailTo, subject, variableArray);
@@ -88,8 +88,7 @@ module.exports = function(passport) {
         global.userService.activate(data.code).then(function(user) {
 
             console.log('++++++ Activation Successful +++++++++++++');
-            //send activated email.
-            //global.mandrillService.sendActivatedEmail(user);
+            //send activated email.           
 
             var mailName="accountactivated";
             var emailTo=user.email;
@@ -97,7 +96,8 @@ module.exports = function(passport) {
 
             var variableArray=[{
                 "domClass": "username",
-                "content": user.name
+                "content": user.name,
+                "contentType": "text"
             }]; 
 
             global.mailService.sendMail(mailName, emailTo, subject, variableArray);
@@ -147,19 +147,21 @@ module.exports = function(passport) {
         global.userService.requestResetPassword(data.email).then(function(user) {
 
             console.log('++++++ Request Reset Password Successful +++++++++++++');
-            //send activated email.
-            //global.mandrillService.sendRequestResetPasswordEmail(user);
+            //send activated email. 
+
 
             var mailName="forgotpassword";
             var emailTo=user.email;
-            var subject="Reset Password";
+            var subject="Reset your password";
 
             var variableArray=[{
-                "domClass": "name",
-                "content": user.name
+                "domClass": "username",
+                "content": user.name,
+                "contentType":"text"
             },{
                 "domClass": "link",
-                "content": "<a href='https://dashboard.cloudboost.io/accounts/#/forgotpassword?code='"+user.emailVerificationCode+" class='btn-primary'>Reset your password</a>"
+                "content": "<a href='https://dashboard.cloudboost.io/accounts/#/forgotpassword?code="+user.emailVerificationCode+"' class='btn-primary'>Reset your password</a>",
+                "contentType":"html"
             }];
 
             global.mailService.sendMail(mailName, emailTo, subject, variableArray);
@@ -178,8 +180,7 @@ module.exports = function(passport) {
         global.userService.resetPassword(data.code, data.password).then(function(user) {
 
             console.log('++++++ Request Reset Password Successful +++++++++++++');
-            //send activated email.
-            //global.mandrillService.sendPasswordResetSuccessful(user);
+            //send activated email            
 
             var mailName="passwordchanged";
             var emailTo=user.email;
@@ -187,7 +188,8 @@ module.exports = function(passport) {
 
             var variableArray=[{
                 "domClass": "username",
-                "content": user.name
+                "content": user.name,
+                "contentType": "text"
             }];
 
             global.mailService.sendMail(mailName, emailTo, subject, variableArray);              

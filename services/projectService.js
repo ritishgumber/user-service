@@ -814,7 +814,8 @@ function processInviteUser(project,email,foundUser){
 
             var variableArray=[{
                 "domClass": "projectname",
-                "content": savedProject.name
+                "content": savedProject.name,
+                "contentType": "text"
             }];   
 
             global.mailService.sendMail(mailName, emailTo, subject, variableArray);

@@ -97,7 +97,13 @@ function _mergeVariablesInTemplate(template,variableArray){
                 var $ = require('jquery')(window); 
                 
                 for(var i=0;i<variableArray.length;++i){
-                    $("."+variableArray[i].domClass).text(variableArray[i].content);
+
+                    if(variableArray[i].contentType=="text"){
+                        $("."+variableArray[i].domClass).text(variableArray[i].content);
+                    }else if(variableArray[i].contentType=="html"){
+                        $("."+variableArray[i].domClass).html(variableArray[i].content);
+                    }
+                    
                 }                                         
                 
                 deferred.resolve(window.document.documentElement.outerHTML);   

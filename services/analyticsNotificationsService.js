@@ -47,22 +47,24 @@ module.exports = function(){
             console.log("Also send mandril email over 80% usage..."); 
 
             try{
-              if(userObj.name && userObj.email && project.name && presentPlan && presentPlan.planName){
-                //global.mandrillService.over80Limit(userObj.name,userObj.email,project.name,presentPlan.planName);
+              if(userObj.name && userObj.email && project.name && presentPlan && presentPlan.planName){                
 
                 var mailName="over80limit";
                 var emailTo=userObj.email;
                 var subject="App reached 80% Calls";
 
                 var variableArray=[{
-                    "domClass": "name",
-                    "content": userObj.name
+                    "domClass": "username",
+                    "content": userObj.name,
+                    "contentType": "text"
                 },{
                     "domClass": "appname",
-                    "content": project.name
+                    "content": project.name,
+                    "contentType": "text"
                 },{
                     "domClass": "planname",
-                    "content": presentPlan.planName
+                    "content": presentPlan.planName,
+                    "contentType": "text"
                 }]; 
 
                 global.mailService.sendMail(mailName, emailTo, subject, variableArray);
@@ -114,9 +116,7 @@ module.exports = function(){
             var notificationType="payment";
             var type="upgrade-app";
             var text="Your app <span style='font-weight:bold;'>"+project.name+"</span> has been over the limit of its current plan. Upgrade to next plan now.";
-            global.notificationService.createNotification(appId,userObj._id,notificationType,type,text);
-             
-            //global.mandrillService.over100Limit(userObj.name,userObj.email,project.name,presentPlan.planName);
+            global.notificationService.createNotification(appId,userObj._id,notificationType,type,text);            
 
               var mailName="overlimit";
               var emailTo=userObj.email;
@@ -124,13 +124,16 @@ module.exports = function(){
 
               var variableArray=[{
                   "domClass": "username",
-                  "content": userObj.name
+                  "content": userObj.name,
+                  "contentType": "text"
               },{
                   "domClass": "appname",
-                  "content": project.name
+                  "content": project.name,
+                  "contentType": "text"
               },{
                   "domClass": "planname",
-                  "content": presentPlan.planName
+                  "content": presentPlan.planName,
+                  "contentType": "text"
               }]; 
 
               global.mailService.sendMail(mailName, emailTo, subject, variableArray);

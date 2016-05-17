@@ -46,8 +46,7 @@ module.exports = function(){
             var notificationType="inform";
             var type="app-upgraded";
             var text="Your app <span style='font-weight:bold;'>"+updatedProject.name+"</span> has been upgraded to <span style='font-weight:bold;'>"+saleDocument.planName+"</span>.";
-            global.notificationService.createNotification(appId,user._id,notificationType,type,text);
-            //global.mandrillService.changePlan(user.name,user.email,updatedProject.name,saleDocument.planName);
+            global.notificationService.createNotification(appId,user._id,notificationType,type,text);            
 
             var mailName="changeplan";
             var emailTo=user.email;
@@ -55,13 +54,16 @@ module.exports = function(){
 
             var variableArray=[{
                 "domClass": "username",
-                "content": user.name
+                "content": user.name,
+                "contentType": "text"
             },{
                 "domClass": "appname",
-                "content": updatedProject.name
+                "content": updatedProject.name,
+                "contentType": "text"
             },{
                 "domClass": "planname",
-                "content": saleDocument.planName
+                "content": saleDocument.planName,
+                "contentType": "text"
             }]; 
 
             global.mailService.sendMail(mailName, emailTo, subject, variableArray); 
@@ -114,22 +116,24 @@ module.exports = function(){
               var notificationType="inform";
               var type="app-payment-stopped";
               var text="Your app <span style='font-weight:bold;'>"+updatedProject.name+"</span> has been cancelled for the <span style='font-weight:bold;'>"+previousPlan.planName+"</span>.";
-              global.notificationService.createNotification(appId,userObj._id,notificationType,type,text);
-              //global.mandrillService.cancelPlan(userObj.name,userObj.email,updatedProject.name,previousPlan.planName);
+              global.notificationService.createNotification(appId,userObj._id,notificationType,type,text);              
 
               var mailName="cancelplan";
               var emailTo=userObj.email;
               var subject="Canceled Plan";
 
               var variableArray=[{
-                    "domClass": "name",
-                    "content": userObj.name
+                    "domClass": "username",
+                    "content": userObj.name,
+                    "contentType": "text"
                 },{
                     "domClass": "appname",
-                    "content": updatedProject.name
+                    "content": updatedProject.name,
+                    "contentType": "text"
                 },{
                     "domClass": "planname",
-                    "content": previousPlan.planName
+                    "content": previousPlan.planName,
+                    "contentType": "text"
                 }]; 
 
               global.mailService.sendMail(mailName, emailTo, subject, variableArray); 

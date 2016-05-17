@@ -48,6 +48,7 @@ module.exports = function(User){
                     var deffered = Q.defer();
 
                     try{
+
                       User.findOne({ email: email }, function (err, user) {
                             if (err) { 
                               console.log("Error on Get account by email..");
@@ -76,6 +77,7 @@ module.exports = function(User){
                     var deffered = Q.defer();
 
                     try{
+                      
                        User.find({ emailVerificationCode: code }, function (err, user) {
                             if (err) { 
                               console.log("Error on find user for Activate user account..");
