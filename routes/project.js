@@ -343,12 +343,41 @@ module.exports = function() {
                 return res.status(200).json(project);
 
             },function(error){
-                console.log("error Add developer with emai");
+                console.log("error Add developer with email");
                 return res.status(400).send(error);
             });
 
         }else{
             console.log("unauthorized Add developer with email");
+            return res.send(401);
+        }
+    });
+
+    app.get('/app/:appId/changerole/:userId/:role', function(req,res,next) {
+
+        console.log("Change developer role");
+
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+        var appId  = req.params.appId;
+        var requestedUserId = req.params.userId;
+        var newRole   = req.params.role;
+        
+        if(currentUserId && appId && requestedUserId && newRole){
+            global.projectService.changeDeveloperRole(currentUserId,appId,requestedUserId,newRole).then(function(project) {
+                if (!project) {
+                    return res.send(400, 'Error: Project not found');
+                }
+
+                console.log("Successfull change developer role");
+                return res.status(200).json(project);
+
+            },function(error){
+                console.log("error change developer role");
+                return res.status(400).send(error);
+            });
+
+        }else{
+            console.log("unauthorized change developer role");
             return res.send(401);
         }
     });

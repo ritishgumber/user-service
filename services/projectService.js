@@ -617,6 +617,92 @@ module.exports = function(Project){
              return deferred.promise;
 
           },
+
+          changeDeveloperRole: function (currentUserId,appId,requestedUserId,newRole) {
+
+              console.log("Change  developer role...");
+
+              var deferred = Q.defer();
+
+              try{
+                var self = this;                 
+
+                Project.findOne({appId:appId}, function (err, project) {
+                  if (err){
+                    console.log("Error on get project changing developer role...");
+                    deferred.reject(err);
+                  }  
+                  if(!project){
+                    console.log("project not found changing developer role...");
+                    deferred.reject("App not found!.");
+                  }else{
+
+                    if(checkValidUser(project,currentUserId,"Admin")){
+                      
+                      var tempDeveloperArray=[].concat(project.developers || []);
+                      for(var i=0;i<tempDeveloperArray.length;++i){
+                        if(tempDeveloperArray[i].userId==requestedUserId){
+                          tempDeveloperArray[i].role=newRole;
+                          break;
+                        }
+                      }
+
+                      //Check atleast one admin will be there
+                      var atleastOneAdmin=_.find(tempDeveloperArray, function(eachObj){ 
+                        if(eachObj.role=="Admin"){ 
+                          return true;          
+                        }
+                      });
+
+                      if(atleastOneAdmin){
+
+                        var jsonString=JSON.stringify(project);
+                        var sanitizedJSON=JSON.parse(jsonString);
+                        var devLength=sanitizedJSON.developers.length;
+                        
+                        for(var i=0;i<devLength;++i){
+                          project.developers.splice(i,1);
+                        }
+
+                        for(var i=0;i<tempDeveloperArray.length;++i){
+                          project.developers.push(tempDeveloperArray[i]);
+                        }
+
+                        project.save(function (err, savedProject) {
+                          if (err){
+                            console.log("Error on changing developer role..");
+                            deferred.reject(err);
+                          }
+                          if(!savedProject){
+                            console.log("Cannot save the project for change developer role");
+                            deferred.reject('Cannot save the project for change developer role.');
+                          }else{  
+                            console.log("Successfull for changing devloper role");                       
+                            deferred.resolve(savedProject);                                                                                           
+                          }
+                        });
+
+                      }else{
+                        deferred.reject('Atleast one admin should be there for an app.');
+                      }                     
+
+                    }else{
+                      console.log("Only Admin can change role..");
+                      deferred.resolve("Only Admin can change role!");
+                    } 
+                    
+                  }
+                       
+                });
+
+              }catch(err){
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+                deferred.reject(err)         
+              }
+
+             return deferred.promise;
+
+          },
    
     }
 
