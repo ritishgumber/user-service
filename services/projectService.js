@@ -654,20 +654,12 @@ module.exports = function(Project){
                         }
                       });
 
-                      if(atleastOneAdmin){
+                      if(atleastOneAdmin){                       
+                       
 
-                        var jsonString=JSON.stringify(project);
-                        var sanitizedJSON=JSON.parse(jsonString);
-                        var devLength=sanitizedJSON.developers.length;
+                        project.developers=tempDeveloperArray;
+                        project.markModified('developers');
                         
-                        for(var i=0;i<devLength;++i){
-                          project.developers.splice(i,1);
-                        }
-
-                        for(var i=0;i<tempDeveloperArray.length;++i){
-                          project.developers.push(tempDeveloperArray[i]);
-                        }
-
                         project.save(function (err, savedProject) {
                           if (err){
                             console.log("Error on changing developer role..");
