@@ -50,7 +50,7 @@ module.exports = function(){
 
             var mailName="changeplan";
             var emailTo=user.email;
-            var subject="App Plan Changed";
+            var subject="You've changed your app plan";
 
             var variableArray=[{
                 "domClass": "username",
@@ -120,7 +120,7 @@ module.exports = function(){
 
               var mailName="cancelplan";
               var emailTo=userObj.email;
-              var subject="Canceled Plan";
+              var subject="You've canceled your plan";
 
               var variableArray=[{
                     "domClass": "username",

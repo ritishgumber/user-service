@@ -46,7 +46,7 @@ module.exports = function(){
             }).then(function(mergedTemplate){
 
                 nodemailerMailgun.sendMail({
-                  from: keys.adminEmailAddress,
+                  from: "CloudBoost.io <"+keys.adminEmailAddress+">",
                   'h:Reply-To': keys.adminEmailAddress,
                   to: emailTo,           
                   subject: subject,                  

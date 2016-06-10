@@ -10,7 +10,7 @@ module.exports = function(){
 	     invited: Array,
 	  developers: Array,
 	      planId: Number
-	});
+	}, { collection: 'projects' });
 
 	return global.mongoose.model('Project', projectSchema);
 };

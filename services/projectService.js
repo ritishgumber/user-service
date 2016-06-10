@@ -888,7 +888,7 @@ function processInviteUser(project,email,foundUser){
 
             var mailName="invitedeveloper";
             var emailTo=email;
-            var subject="Invite Developer";
+            var subject="You're invited to collaborate";
 
             var variableArray=[{
                 "domClass": "projectname",

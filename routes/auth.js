@@ -58,7 +58,7 @@ module.exports = function(passport) {
 
                 var mailName="signupwelcome";
                 var emailTo=user.email;
-                var subject="Signup Welcome";
+                var subject="Welcome to CloudBoost";
 
                 var variableArray=[{
                     "domClass": "username",
@@ -92,7 +92,7 @@ module.exports = function(passport) {
 
             var mailName="accountactivated";
             var emailTo=user.email;
-            var subject="Account Activated";
+            var subject="Your account is now activated";
 
             var variableArray=[{
                 "domClass": "username",
@@ -184,7 +184,7 @@ module.exports = function(passport) {
 
             var mailName="passwordchanged";
             var emailTo=user.email;
-            var subject="Password Changed";
+            var subject="You've changed your password";
 
             var variableArray=[{
                 "domClass": "username",

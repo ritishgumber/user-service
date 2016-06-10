@@ -51,7 +51,7 @@ module.exports = function(){
 
                 var mailName="over80limit";
                 var emailTo=userObj.email;
-                var subject="App reached 80% Calls";
+                var subject="Your app "+project.name+" reached 80% of its API calls";
 
                 var variableArray=[{
                     "domClass": "username",
@@ -120,7 +120,7 @@ module.exports = function(){
 
               var mailName="overlimit";
               var emailTo=userObj.email;
-              var subject="Over the limit";
+              var subject="Your app" +project.name+ "reached its API limit";
 
               var variableArray=[{
                   "domClass": "username",
