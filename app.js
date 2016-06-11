@@ -24,8 +24,10 @@ module.exports = function(){
         tags: ["frontend-server"],
         json:true
     });
+
    
     global.app.use(json2xls.middleware);
+    global.app.set('view engine', 'ejs');    
     global.app.use(function(req, res, next) {
         
         //if req body is a string, convert it to JSON. 
@@ -42,7 +44,7 @@ module.exports = function(){
         } else {
             next();
         }
-    });
+    });   
 
     //connect to db
     addConnections(passport);
@@ -257,6 +259,8 @@ module.exports = function(){
             var _Settings = require('./model/_settings.js')();
             var Notification = require('./model/notification.js')();
             var Cbpartner = require('./model/cbpartner.js')();
+            var AzureSubscription = require('./model/azureSubscription.js')();
+            var AzureResource = require('./model/azureResource.js')();
 
             //Services            
             global.beaconService  = require('./services/beaconService.js')(Beacon);        
@@ -273,6 +277,8 @@ module.exports = function(){
             global.userAnalyticService = require('./services/userAnalyticService.js')();
             global.analyticsNotificationsService = require('./services/analyticsNotificationsService.js')();
             global.cbPartnerService = require('./services/cbPartnerService.js')(Cbpartner);
+            global.azureSubscriptionService = require('./services/azureSubscriptionService.js')(AzureSubscription);
+            global.azureResourceService = require('./services/azureResourceService.js')(AzureResource);
 
             //Routes(API)
             require('./framework/config')(passport, User); 
@@ -288,7 +294,8 @@ module.exports = function(){
             global.app.use('/', require('./routes/paymentProcess.js')());
             global.app.use('/', require('./routes/userAnalytics.js')());
             global.app.use('/', require('./routes/analyticsNotifications.js')());  
-            global.app.use('/', require('./routes/cbPartner.js')());           
+            global.app.use('/', require('./routes/cbPartner.js')());
+            global.app.use('/', require('./routes/azure.js')());           
 
             global.app.use(expressWinston.errorLogger({
               transports: [   
