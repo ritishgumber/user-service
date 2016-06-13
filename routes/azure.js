@@ -1,6 +1,7 @@
 var winston = require('winston');
 var express = require('express');
 var app = express();    
+var Q = require('q');
 var utils = require('../helpers/utils');
 var async = require('async');
 var crypto = require('crypto');
@@ -42,171 +43,169 @@ module.exports = function() {
   return app;
 };
 
-function getPropertyFromSubscription(reqJSON, propName){
-  var emails = reqJSON.entityevent.properties[0].entityproperty
-        .filter(function (prop) {
-          return prop.propertyname[0] === propName;
-        }).map(function (prop) {
-          return prop.propertyvalue[0];
-        });
-
-  return emails;
-}
-
-function suscription(req, res, next) {
-  winston.debug('registering subscription', { subscription_id: req.params['subscription_id'] });
+function suscription(req, res) {  
 
   var state = req.body.entityevent.entitystate[0];
   switch (state) {
     case 'Registered':
-      onSubscriptionRegistered(req, res, next);
+      onSubscriptionRegistered(req, res);
       break;
     case 'Disabled':
-      onSubscriptionDisabled(req, res, next);
+      onSubscriptionDisabled(req, res);
       break;
     case 'Enabled':
-      onSubscriptionEnabled(req, res, next);
+      onSubscriptionEnabled(req, res);
       break;
     case 'Deleted':
-      onSubscriptionDeleted(req, res, next);
+      onSubscriptionDeleted(req, res);
       break;
   }
 }
 
-function onSubscriptionRegistered(req, res, next) {
+function onSubscriptionRegistered(req, res) {
+  var email=getPropertyFromSubscription(req.body, 'EMail');
+  var optin=getPropertyFromSubscription(req.body, 'OptIn');
+
   var hookData = {
     subscription_id: req.params['subscription_id'],
-    email: getPropertyFromSubscription(req.body, 'EMail'),
-    optin: getPropertyFromSubscription(req.body, 'OptIn')
+    email: email[0],
+    optin: optin[0] 
   };
 
-  global.azureSubscriptionService.create(hookData, function(err) {
-      if (err) {
-        return next(err);
-      }
-      
-      res.status(200).send("");
+  global.azureSubscriptionService.create(hookData).then(function(doc){
+    res.status(200).json(doc);
+  },function(error){
+    return res.status(500).send(error);
   });
 }
 
-function onSubscriptionDisabled(req, res, next) {
-  global.azureResourceService.disableBy({ "azure.subscription_id": req.params['subscription_id'] }, function(err) {
-    if (err) return next(err);
+function onSubscriptionDisabled(req, res) {
+  global.azureResourceService.disableBy({ "azure.subscription_id": req.params['subscription_id'] }).then(function(doc){
+    res.status(200).json(doc);
+  },function(error){
+    return res.status(500).send(error);
+  });  
+}
 
-    res.status(200).send('');
+function onSubscriptionEnabled(req, res) {
+  global.azureResourceService.enableBy({ "azure.subscription_id": req.params['subscription_id'] }).then(function(doc){
+    res.status(200).json(doc);
+  },function(error){
+    return res.status(500).send(error);
   });
 }
 
-function onSubscriptionEnabled(req, res, next) {
-  global.azureResourceService.enableBy({ "azure.subscription_id": req.params['subscription_id'] }, function(err) {
-    if (err) return next(err);
+function onSubscriptionDeleted(req, res) {
+  global.azureResourceService.getBy({ "azure.subscription_id": req.params['subscription_id'] })
+  .then(function(tenants){
 
-    res.send(200, '');
-  });
-}
-
-function onSubscriptionDeleted(req, res, next) {
-  global.azureResourceService.getBy({ "azure.subscription_id": req.params['subscription_id'] }, function(err, tenants) {
-    if (err) return next(err);
-
-    function remove(tenant, cb) {
-      global.azureResourceService.remove(tenant.slug, cb);
+    var promises=[];
+    for(var i=0;i<tenants.length;++i){
+      promises.push(global.azureResourceService.remove({slug:tenants[i].slug}));
     }
 
-    async.forEach(tenants, remove, function(err, results) {
-      res.send(200, '');
+    Q.all(promises).then(function(list){
+      res.status(200).send('Resource has been deleted.');
+    },function(error){
+      return res.status(500).send(error);
     });
+
+  },function(error){
+    return res.status(500).send(error);
   });
 }
 
-function createOrUpdateResource(req, res, next) {
-  winston.debug('azure: create or update', { body: req.body, params: req.params['subscription_id'] });
-
+function createOrUpdateResource(req, res) {
   var criteria = {
     "azure.subscription_id": req.params['subscription_id'],
     "azure.cloud_service_name": req.params['cloud_service_name'],
     "azure.resource_name": req.params['resource_name']
   };
   
-  global.azureResourceService.getBy(criteria, function(err, resources) {
-    if (err) return next(err);
-
+  global.azureResourceService.getBy(criteria).then(function(resources){
     if (!resources || resources.length === 0) {
-      winston.debug('azure: creating resource', req.body);
-      createResource(req.params['subscription_id'], req.params['cloud_service_name'], req.params['resource_name'], req.body.resource.etag[0], function(err, resource) {
-        if (err) return next(err);
+     
+      var subscription_id=req.params['subscription_id'];
+      var cloud_service_name=req.params['cloud_service_name'];
+      var resource_name=req.params['resource_name'];
+      var etag=req.body.resource.etag[0];
+      var plan=req.body.resource.plan[0];
+      var georegion=req.body.resource.cloudservicesettings[0].georegion[0];
+      var type=req.body.resource.type[0]; 
 
-        renderResponse(resource, function(err, response) {
-          if (err) return next(err);
-
-          res.setHeader('Content-Type', 'application/xml');
-          return res.status(200).send(response);
-        });
+      createResource(subscription_id, cloud_service_name, resource_name, etag, plan, georegion, type)
+      .then(function(resource){
+        return renderResponse(resource);
+      }).then(function(response){
+        res.setHeader('Content-Type', 'application/xml');
+        return res.status(200).send(response);
+      },function(error){
+        return res.status(500).send(error);
       });
-    } else {
-      var tenant = resources[0];
-      winston.debug('azure: updating resource', tenant);
-      // TODO: this is a chance to update the output items shown in connection info on Azure
+
+    } else {      
+
+      // this is a chance to update the output items shown in connection info on Azure
       // by returning a different ETag if something changed from the provider side
-      // tenant.ETag = 'new-etag-signaling-change'
+      // tenant.ETag = 'new-etag-signaling-change'         
 
-      /*renderResponse(resource, function(err, response) {
-        if (err) return next(err);
-
+      var azure= {
+          etag: etag,
+          subscription_id: subscription_id,
+          cloud_service_name: cloud_service_name,
+          resource_name: resource_name,
+          plan: plan,
+          geoRegion: georegion,
+          type:type
+      };
+      global.azureResourceService.updateBy(criteria,{azure:azure}).then(function(resources){
+        return renderResponse(resource);      
+      }).then(function(){
         res.setHeader('Content-Type', 'application/xml');
         return res.send(200, response);
-      });*/
-
-      return res.status(200).send("DFCFFF");
+      },function(error){
+        return res.status(500).send(error);
+      });      
     }
-  });
+  });  
 }
 
-function renderResponse(resource, callback) {
-  winston.debug('azure: render create update res', resource);
+function createResource(subscription_id, cloud_service_name, resource_name, etag, plan, georegion, type) {
+  var deferred = Q.defer();
 
-  var data = {
-    resource_name: resource.azure.resource_name,
-    ETag: resource.azure.etag
-    // extra parameters you want to send in OutputItems
-  };
-
-  return callback(null, utils.loadTemplate('create.xml', data));
-}
-
-function createResource(subscription_id, cloud_service_name, resource_name, etag, callback) {
   var criteria = { subscription_id: subscription_id };
 
-  global.azureSubscriptionService.get(criteria, function(err, hookData) {
-    if (err) return callback(err);
-
-    if (!hookData) return callback(new Error('hook data is null for ' + subscription_id));
-
-    // make sure tenant is not being used
-   global.azureResourceService.getNextAvailable(utils.slugify(resource_name), function(err, slug) {
-      if (err) return callback(err);
-
-      var tenant = {
-        _id:  slug,
+  global.azureSubscriptionService.get(criteria).then(function(hookData){
+    if(!hookData){
+      var nullHookDatadeferred = Q.defer();
+      nullHookDatadeferred.reject('No subscription is found for ' + subscription_id);
+      return nullHookDatadeferred.promise;
+    }else{
+      // make sure tenant is not being used
+      return global.azureResourceService.getNextAvailable(utils.slugify(resource_name));
+    }
+  }).then(function(slug){
+      var tenant = {       
         slug: slug,
         azure: {
           etag: etag,
           subscription_id: subscription_id,
           cloud_service_name: cloud_service_name,
-          resource_name: resource_name
-        }
+          resource_name: resource_name,
+          plan: plan,
+          geoRegion: georegion,
+          type:type
+        },
+        enabled: true
       };
-
-      global.azureResourceService.create(tenant, function (err, resource) {
-        if (err) {
-          winston.error('azure: create tenant', err);
-          return callback(err);
-        }
-
-        return callback(null, resource);
-      });
-    });
+      return global.azureResourceService.create(tenant);
+  }).then(function(doc){
+    deferred.resolve(doc);
+  },function(error){
+    deferred.reject(error);
   });
+
+  return deferred.promise;
 }
 
 function getResource(req, res, next) {
@@ -216,15 +215,17 @@ function getResource(req, res, next) {
     'azure.subscription_id': req.params['subscription_id'],
     'azure.cloud_service_name': req.params['cloud_service_name']
   };
-  if (req.params['resource_name']) criteria['azure.resource_name'] = req.params['resource_name'];
 
-  global.azureResourceService.getBy(criteria, function(err, resources) {
-    if (err) return next(err);
-    if (!resources) return res.send(404, '');
+  if (req.params['resource_name']) {
+    criteria['azure.resource_name'] = req.params['resource_name'];
+  }
 
-    winston.debug('azure: resources in db', resources.length);
+  global.azureResourceService.getBy(criteria).then(function(resources){
+    console.log('azure: resources in db', resources.length);
     res.setHeader('Content-Type', 'application/xml');
     return res.status(200).send(utils.loadTemplate('get.xml', { resources: resources }));
+  },function(error){
+    return res.status(404).send('');
   });
 }
 
@@ -235,23 +236,27 @@ function removeResource(req, res, next) {
     'azure.subscription_id': req.params['subscription_id'],
     'azure.cloud_service_name': req.params['cloud_service_name']
   };
-  if (req.params['resource_name']) criteria['azure.resource_name'] = req.params['resource_name'];
 
-  global.azureResourceService.getBy(criteria, function(err, resources) {
-    if (err) return next(err);
+  if (req.params['resource_name']){
+   criteria['azure.resource_name'] = req.params['resource_name'];
+  } 
 
-    if (!resources || resources.length === 0) {
-      return res.send(404, '');
+  global.azureResourceService.getBy(criteria)
+  .then(function(tenants){
+
+    var promises=[];
+    for(var i=0;i<tenants.length;++i){
+      promises.push(global.azureResourceService.remove({slug:tenants[i].slug}));
     }
-    
-    function remove(tenant, cb) {
-      global.azureResourceService.remove(tenant.slug, cb);
-    }
 
-    async.forEach(resources, remove, function(err, results) {
-      res.status(200).send('');
+    Q.all(promises).then(function(list){
+      res.status(200).send('Resource has been deleted.');
+    },function(error){
+      return res.status(500).send(error);
     });
 
+  },function(error){
+    return res.status(500).send(error);
   });
 }
 
@@ -265,9 +270,35 @@ function getToken(req, res, next) {
 
   var token = crypto.createHash("sha256").update(toSign).digest("hex");
 
-  var response = utils.loadTemplate('sso.xml', { token: token, timestamp: moment().format() });
-  winston.debug('azure: sso token response', response);
+  var response = utils.loadTemplate('sso.xml', { token: token, timestamp: moment().format() });  
   res.setHeader('Content-Type', 'application/xml');
   return res.status(200).send(response);
 }
 
+
+/********Private Functions*************/
+function getPropertyFromSubscription(reqJSON, propName){
+  var emails = reqJSON.entityevent.properties[0].entityproperty
+        .filter(function (prop) {
+          return prop.propertyname[0] === propName;
+        }).map(function (prop) {
+          return prop.propertyvalue[0];
+        });
+
+  return emails;
+}
+
+function renderResponse(resource) {
+
+  var deferred = Q.defer();
+
+    var data = {
+      resource_name: resource.azure.resource_name,
+      ETag: resource.azure.etag
+      // extra parameters you want to send in OutputItems
+    };
+
+    deferred.resolve(utils.loadTemplate('create.xml', data));
+    
+  return deferred.promise;  
+}

@@ -22,7 +22,10 @@ describe("azure hook", function() {
     done();
   });
 
-  /*it('can register subscription and create resource', function (done) {
+  it('can register subscription and create resource', function (done) {
+
+    this.timeout(15000);
+
     async.series([
       function register(cb) {
         var body = fs.readFileSync(path.join(__dirname, 'subscription_register.xml'), 'utf8');
@@ -58,6 +61,7 @@ describe("azure hook", function() {
   });
 
   it('can disable subscription', function (done) {
+    this.timeout(15000);
     async.series([
       function disable(cb) {
         var body = fs.readFileSync(path.join(__dirname, 'subscription_disable.xml'), 'utf8');
@@ -77,6 +81,7 @@ describe("azure hook", function() {
   });
 
   it('can enable subscription', function (done) {
+    this.timeout(15000);
     async.series([
       function enable(cb) {
         var body = fs.readFileSync(path.join(__dirname, 'subscription_disable.xml'), 'utf8');
@@ -96,6 +101,7 @@ describe("azure hook", function() {
   });
 
   it('create resource with same name under different subscriptions appends counter', function (done) {
+    this.timeout(15000);
     async.series([
       function register_ABCD_subscription(cb) {
         var body = fs.readFileSync(path.join(__dirname, 'subscription_register.xml'), 'utf8');
@@ -133,6 +139,7 @@ describe("azure hook", function() {
   });
 
   it('can show resource', function (done) {
+    this.timeout(15000);
     request.get({url: baseUrl + '/webhooks/azure/subscriptions/12345/cloudservices/my-cloud-service/resources/authentication/popey'},
       function(err, resp, body) {
 
@@ -147,6 +154,7 @@ describe("azure hook", function() {
   });
 
   it('create another resource under same subscription (ABCD)', function (done) {
+    this.timeout(15000);
     async.series([
       function create_resource_under_ABCD_subscription(cb) {
         var body = fs.readFileSync(path.join(__dirname, 'create.xml'), 'utf8');
@@ -167,6 +175,7 @@ describe("azure hook", function() {
   });
 
   it('can show multiple resources for subscription (ABCD)', function (done) {
+    this.timeout(15000);
     request.get({url: baseUrl + '/webhooks/azure/subscriptions/ABCD/cloudservices/my-cloud-service'},
       function(err, resp, body) {
       assert.equal(200, resp.statusCode);
@@ -181,6 +190,7 @@ describe("azure hook", function() {
   });
 
   it('can updgrade resource', function (done) {
+    this.timeout(15000);
     async.series([
       function upgrade_resource(cb) {
         var body = fs.readFileSync(path.join(__dirname, 'upgrade.xml'), 'utf8');
@@ -207,6 +217,7 @@ describe("azure hook", function() {
   });
 
   it('can delete resource', function (done) {
+    this.timeout(15000);
     async.series([
       function delete_resource(cb) {
         request.del({url: baseUrl + '/webhooks/azure/subscriptions/ABCD/cloudservices/my-cloud-service/resources/authentication/olivia'},
@@ -224,15 +235,17 @@ describe("azure hook", function() {
   });
 
   it('returns 404 if deleting an unexisting resource', function (done) {
+    this.timeout(15000);
       request.del({url: baseUrl + '/webhooks/azure/subscriptions/ABCD/cloudservices/my-cloud-service/resources/authentication/non-existing'},
         function(err, resp, body) {
 
         // assert.equal(404, resp.statusCode);
         done();
       });
-  });*/
+  });
 
   it('can create SSO token for subscription (ABCD)', function (done) {
+    this.timeout(15000);
     var secret = "azure-cloudboost";
     //process.env.AZURE_SSO_SECRET = secret; // this should match with the secret on your file, usually this would go to process.env or nconf
     request.post({url: baseUrl + '/webhooks/azure/subscriptions/12345/cloudservices/my-cloud-service/resources/authentication/popey/SsoToken'},
