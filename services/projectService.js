@@ -13,7 +13,7 @@ module.exports = function(Project){
 
   return {
 
-          createProject: function (name,userId) {
+          createProject: function (name, userId, data) {
 
               console.log("Create project/app");
 
@@ -27,7 +27,11 @@ module.exports = function(Project){
 
                 var savedProject;
                 var appId;
-                var newAppPlanId=1;              
+                var newAppPlanId= 1;
+
+                if(data && data.planId){
+                  newAppPlanId=data.planId;
+                }                             
 
                 generateNonExistingAppId().then(function (newAppId) { 
                   console.log("fetched new appId");                
@@ -47,7 +51,17 @@ module.exports = function(Project){
                   developers.push(newDeveloper);              
                   //End Adding default developer
 
-                  var appendJson={_userId:userId,name:name,developers:developers,planId:newAppPlanId};
+                  var appendJson={
+                    _userId    : userId,
+                    name       : name,
+                    developers : developers,
+                    planId     : newAppPlanId,                 
+                    disabled   : false                  
+                  };
+
+                  if(data && data.provider){
+                    appendJson.provider=data.provider;
+                  }
                   return _self.findOneAndUpdateProject(project._id,appendJson);                              
 
                 }).then(function(newProject){ 
@@ -219,6 +233,37 @@ module.exports = function(Project){
 
             return deffered.promise;
 
+          },          
+          updateProjectBy: function (query,newJson) {
+
+            console.log("Find and update project...");
+
+            var deffered = Q.defer();
+
+            try{
+              var self = this;              
+
+              Project.findOneAndUpdate(query, { $set: newJson},{new:true},function (err, project) {
+                if (err) {   
+                  console.log("Error on Find and update project...");               
+                  return deffered.reject(err);         
+                }
+                if (!project) { 
+                  console.log("Project not found for ..Find and update project...");                 
+                  return deffered.reject(null);
+                }   
+
+                console.log("Success on Find and update project...");             
+                return deffered.resolve(project);                    
+              });
+
+            }catch(err){
+              global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+              deffered.reject(err)         
+            }
+
+            return deffered.promise;
+
           },
           updatePlanByAppId: function (appId,planId) {
 
@@ -248,6 +293,45 @@ module.exports = function(Project){
             }
 
             return deffered.promise;
+
+          },
+          deleteProjectBy: function (query) {
+
+              console.log("Delete Project...");
+
+              var deferred = Q.defer();
+
+              try{
+                var self = this;
+
+                console.log(' ++++++++ App Delete request +++++++++');
+
+                Project.findOne(query, function (err,foundProj) {
+                  if(err){
+                    console.log('++++++++ App Delete failed from frontend ++++++++++');                   
+                    deferred.reject(err);
+                  }else if(foundProj){
+
+                    _deleteAppFromDS(foundProj.appId).then(function(resp){
+                      console.log("Delete Project from data services......");
+                      deferred.resolve(resp);
+                    },function(error){
+                      console.log("Error on Delete Project from data services......");
+                      deferred.reject(error);
+                    });
+
+                  }else{
+                    console.log("Project not found ..Delete Project");
+                    deferred.reject("Project not found with specified user");
+                  }
+                });
+
+              }catch(err){
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+                deferred.reject(err)         
+              }
+
+             return deferred.promise;
 
           },
           delete: function (appId,userId) {
@@ -307,6 +391,39 @@ module.exports = function(Project){
                 } 
                 console.log("Success on get all project list...."); 
                 deferred.resolve(list);              
+                 
+              });
+
+              }catch(err){
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+                deferred.reject(err)         
+              } 
+
+             return deferred.promise;
+          },
+          getProjectBy: function (query) {
+
+            console.log("get all project list....");
+
+            var _self = this;
+
+             var deferred = Q.defer();
+
+             try{
+              var self = this;
+
+              Project.find(query, function (err, list) {
+                if (err) { 
+                  console.log("Error on get  project by query....");
+                  return deffered.reject(err); 
+                }
+                if (!list || list.length==0) {
+                  console.log("project not found to get project by Query..");
+                  return deferred.resolve(null);
+                }
+
+                console.log("Success on get project by query...."); 
+                return deferred.resolve(list);             
                  
               });
 

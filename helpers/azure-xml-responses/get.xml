@@ -3,8 +3,8 @@
     <Resources>
         <% resources.forEach(function(r) { %>
         <Resource>
-            <ETag><%= r.azure.etag %></ETag>
-            <Name><%= r.azure.resource_name %></Name>
+            <ETag><%= r.provider.etag %></ETag>
+            <Name><%= r.provider.resource_name %></Name>
             <OperationStatus>
                 <Result>Succeeded</Result>
             </OperationStatus>

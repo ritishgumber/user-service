@@ -243,9 +243,7 @@ module.exports = function(User){
                           if (user) {
                               console.log("A user with this email already exists to Register");
                               return deffered.reject('A user with this email already exists.');
-                          }
-
-                          data.provider = 'local';
+                          }                        
                           
                           //create a new user
                           self.createUser(data).then(function(user){
@@ -284,22 +282,31 @@ module.exports = function(User){
 
                        var user = new User();
                        user.email = data.email;
-                       user.name = data.name;
+                       user.name = data.name || null;
                        user.isAdmin = data.isAdmin;
                        user.isActive = true;
+                       user.provider = data.provider || 'local';
 
                        if(data.isAdmin){
                           user.emailVerified  = true;
                        }else{
                           user.emailVerified  = false;
-                       }                     
-                       user.emailVerificationCode = util.generateRandomString();
+                       }   
+
+                       if(data.provider!="azure"){
+                          user.emailVerificationCode = util.generateRandomString();
+                       } 
+
+                       if(data.provider=="azure" && data.azure){
+                          user.azure= data.azure;
+                       } 
+
                        user.createdAt = new Date();
 
-                       if(data.password) {
+                        if(data.password) {
                           user.salt = self.makeSalt();
                           user.password = self.encryptPassword(data.password, user.salt);
-                       }
+                        }
 
                        user.save(function (err) {
                           if (err){
@@ -307,7 +314,7 @@ module.exports = function(User){
                             deffered.reject(err);
                           } else{                          
                             if(data.isAdmin){
-                              global.cbServerService.upsertSettings(null,false);
+                              global.cbServerService.upsertSettings(user._id,null,false);
                               global.notificationService.linkUserId(user.email,user._id);
                             }
                             console.log("Success on Create User..");
@@ -728,6 +735,35 @@ module.exports = function(User){
                           console.log("Success on Get userList by Keyword");                   
                           return deffered.resolve(userList);                
                                            
+                      });
+
+                    }catch(err){
+                      global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
+                      deffered.reject(err);                          
+                    }
+
+                    return deffered.promise;
+                },
+
+                getUserBy: function (query) {
+                    
+                    console.log("Get userList by Query");
+
+                    var deffered = Q.defer();
+
+                    try{
+                      User.findOne(query, function (err, user) {
+                          if (err) { 
+                            console.log("Error on Get account by Query..");
+                            return deffered.reject(err); 
+                          }
+                          if (!user) {
+                            console.log("user not found to get account by Query..");
+                            return deffered.resolve(null);
+                          }
+
+                          console.log("Success on Get account by Query..");
+                          return deffered.resolve(user);
                       });
 
                     }catch(err){

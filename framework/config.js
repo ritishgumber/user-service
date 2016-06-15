@@ -1,5 +1,6 @@
 ﻿'use strict'
 var LocalStrategy = require('passport-local').Strategy;
+var AzureStoreStrategy = require('passport-azure-store').Strategy;
 
 
 module.exports = function(passport, User) {
@@ -10,10 +11,10 @@ module.exports = function(passport, User) {
   passport.use(new LocalStrategy({
       usernameField: 'email',
       passwordField: 'password'
-    },function(username, password, done) {  
+    },function(email, password, done) {  
 
       try{   
-        User.findOne({ email: username}, function (err, user) {
+        User.findOne({ email: email}, function (err, user) {
           if (err) { return done(err); }
           if (!user) {
             return done(null, false, { message: 'Incorrect email.' });
@@ -34,6 +35,27 @@ module.exports = function(passport, User) {
       }
     }
   ));
+
+  passport.use(new AzureStoreStrategy({
+    secret: "azure-cloudboost",
+    check_expiration: true
+  }, function(req, azureInfo, done) {
+
+    try{      
+
+      User.findOne({"azure.subscription_id": azureInfo.subscription_id}, function (err, user) {
+        if (err) { return done(err); }
+        if (!user) {
+          return done(null, false, { message: 'Incorrect subscription Id.' });
+        }                 
+        return done(null, user);
+      });     
+
+    }catch(err){
+      global.winston.log('error',{"error":String(err),"stack": new Error().stack});        
+    }     
+    
+  }));
 
   // Serialize the user id to push into the session
   passport.serializeUser(function(user, callback) {  

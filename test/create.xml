@@ -3,7 +3,7 @@
         <GeoRegion>East US</GeoRegion>
     </CloudServiceSettings>
     <ETag>decac2dc-879a-455a-9f00-30559ab06d3c</ETag>
-    <Plan>free</Plan>
+    <Plan>4</Plan>
     <PromotionCode/>
     <SchemaVersion>1.0</SchemaVersion>
     <Type>authentication</Type>

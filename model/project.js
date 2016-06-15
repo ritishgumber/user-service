@@ -9,7 +9,9 @@ module.exports = function(){
 	       keys : Object,
 	     invited: Array,
 	  developers: Array,
-	      planId: Number
+	      planId: Number,
+	    provider: Object,
+	    disabled: Boolean
 	}, { collection: 'projects' });
 
 	return global.mongoose.model('Project', projectSchema);
