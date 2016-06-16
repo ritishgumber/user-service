@@ -151,6 +151,20 @@ function createOrUpdateResource(req, res) {
     var georegion=req.body.resource.cloudservicesettings[0].georegion[0];
     var type=req.body.resource.type[0]; 
 
+    //In case of update
+    var updateData = {       
+      provider: {
+        name: "azure",
+        etag: etag,
+        subscription_id: subscription_id,
+        cloud_service_name: cloud_service_name,
+        resource_name: resource_name,          
+        geoRegion: georegion,
+        resource_type:type
+      }     
+    };
+
+
     if (!resources || resources.length === 0) {      
 
       createResource(subscription_id, cloud_service_name, resource_name, etag, plan, georegion, type)
@@ -158,7 +172,8 @@ function createOrUpdateResource(req, res) {
         res.setHeader('Content-Type', 'application/xml');        
         return res.status(200).send(utils.loadTemplate('create.xml', { response: response }));         
       },function(error){
-        return res.status(500).send(error);
+        updateData.planId=plan;        
+        return res.status(403).send(utils.loadTemplate('createFail.xml', { response: updateData }));
       });
 
     } else {      
@@ -168,21 +183,9 @@ function createOrUpdateResource(req, res) {
       // tenant.ETag = 'new-etag-signaling-change'
 
       var projectId=resources[0]._id;
-      var appId=resources[0].appId;   
-    
+      var appId=resources[0].appId;  
 
-      var updateData = {       
-        provider: {
-          name: "azure",
-          etag: etag,
-          subscription_id: subscription_id,
-          cloud_service_name: cloud_service_name,
-          resource_name: resource_name,          
-          geoRegion: georegion,
-          resource_type:type
-        }     
-      };
-
+     
       if(plan){
         var planId=1;
         var tempData=plan;
