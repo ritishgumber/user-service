@@ -456,7 +456,10 @@ module.exports = function(Project){
                   }  
                   if(newProject){
                     console.log("Success on Change app Masterkey...");
-                    deferred.resolve(newProject);
+                    //delete project/app from redis so further request will make a new entry with new keys
+                    deleteAppFromRedis(newProject.appId);
+                    deferred.resolve(newProject);        
+
                   }else{
                     console.log("Project not found for Change app Masterkey...");
                     deferred.resolve(null);
@@ -490,6 +493,8 @@ module.exports = function(Project){
                   }  
                   if(newProject){
                     console.log("Successfull on Change client key in project...");
+                    //delete project/app from redis so further request will make a new entry with new keys
+                    deleteAppFromRedis(newProject.appId);
                     deferred.resolve(newProject);
                   }else{
                     console.log("Project not found for Change client key in project...");
@@ -1066,6 +1071,27 @@ function checkValidUser(app,userId,role){
   }catch(err){
     global.winston.log('error',{"error":String(err),"stack": new Error().stack});              
   }
+}
+
+function deleteAppFromRedis(appId){
+  var deferred = Q.defer();
+
+  try{
+      //check redis cache first.       
+    global.redisClient.del(global.keys.cacheAppPrefix+':'+appId, function (err, caches) {
+      if (err){
+        deferred.reject(err);
+      }else{
+        deferred.resolve("Success");
+      }          
+    });      
+
+  } catch(err){           
+      global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+      deferred.reject(err);
+  } 
+
+  return deferred.promise;
 }
 
 /***********************Pinging Data Services*********************************/
