@@ -223,7 +223,11 @@ module.exports = function(Project){
                 }   
 
                 console.log("Success on Find and update project...");             
-                return deffered.resolve(project);                    
+                return deffered.resolve(project);
+
+                if(project && project.planId){
+                  _createPlanInAnalytics(project.appId,project.planId);
+                }                                    
               });
 
             }catch(err){

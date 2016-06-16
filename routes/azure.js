@@ -133,34 +133,30 @@ function onSubscriptionDeleted(req, res) {
 }
 
 function createOrUpdateResource(req, res) {
-  
-  var criteria={
-    provider: {
-      $elemMatch: {
-      "subscription_id": req.params['subscription_id'],
-      "cloud_service_name": req.params['cloud_service_name'],
-      "resource_name": req.params['resource_name']
-      }
-    }
+
+  var criteria = {
+    'provider.subscription_id': req.params['subscription_id'],
+    'provider.cloud_service_name': req.params['cloud_service_name'],
+    'provider.resource_name': req.params['resource_name']
   };
 
+
   global.projectService.getProjectBy(criteria).then(function(resources){
-    if (!resources || resources.length === 0) {
-     
-      var subscription_id=req.params['subscription_id'];
-      var cloud_service_name=req.params['cloud_service_name'];
-      var resource_name=req.params['resource_name'];
-      var etag=req.body.resource.etag[0];
-      var plan=req.body.resource.plan[0];
-      var georegion=req.body.resource.cloudservicesettings[0].georegion[0];
-      var type=req.body.resource.type[0]; 
+
+    var subscription_id=req.params['subscription_id'];
+    var cloud_service_name=req.params['cloud_service_name'];
+    var resource_name=req.params['resource_name'];
+    var etag=req.body.resource.etag[0];
+    var plan=req.body.resource.plan[0];
+    var georegion=req.body.resource.cloudservicesettings[0].georegion[0];
+    var type=req.body.resource.type[0]; 
+
+    if (!resources || resources.length === 0) {      
 
       createResource(subscription_id, cloud_service_name, resource_name, etag, plan, georegion, type)
-      .then(function(resource){
-        return renderResponse(resource);
-      }).then(function(response){
-        res.setHeader('Content-Type', 'application/xml');
-        return res.status(200).send(response);
+      .then(function(response){
+        res.setHeader('Content-Type', 'application/xml');        
+        return res.status(200).send(utils.loadTemplate('create.xml', { response: response }));         
       },function(error){
         return res.status(500).send(error);
       });
@@ -175,7 +171,7 @@ function createOrUpdateResource(req, res) {
       var appId=resources[0].appId;   
     
 
-      var data = {       
+      var updateData = {       
         provider: {
           name: "azure",
           etag: etag,
@@ -199,17 +195,16 @@ function createOrUpdateResource(req, res) {
           }
         }
 
-        tenant.planId=planId;
+        updateData.planId=planId;
       }
      
-      global.projectService.findOneAndUpdateProject(projectId,data).then(function(resources){
-        return renderResponse(resources);      
-      }).then(function(){
+      global.projectService.findOneAndUpdateProject(projectId,updateData).then(function(updatedProj){
         res.setHeader('Content-Type', 'application/xml');
-        return res.send(200, response);
+        return res.status(200).send(utils.loadTemplate('getResource.xml', { resource: updatedProj}));       
       },function(error){
-        return res.status(500).send(error);
-      });      
+        return res.status(500).send("Upgrade failed");
+      }); 
+
     }
   });  
 }
@@ -219,42 +214,60 @@ function createResource(subscription_id, cloud_service_name, resource_name, etag
 
   var criteria = { "azure.subscription_id": subscription_id };
 
+  var currentUser=null;
+
   global.userService.getUserBy(criteria).then(function(user){
+    currentUser=user;
+
     if(!user){
       var noUserDataDeferred = Q.defer();
       noUserDataDeferred.reject('No user is found for ' + subscription_id);
       return noUserDataDeferred.promise;
     }else{     
-
-      var tenant = {       
-        provider: {
-          name: "azure",
-          etag: etag,
-          subscription_id: subscription_id,
-          cloud_service_name: cloud_service_name,
-          resource_name: resource_name,          
-          geoRegion: georegion,
-          resource_type:type
-        }      
-      };
-
-      if(plan){
-        var planId=1;
-        var tempData=plan;
-        if(plan){
-          var data=Number(plan);        
-          if(data.toString()!=tempData){ 
-            var planId=1;         
-          }else{
-            planId=Number(plan); 
-          }
-        }
-
-        tenant.planId=planId;
+      //Check resource name already been in use
+      return global.projectService.getProjectBy({"provider.resource_name": resource_name,"provider.subscription_id":subscription_id});      
+    }  
+  }).then(function(project){
+      var isAlreadyInUse=false;
+      if(project && project.provider && project.provider.resource_name){
+        isAlreadyInUse=true;
       }
 
-      return global.projectService.createProject(resource_name, user._id, tenant);
-    }  
+      if(isAlreadyInUse){
+        var alreadyDeferred = Q.defer();
+        alreadyDeferred.reject('This Resource name already being used ' + resource_name);
+        return alreadyDeferred.promise;
+      }else{
+        var tenant = {       
+          provider: {
+            name: "azure",
+            etag: etag,
+            subscription_id: subscription_id,
+            cloud_service_name: cloud_service_name,
+            resource_name: resource_name,          
+            geoRegion: georegion,
+            resource_type:type
+          }      
+        };
+
+        if(plan){
+          var planId=1;
+          var tempData=plan;
+          if(plan){
+            var data=Number(plan);        
+            if(data.toString()!=tempData){ 
+              var planId=1;         
+            }else{
+              planId=Number(plan); 
+            }
+          }
+
+          tenant.planId=planId;
+        }
+
+        return global.projectService.createProject(resource_name, currentUser._id, tenant);
+      }
+      
   }).then(function(doc){
     deferred.resolve(doc);
   },function(error){
@@ -265,8 +278,9 @@ function createResource(subscription_id, cloud_service_name, resource_name, etag
 }
 
 function getResource(req, res, next) {
-  winston.debug('azure: get resource');
-  
+ 
+  var resourceNameWise=false;
+
   var criteria = {
     'provider.subscription_id': req.params['subscription_id'],
     'provider.cloud_service_name': req.params['cloud_service_name']
@@ -274,13 +288,21 @@ function getResource(req, res, next) {
 
   if (req.params['resource_name']) {
     criteria['provider.resource_name'] = req.params['resource_name'];
+    resourceNameWise=true;
   }
 
   global.projectService.getProjectBy(criteria).then(function(resources){
     if(resources && resources.length){
       console.log('azure: resources in db', resources.length);
       res.setHeader('Content-Type', 'application/xml');
-      return res.status(200).send(utils.loadTemplate('get.xml', { resources: resources }));
+
+
+      if(resourceNameWise){
+        return res.status(200).send(utils.loadTemplate('getResource.xml', { resource: resources[0] }));
+      }else{
+        return res.status(200).send(utils.loadTemplate('getCloudService.xml', { listResources: resources }));
+      }
+      
     }else{
       return res.status(404).send('No resources found.');
     }
@@ -353,17 +375,3 @@ function getPropertyFromSubscription(reqJSON, propName){
   return emails;
 }
 
-function renderResponse(resource) {
-
-  var deferred = Q.defer();
-
-    var data = {
-      resource_name: resource.provider.resource_name,
-      ETag: resource.provider.etag
-      // extra parameters you want to send in OutputItems
-    };
-
-    deferred.resolve(utils.loadTemplate('create.xml', data));
-    
-  return deferred.promise;  
-}

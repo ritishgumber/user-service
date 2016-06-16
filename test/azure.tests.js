@@ -22,14 +22,14 @@ describe("azure hook", function() {
     done();
   });
 
- /*it('can register subscription and create resource', function (done) {
+ it('can register subscription and create resource', function (done) {
 
     this.timeout(15000);
 
     async.series([
       function register(cb) {
         var body = fs.readFileSync(path.join(__dirname, 'subscription_register.xml'), 'utf8');
-        request.post({url: baseUrl + '/webhooks/azure/subscriptions/12345/Events',
+        request.post({url: baseUrl + '/webhooks/azure/subscriptions/12348/Events',
                   body: body,
                   headers: { 'Content-Type': 'application/xml' } }, function(err, resp) {
 
@@ -40,7 +40,7 @@ describe("azure hook", function() {
       function create_resource(cb) {
         var body = fs.readFileSync(path.join(__dirname, 'create.xml'), 'utf8');
         request.put({
-          url:  baseUrl + '/webhooks/azure/subscriptions/12345/cloudservices/my-cloud-service/resources/authentication/popey',
+          url:  baseUrl + '/webhooks/azure/subscriptions/12348/cloudservices/my-cloud-service2/resources/authentication/popey4',
           body: body,
           headers: { 'Content-Type': 'application/xml' }
         }, function (err, resp, body) {
@@ -175,7 +175,7 @@ describe("azure hook", function() {
     ]);
   });
 
- it('can show multiple resources for subscription (ABCD)', function (done) {
+ /*it('can show multiple resources for subscription (ABCD)', function (done) {
     this.timeout(15000);
     request.get({url: baseUrl + '/webhooks/azure/subscriptions/ABCD/cloudservices/my-cloud-service'},
       function(err, resp, body) {

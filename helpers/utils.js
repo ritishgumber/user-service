@@ -4,7 +4,8 @@ var ejs = require('ejs'),
 
 var templates = {
   'create.xml': fs.readFileSync(path.join(__dirname, 'azure-xml-responses', 'create.xml'), 'utf8'),
-  'get.xml': fs.readFileSync(path.join(__dirname, 'azure-xml-responses', 'get.xml'), 'utf8'),
+  'getResource.xml': fs.readFileSync(path.join(__dirname, 'azure-xml-responses', 'getResource.xml'), 'utf8'),
+  'getCloudService.xml': fs.readFileSync(path.join(__dirname, 'azure-xml-responses', 'getCloudService.xml'), 'utf8'),
   'sso.xml': fs.readFileSync(path.join(__dirname, 'azure-xml-responses', 'sso.xml'), 'utf8')
 };
 

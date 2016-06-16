@@ -1,18 +1,19 @@
 <CloudService xmlns="http://schemas.microsoft.com/windowsazure">
-    <GeoRegion>East US</GeoRegion>
+    <GeoRegion><%= listResources[0].provider.geoRegion %></GeoRegion>
     <Resources>
-        <% resources.forEach(function(r) { %>
+
+        <% listResources.forEach(function(r) { %>
         <Resource>
             <ETag><%= r.provider.etag %></ETag>
             <Name><%= r.provider.resource_name %></Name>
             <OperationStatus>
                 <Result>Succeeded</Result>
             </OperationStatus>
-            <Plan>free</Plan>
-            <State>Started</State>
-            <SubState>Waiting for your API calls</SubState>
-            <Type>authentication</Type>
+            <Plan><%= r.planId %></Plan>
+            <State>Started</State>            
+            <Type><%= r.provider.resource_type %></Type>
         </Resource>
-        <% }) %>
+        <% }) %>        
+        
     </Resources>
 </CloudService>
