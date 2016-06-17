@@ -440,36 +440,45 @@ module.exports = function(Project){
           },
           changeAppMasterKey: function (currentUserId,appId) {
 
-              console.log("Change app Masterkey...");
+              console.log("Change master key in project...");
 
               var deferred = Q.defer();
 
               try{
-                var self = this;             
+                var self = this;
 
-                var newMasterKey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), global.keys.secureKey, 100, 32).toString("base64");        
-
-                Project.findOneAndUpdate({appId:appId,developers: {$elemMatch: {userId:currentUserId,role:"Admin"}}},{$set: {"keys.master":newMasterKey }},{'new': true}, function (err, newProject) {
-                  if (err){
-                    console.log("Error on Change app Masterkey...");
-                    deferred.reject(err);
-                  }  
-                  if(newProject){
-                    console.log("Success on Change app Masterkey...");
-                    //delete project/app from redis so further request will make a new entry with new keys
-                    deleteAppFromRedis(newProject.appId);
-                    deferred.resolve(newProject);        
-
-                  }else{
-                    console.log("Project not found for Change app Masterkey...");
-                    deferred.resolve(null);
+                var authUser={
+                  appId:appId,
+                  developers: {
+                    $elemMatch: {
+                      userId:currentUserId,
+                      role:"Admin"
+                    } 
                   }
-                       
+                };
+
+                self.getProjectBy(authUser).then(function(docs){
+
+                  if(!docs || docs.length==0){
+                    console.log("Invalid User or project not found.");
+                    var invalidDeferred = Q.defer();
+                    invalidDeferred.reject("Invalid User or project not found.");
+                    return invalidDeferred.promise;
+                  }
+
+                  if(docs && docs.length>0){
+                    return _changeMasterKeyFromDS(appId);
+                  }
+
+                }).then(function(resp){
+                  deferred.resolve(resp);
+                },function(error){
+                  deferred.reject(err);
                 });
 
               }catch(err){
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-                deferred.reject(err)         
+                deferred.reject(err);         
               }
 
              return deferred.promise;
@@ -484,28 +493,38 @@ module.exports = function(Project){
               try{
                 var self = this;
 
-                var newClientkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), global.keys.secureKey, 100, 16).toString("base64");
-
-                Project.findOneAndUpdate({appId:appId,developers: {$elemMatch: {userId:currentUserId,role:"Admin"} }},{$set: {"keys.js":newClientkey }},{'new': true}, function (err, newProject) {
-                  if (err){
-                    console.log("Error on Change client key in project...");
-                    deferred.reject(err);
-                  }  
-                  if(newProject){
-                    console.log("Successfull on Change client key in project...");
-                    //delete project/app from redis so further request will make a new entry with new keys
-                    deleteAppFromRedis(newProject.appId);
-                    deferred.resolve(newProject);
-                  }else{
-                    console.log("Project not found for Change client key in project...");
-                    deferred.resolve(null);
+                var authUser={
+                  appId:appId,
+                  developers: {
+                    $elemMatch: {
+                      userId:currentUserId,
+                      role:"Admin"
+                    } 
                   }
-                       
+                };
+
+                self.getProjectBy(authUser).then(function(docs){
+
+                  if(!docs || docs.length==0){
+                    console.log("Invalid User or project not found.");
+                    var invalidDeferred = Q.defer();
+                    invalidDeferred.reject("Invalid User or project not found.");
+                    return invalidDeferred.promise;
+                  }
+
+                  if(docs && docs.length>0){
+                    return _changeClientKeyFromDS(appId);
+                  }
+
+                }).then(function(resp){
+                  deferred.resolve(resp);
+                },function(error){
+                  deferred.reject(err);
                 });
 
               }catch(err){
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-                deferred.reject(err)         
+                deferred.reject(err);         
               }
 
              return deferred.promise;
@@ -1073,26 +1092,7 @@ function checkValidUser(app,userId,role){
   }
 }
 
-function deleteAppFromRedis(appId){
-  var deferred = Q.defer();
 
-  try{
-      //check redis cache first.       
-    global.redisClient.del(global.keys.cacheAppPrefix+':'+appId, function (err, caches) {
-      if (err){
-        deferred.reject(err);
-      }else{
-        deferred.resolve("Success");
-      }          
-    });      
-
-  } catch(err){           
-      global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-      deferred.reject(err);
-  } 
-
-  return deferred.promise;
-}
 
 /***********************Pinging Data Services*********************************/
 
@@ -1186,6 +1186,92 @@ function _deleteAppFromDS(appId){
   return deferred.promise;
 }
 
+
+function _changeClientKeyFromDS(appId){
+
+  console.log("Change ClientKey From Data services...");
+
+  var deferred = Q.defer();  
+ 
+  try{
+    var post_data = {};
+    post_data.secureKey = global.keys.secureKey;
+    post_data = JSON.stringify(post_data);
+
+
+    var url = global.keys.dataServiceUrl + '/admin/'+appId+'/clientkey';  
+    request.put(url,{
+        headers: {
+            'content-type': 'application/json',
+            'content-length': post_data.length
+        },
+        body: post_data
+    },function(err,response,body){                      
+        if(err || response.statusCode === 500 || body === 'Error'){ 
+          console.log("Error on Change ClientKey From Data services...");  
+          console.log(err);    
+          deferred.reject(err);
+        }else { 
+          console.log("Successfull on Change ClientKey from data services..");  
+          try{
+            var respBody=JSON.parse(body);                           
+            deferred.resolve(respBody);
+          }catch(e){
+            deferred.resolve(body);
+          }
+        }
+    });
+
+  }catch(err){
+    global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+    deferred.reject(err);         
+  }
+
+  return deferred.promise;
+}
+
+function _changeMasterKeyFromDS(appId){
+
+  console.log("Change MasterKey From Data services...");
+
+  var deferred = Q.defer();  
+ 
+  try{
+    var post_data = {};
+    post_data.secureKey = global.keys.secureKey;
+    post_data = JSON.stringify(post_data);
+
+
+    var url = global.keys.dataServiceUrl + '/admin/'+appId+'/masterkey';  
+    request.put(url,{
+        headers: {
+            'content-type': 'application/json',
+            'content-length': post_data.length
+        },
+        body: post_data
+    },function(err,response,body){                      
+        if(err || response.statusCode === 500 || body === 'Error'){ 
+          console.log("Error on Change masterkey From Data services...");  
+          console.log(err);    
+          deferred.reject(err);
+        }else { 
+          console.log("Successfull on Change masterkey from data services..");  
+          try{
+            var respBody=JSON.parse(body);                           
+            deferred.resolve(respBody);
+          }catch(e){
+            deferred.resolve(body);
+          }
+        }
+    });
+
+  }catch(err){
+    global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+    deferred.reject(err);         
+  }
+
+  return deferred.promise;
+}
 
 function _createPlanInAnalytics(appId,planId){
 

@@ -217,7 +217,7 @@ module.exports = function() {
 
     app.delete('/app/:appId', function(req,res,next) {
 
-        console.log("Change clientKey by appId");
+        console.log("Delete project by appId");
 
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.body.userId;
 
@@ -225,16 +225,16 @@ module.exports = function() {
 
             global.projectService.delete(req.params.appId, currentUserId).then(function() {                
                  
-                console.log("Successfull Change clientKey by appId");
+                console.log("Successfull Delete project by appId");
                 return res.status(200).json({});                              
 
             },function(error){
-                console.log("error Change clientKey by appId");
+                console.log("error Delete project by appId");
                 return res.send(500, error);
             });
 
         }else{
-            console.log("unauthorized Change clientKey by appId");
+            console.log("unauthorized Delete project by appId");
             return res.status(401).send("unauthorized");
         }
 

@@ -258,9 +258,7 @@ module.exports = function(){
             var Tutorial = require('./model/tutorial.js')();
             var _Settings = require('./model/_settings.js')();
             var Notification = require('./model/notification.js')();
-            var Cbpartner = require('./model/cbpartner.js')();
-            var AzureSubscription = require('./model/azureSubscription.js')();
-            var AzureResource = require('./model/azureResource.js')();
+            var Cbpartner = require('./model/cbpartner.js')();           
 
             //Services            
             global.beaconService  = require('./services/beaconService.js')(Beacon);        
@@ -276,9 +274,7 @@ module.exports = function(){
             global.paymentProcessService = require('./services/paymentProcessService.js')();
             global.userAnalyticService = require('./services/userAnalyticService.js')();
             global.analyticsNotificationsService = require('./services/analyticsNotificationsService.js')();
-            global.cbPartnerService = require('./services/cbPartnerService.js')(Cbpartner);
-            global.azureSubscriptionService = require('./services/azureSubscriptionService.js')(AzureSubscription);
-            global.azureResourceService = require('./services/azureResourceService.js')(AzureResource);
+            global.cbPartnerService = require('./services/cbPartnerService.js')(Cbpartner);         
 
             //Routes(API)
             require('./framework/config')(passport, User); 
