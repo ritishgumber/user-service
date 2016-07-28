@@ -1,4 +1,5 @@
 <SsoToken xmlns="http://schemas.microsoft.com/windowsazure">
-    <TimeStamp><%=timestamp%></TimeStamp>
+	<Url>/page/<%=resources.appId%>/<%=token%>/authentication</Url>
+   	<resourceId><%=resources.appId%></resourceId>
     <Token><%=token%></Token>
 </SsoToken>

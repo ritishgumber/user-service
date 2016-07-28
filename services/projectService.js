@@ -9,1086 +9,1111 @@ var crypto = require('crypto');
 var request = require('request');
 var randomString = require('random-string');
 
-module.exports = function(Project){
+module.exports = function (Project) {
 
   return {
 
-          createProject: function (name, userId, data) {
+    createProject: function (name, userId, data) {
 
-              console.log("Create project/app");
+      console.log("Create project/app");
 
-              var _self = this;
+      var _self = this;
 
-              var deferred = Q.defer();
+      var deferred = Q.defer();
 
-              try{
+      try {
 
-                var self = this;
+        var self = this;
 
-                var savedProject;
-                var appId;
-                var newAppPlanId= 1;
+        var savedProject;
+        var appId;
+        var newAppPlanId = 1;
 
-                if(data && data.planId){
-                  newAppPlanId=data.planId;
-                }                             
+        if (data && data.planId) {
+          newAppPlanId = data.planId;
+        }
 
-                generateNonExistingAppId().then(function (newAppId) { 
-                  console.log("fetched new appId");                
-                  appId=newAppId;
-                  return _createAppFromDS(appId);    
+        generateNonExistingAppId().then(function (newAppId) {
+          console.log("fetched new appId");
+          appId = newAppId;
+          return _createAppFromDS(appId);
 
-                }).then(function(project) {
+        }).then(function (project) {
 
-                  console.log("Successfull on create app from data service..");
-                  project=JSON.parse(project);
-                 
-                  //Adding default developer
-                  var developers=[];
-                  var newDeveloper={};
-                  newDeveloper.userId=userId;
-                  newDeveloper.role="Admin";
-                  developers.push(newDeveloper);              
-                  //End Adding default developer
+          console.log("Successfull on create app from data service..");
+          project = JSON.parse(project);
 
-                  var appendJson={
-                    _userId    : userId,
-                    name       : name,
-                    developers : developers,
-                    planId     : newAppPlanId,                 
-                    disabled   : false                  
-                  };
+          //Adding default developer
+          var developers = [];
+          var newDeveloper = {};
+          newDeveloper.userId = userId;
+          newDeveloper.role = "Admin";
+          developers.push(newDeveloper);
+          //End Adding default developer
 
-                  if(data && data.provider){
-                    appendJson.provider=data.provider;
-                  }
-                  return _self.findOneAndUpdateProject(project._id,appendJson);                              
+          var appendJson = {
+            _userId: userId,
+            name: name,
+            developers: developers,
+            planId: newAppPlanId,
+            disabled: false
+          };
 
-                }).then(function(newProject){ 
+          if (data && data.provider) {
+            appendJson.provider = data.provider;
+          }
+          return _self.findOneAndUpdateProject(project._id, appendJson);
 
-                  console.log("Successfull on save new project");
+        }).then(function (newProject) {
 
-                  deferred.resolve(newProject);
-                  _createPlanInAnalytics(appId,newAppPlanId);
+          console.log("Successfull on save new project");
 
-                },function(error) { 
-                  console.log("Error on create new project");               
-                  deferred.reject(error);
-                });
+          deferred.resolve(newProject);
+          _createPlanInAnalytics(appId, newAppPlanId);
 
-              }catch(err){
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-                deferred.reject(err)         
-              }            
+        }, function (error) {
+          console.log("Error on create new project");
+          deferred.reject(error);
+        });
 
-              return deferred.promise;
-          },        
-          projectList: function (userId) {
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deferred.reject(err)
+      }
 
-            console.log("Get project list..");
+      return deferred.promise;
+    },
+    projectList: function (userId) {
 
-            var _self = this;
+      console.log("Get project list..");
 
-            var deferred = Q.defer();
+      var _self = this;
 
-            try{
+      var deferred = Q.defer();
 
-              var self = this;            
+      try {
 
-              Project.find({ developers: {$elemMatch: {userId:userId} } }, function (err, list) {
-                if (err){
-                  console.log("Error on Get project list..");
-                  deferred.reject(err);
-                }  
-                console.log("Success on Get project list..");                
-                deferred.resolve(list);                 
-              });
+        var self = this;
 
-            }catch(err){
-              global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-              deferred.reject(err)         
-            }
+        Project.find({ developers: { $elemMatch: { userId: userId } } }, function (err, list) {
+          if (err) {
+            console.log("Error on Get project list..");
+            deferred.reject(err);
+          }
+          console.log("Success on Get project list..");
+          deferred.resolve(list);
+        });
 
-             return deferred.promise;
-          },
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deferred.reject(err)
+      }
 
-          editProject: function(userId,id,name) {
+      return deferred.promise;
+    },
 
-              console.log("Edit project...");
+    editProject: function (userId, id, name) {
 
-              var deferred = Q.defer();
+      console.log("Edit project...");
 
-              try{
-                var _self = this;
+      var deferred = Q.defer();
 
-                _self.getProject(id).then(function (project) {
+      try {
+        var _self = this;
+
+        _self.getProject(id).then(function (project) {
+          if (!project) {
+            console.log("Project not found for edit...");
+            deferred.reject('Error : Cannot update project right now.');
+          } else if (project) {
+
+            Project.findOne({ name: name }, function (err, projectSameName) {
+              if (projectSameName) {
+                console.log("Project names conflict for edit..");
+                deferred.reject('You cannot have two apps with the same name.');
+
+              } else {
+
+                /***Start editing***/
+                if (project && checkValidUser(project, userId, "Admin")) {
+                  project.name = name;
+
+                  project.save(function (err, project) {
+                    if (err) {
+                      console.log("Error on edit the project..");
+                      deferred.reject(err);
+                    }
                     if (!project) {
-                        console.log("Project not found for edit...");
-                        deferred.reject('Error : Cannot update project right now.');
-                    }else if(project){
-
-                      Project.findOne({name:name}, function (err, projectSameName) {
-                        if(projectSameName){
-                          console.log("Project names conflict for edit..");
-                          deferred.reject('You cannot have two apps with the same name.');
-
-                        }else{
-
-                            /***Start editing***/
-                            if(project && checkValidUser(project,userId,"Admin")){                      
-                                project.name=name;                 
-
-                                project.save(function (err, project) {
-                                    if (err){
-                                      console.log("Error on edit the project..");
-                                      deferred.reject(err);
-                                    }
-                                    if(!project){
-                                        console.log("project not saved on edit..");
-                                        deferred.reject('Cannot save the app right now.');
-                                    }    
-                                    else{
-                                      console.log("Successfull on edit project..");
-                                      deferred.resolve(project._doc);                             
-                                    }
-                                });
-                            }else{
-                              console.log("Unauthorized to edit the project..");
-                              deferred.reject("Unauthorized");
-                            }
-                            /***End Start editing***/
-                        }
-                      });  
-                    }                                 
-
-                },function(error){
-                  console.log("error on retrieving project for edit..");
-                  deferred.reject(error);
-                });
-
-              }catch(err){
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-                deferred.reject(err)         
-              }
-
-              return deferred.promise;
-          },
-
-          getProject: function (appId) {
-
-              console.log("Get project...");
-
-              var deferred = Q.defer();
-
-              try{
-                var self = this;
-
-                Project.findOne({appId:appId}, function (err, project) {
-                  if (err){
-                    console.log("Error on Get project...");
-                    deferred.reject(err);
-                  }  
-                  else {
-                    console.log("Successfull on get project..");
-                    deferred.resolve(project);
-                  }
-                });
-
-              }catch(err){
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-                deferred.reject(err)         
-              }
-
-             return deferred.promise;
-
-          },
-
-          findOneAndUpdateProject: function (projectId,newJson) {
-
-            console.log("Find and update project...");
-
-            var deffered = Q.defer();
-
-            try{
-              var self = this;              
-
-              Project.findOneAndUpdate({_id:projectId}, { $set: newJson},{new:true},function (err, project) {
-                if (err) {   
-                  console.log("Error on Find and update project...");               
-                  return deffered.reject(err);         
+                      console.log("project not saved on edit..");
+                      deferred.reject('Cannot save the app right now.');
+                    }
+                    else {
+                      console.log("Successfull on edit project..");
+                      deferred.resolve(project._doc);
+                    }
+                  });
+                } else {
+                  console.log("Unauthorized to edit the project..");
+                  deferred.reject("Unauthorized");
                 }
-                if (!project) { 
-                  console.log("Project not found for ..Find and update project...");                 
-                  return deffered.reject(null);
-                }   
+                /***End Start editing***/
+              }
+            });
+          }
 
-                console.log("Success on Find and update project...");             
-                return deffered.resolve(project);
+        }, function (error) {
+          console.log("error on retrieving project for edit..");
+          deferred.reject(error);
+        });
 
-                if(project && project.planId){
-                  _createPlanInAnalytics(project.appId,project.planId);
-                }                                    
-              });
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deferred.reject(err)
+      }
 
-            }catch(err){
-              global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-              deffered.reject(err)         
+      return deferred.promise;
+    },
+
+    getProject: function (appId) {
+
+      console.log("Get project...");
+
+      var deferred = Q.defer();
+
+      try {
+        var self = this;
+
+        Project.findOne({ appId: appId }, function (err, project) {
+          if (err) {
+            console.log("Error on Get project...");
+            deferred.reject(err);
+          }
+          else {
+            console.log("Successfull on get project..");
+            deferred.resolve(project);
+          }
+        });
+
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deferred.reject(err)
+      }
+
+      return deferred.promise;
+
+    },
+
+    findOneAndUpdateProject: function (projectId, newJson) {
+
+      console.log("Find and update project...");
+
+      var deffered = Q.defer();
+
+      try {
+        var self = this;
+
+        Project.findOneAndUpdate({ _id: projectId }, { $set: newJson }, { new: true }, function (err, project) {
+          if (err) {
+            console.log("Error on Find and update project...");
+            return deffered.reject(err);
+          }
+          if (!project) {
+            console.log("Project not found for ..Find and update project...");
+            return deffered.reject(null);
+          }
+
+          console.log("Success on Find and update project...");
+          return deffered.resolve(project);
+
+          if (project && project.planId) {
+            _createPlanInAnalytics(project.appId, project.planId);
+          }
+        });
+
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deffered.reject(err)
+      }
+
+      return deffered.promise;
+
+    },
+    updateProjectBy: function (query, newJson) {
+
+      console.log("Find and update project...");
+
+      var deffered = Q.defer();
+
+      try {
+        var self = this;
+
+        Project.findOneAndUpdate(query, { $set: newJson }, { new: true }, function (err, project) {
+          if (err) {
+            console.log("Error on Find and update project...");
+            return deffered.reject(err);
+          }
+          if (!project) {
+            console.log("Project not found for ..Find and update project...");
+            return deffered.reject(null);
+          }
+
+          console.log("Success on Find and update project...");
+          return deffered.resolve(project);
+        });
+
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deffered.reject(err)
+      }
+
+      return deffered.promise;
+
+    },
+    updatePlanByAppId: function (appId, planId) {
+
+      console.log("Update planId in project..");
+
+      var deffered = Q.defer();
+
+      try {
+        var self = this;
+
+        Project.findOneAndUpdate({ appId: appId }, { $set: { planId: planId } }, { new: true }, function (err, project) {
+          if (err) {
+            console.log("Error on update planId in project..");
+            return deffered.reject(err);
+          }
+          if (!project) {
+            console.log("Project not found.. on update planId in project..");
+            return deffered.reject(null);
+          }
+          console.log("Successfull on update planId in project..");
+          return deffered.resolve(project);
+        });
+
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deffered.reject(err)
+      }
+
+      return deffered.promise;
+
+    },
+    deleteProjectBy: function (query) {
+
+      console.log("Delete Project...");
+
+      var deferred = Q.defer();
+
+      try {
+        var self = this;
+
+        console.log(' ++++++++ App Delete request +++++++++');
+
+        Project.findOne(query, function (err, foundProj) {
+          if (err) {
+            console.log('++++++++ App Delete failed from frontend ++++++++++');
+            deferred.reject(err);
+          } else if (foundProj) {
+
+            _deleteAppFromDS(foundProj.appId).then(function (resp) {
+              console.log("Delete Project from data services......");
+              deferred.resolve(resp);
+            }, function (error) {
+              console.log("Error on Delete Project from data services......");
+              deferred.reject(error);
+            });
+
+          } else {
+            console.log("Project not found ..Delete Project");
+            deferred.reject("Project not found with specified user");
+          }
+        });
+
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deferred.reject(err)
+      }
+
+      return deferred.promise;
+
+    },
+    delete: function (appId, userId) {
+
+      console.log("Delete Project...");
+
+      var deferred = Q.defer();
+
+      try {
+        var self = this;
+
+        console.log(' ++++++++ App Delete request +++++++++');
+
+        Project.findOne({ appId: appId, developers: { $elemMatch: { userId: userId, role: "Admin" } } }, function (err, foundProj) {
+          if (err) {
+            console.log('++++++++ App Delete failed from frontend ++++++++++');
+            deferred.reject(err);
+          } else if (foundProj) {
+
+            _deleteAppFromDS(appId).then(function (resp) {
+              console.log("Delete Project from data services......");
+              deferred.resolve(resp);
+            }, function (error) {
+              console.log("Error on Delete Project from data services......");
+              deferred.reject(error);
+            });
+
+          } else {
+            console.log("Project not found ..Delete Project");
+            deferred.reject("Project not found with specified user");
+          }
+        });
+
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deferred.reject(err)
+      }
+
+      return deferred.promise;
+
+    },
+    allProjectList: function () {
+
+      console.log("get all project list....");
+
+      var _self = this;
+
+      var deferred = Q.defer();
+
+      try {
+        var self = this;
+
+        Project.find({}, function (err, list) {
+          if (err) {
+            console.log("Error on get all project list....");
+            deferred.reject(err);
+          }
+          console.log("Success on get all project list....");
+          deferred.resolve(list);
+
+        });
+
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deferred.reject(err)
+      }
+
+      return deferred.promise;
+    },
+    getProjectBy: function (query) {
+
+      console.log("get all project list....");
+
+      var _self = this;
+
+      var deferred = Q.defer();
+
+      try {
+        var self = this;
+
+        Project.find(query, function (err, list) {
+          if (err) {
+            console.log("Error on get  project by query....");
+            return deffered.reject(err);
+          }
+          if (!list || list.length == 0) {
+            console.log("project not found to get project by Query..");
+            return deferred.resolve(null);
+          }
+
+          console.log("Success on get project by query....");
+          return deferred.resolve(list);
+
+        });
+
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deferred.reject(err)
+      }
+
+      return deferred.promise;
+    },
+    changeAppMasterKey: function (currentUserId, appId) {
+
+      console.log("Change master key in project...");
+
+      var deferred = Q.defer();
+
+      try {
+        var self = this;
+
+        var authUser = {
+          appId: appId,
+          developers: {
+            $elemMatch: {
+              userId: currentUserId,
+              role: "Admin"
             }
+          }
+        };
 
-            return deffered.promise;
+        self.getProjectBy(authUser).then(function (docs) {
 
-          },          
-          updateProjectBy: function (query,newJson) {
+          if (!docs || docs.length == 0) {
+            console.log("Invalid User or project not found.");
+            var invalidDeferred = Q.defer();
+            invalidDeferred.reject("Invalid User or project not found.");
+            return invalidDeferred.promise;
+          }
 
-            console.log("Find and update project...");
+          if (docs && docs.length > 0) {
+            return _changeMasterKeyFromDS(appId);
+          }
 
-            var deffered = Q.defer();
+        }).then(function (resp) {
+          deferred.resolve(resp);
+        }, function (error) {
+          deferred.reject(err);
+        });
 
-            try{
-              var self = this;              
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deferred.reject(err);
+      }
 
-              Project.findOneAndUpdate(query, { $set: newJson},{new:true},function (err, project) {
-                if (err) {   
-                  console.log("Error on Find and update project...");               
-                  return deffered.reject(err);         
-                }
-                if (!project) { 
-                  console.log("Project not found for ..Find and update project...");                 
-                  return deffered.reject(null);
-                }   
+      return deferred.promise;
 
-                console.log("Success on Find and update project...");             
-                return deffered.resolve(project);                    
-              });
+    },
+    changeAppClientKey: function (currentUserId, appId) {
 
-            }catch(err){
-              global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-              deffered.reject(err)         
+      console.log("Change client key in project...");
+
+      var deferred = Q.defer();
+
+      try {
+        var self = this;
+
+        var authUser = {
+          appId: appId,
+          developers: {
+            $elemMatch: {
+              userId: currentUserId,
+              role: "Admin"
             }
+          }
+        };
 
-            return deffered.promise;
+        self.getProjectBy(authUser).then(function (docs) {
 
-          },
-          updatePlanByAppId: function (appId,planId) {
+          if (!docs || docs.length == 0) {
+            console.log("Invalid User or project not found.");
+            var invalidDeferred = Q.defer();
+            invalidDeferred.reject("Invalid User or project not found.");
+            return invalidDeferred.promise;
+          }
 
-            console.log("Update planId in project..");
+          if (docs && docs.length > 0) {
+            return _changeClientKeyFromDS(appId);
+          }
 
-            var deffered = Q.defer();
+        }).then(function (resp) {
+          deferred.resolve(resp);
+        }, function (error) {
+          deferred.reject(err);
+        });
 
-            try{
-            var self = this;            
-             
-              Project.findOneAndUpdate({appId:appId}, { $set: {planId:planId}},{new:true},function (err, project) {
-                if (err) {  
-                  console.log("Error on update planId in project..");               
-                  return deffered.reject(err);         
-                }
-                if (!project) {  
-                  console.log("Project not found.. on update planId in project..");                 
-                  return deffered.reject(null);
-                }   
-                console.log("Successfull on update planId in project..");               
-                return deffered.resolve(project);                    
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deferred.reject(err);
+      }
+
+      return deferred.promise;
+
+    },
+    removeDeveloper: function (currentUserId, appId, userId) {
+
+      console.log("Remove a developer from project..");
+
+      var deferred = Q.defer();
+
+      try {
+        var self = this;
+
+        Project.findOne({ appId: appId, developers: { $elemMatch: { userId: userId } } }, function (err, foundProj) {
+          if (err) {
+            console.log("Error on finding aproject for to remove a developer..");
+            deferred.reject(err);
+          } else if (!foundProj) {
+            console.log("project not found for to remove a developer..");
+            deferred.reject("Project not found with given userId");
+          } else if (currentUserId == userId || checkValidUser(foundProj, currentUserId, "Admin")) {
+            //User can delete himself or can delete others when he is a Admin
+            processRemoveDeveloper(foundProj, userId, currentUserId, self)
+              .then(function (data) {
+                console.log("Success on remove a developer..");
+                deferred.resolve(data);
+              }, function (error) {
+                console.log("Error on to remove a developer..");
+                deferred.reject(error);
               });
+          } else {
+            console.log("Unauthorized user to remove a developer..");
+            deferred.reject('Unauthorized!');
+          }
 
-            }catch(err){
-              global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-              deffered.reject(err)         
-            }
+        });
 
-            return deffered.promise;
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deferred.reject(err)
+      }
 
-          },
-          deleteProjectBy: function (query) {
+      return deferred.promise;
 
-              console.log("Delete Project...");
+    },
+    removeInvitee: function (currentUserId, appId, email) {
 
-              var deferred = Q.defer();
+      console.log("Remove a invitee..");
 
-              try{
-                var self = this;
+      var deferred = Q.defer();
 
-                console.log(' ++++++++ App Delete request +++++++++');
+      try {
+        var self = this;
 
-                Project.findOne(query, function (err,foundProj) {
-                  if(err){
-                    console.log('++++++++ App Delete failed from frontend ++++++++++');                   
-                    deferred.reject(err);
-                  }else if(foundProj){
+        Project.findOne({ appId: appId, invited: { $elemMatch: { email: email } } }, function (err, foundProj) {
+          if (err) {
+            console.log("Error on finding project for Remove a invitee..");
+            deferred.reject(err);
+          } else if (!foundProj) {
+            console.log("project not found for Remove a invitee..");
+            deferred.reject("Project not found with given Email");
+          } else {
 
-                    _deleteAppFromDS(foundProj.appId).then(function(resp){
-                      console.log("Delete Project from data services......");
-                      deferred.resolve(resp);
-                    },function(error){
-                      console.log("Error on Delete Project from data services......");
-                      deferred.reject(error);
-                    });
+            global.userService.getAccountByEmail(email).then(function (foundUser) {
 
-                  }else{
-                    console.log("Project not found ..Delete Project");
-                    deferred.reject("Project not found with specified user");
-                  }
-                });
+              if (checkValidUser(foundProj, currentUserId, "Admin") || foundUser._id == currentUserId) {
+                //User can delete himself or can delete others when he is a Admin
+                processRemoveInvitee(foundProj, email)
+                  .then(function (data) {
+                    console.log("Successfull on Remove a invitee..");
+                    deferred.resolve(data);
+                  }, function (error) {
+                    console.log("Error on Remove a invitee..");
+                    deferred.reject(error);
+                  });
 
-              }catch(err){
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-                deferred.reject(err)         
+              } else {
+                console.log("Unauthorized user to Remove a invitee..");
+                deferred.reject("Unauthorized");
               }
 
-             return deferred.promise;
+            }, function (userError) {
+              console.log("Error on getting user details for remove invitee..");
+              deferred.reject("Cannot Perform this task now");
+            });
 
-          },
-          delete: function (appId,userId) {
+          }
+        });
 
-              console.log("Delete Project...");
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deferred.reject(err)
+      }
 
-              var deferred = Q.defer();
+      return deferred.promise;
 
-              try{
-                var self = this;
+    },
 
-                console.log(' ++++++++ App Delete request +++++++++');
+    inviteUser: function (appId, email) {
 
-                Project.findOne({appId:appId,developers: {$elemMatch: {userId:userId,role:"Admin"} }}, function (err,foundProj) {
-                  if(err){
-                    console.log('++++++++ App Delete failed from frontend ++++++++++');                   
-                    deferred.reject(err);
-                  }else if(foundProj){
+      console.log("Invite user to the app.");
 
-                    _deleteAppFromDS(appId).then(function(resp){
-                      console.log("Delete Project from data services......");
-                      deferred.resolve(resp);
-                    },function(error){
-                      console.log("Error on Delete Project from data services......");
-                      deferred.reject(error);
-                    });
+      var deferred = Q.defer();
 
-                  }else{
-                    console.log("Project not found ..Delete Project");
-                    deferred.reject("Project not found with specified user");
-                  }
-                });
+      try {
+        var self = this;
 
-              }catch(err){
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-                deferred.reject(err)         
-              }
+        Project.findOne({ appId: appId }, function (err, project) {
+          if (err) {
+            console.log("Error on get project to Invite user to the app.");
+            deferred.reject(err);
+          }
+          if (!project) {
+            console.log("project not found to Invite user to the app.");
+            deferred.reject("App not found!.");
+          } else {
 
-             return deferred.promise;
+            global.userService.getAccountByEmail(email).then(function (foundUser) {
+              if (foundUser) {
 
-          },
-          allProjectList: function () {
+                if (!checkValidUser(project, foundUser._id, null)) {
 
-            console.log("get all project list....");
-
-            var _self = this;
-
-             var deferred = Q.defer();
-
-             try{
-              var self = this;
-
-              Project.find({}, function (err, list) {
-                if (err){
-                  console.log("Error on get all project list....");
-                  deferred.reject(err);
-                } 
-                console.log("Success on get all project list...."); 
-                deferred.resolve(list);              
-                 
-              });
-
-              }catch(err){
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-                deferred.reject(err)         
-              } 
-
-             return deferred.promise;
-          },
-          getProjectBy: function (query) {
-
-            console.log("get all project list....");
-
-            var _self = this;
-
-             var deferred = Q.defer();
-
-             try{
-              var self = this;
-
-              Project.find(query, function (err, list) {
-                if (err) { 
-                  console.log("Error on get  project by query....");
-                  return deffered.reject(err); 
-                }
-                if (!list || list.length==0) {
-                  console.log("project not found to get project by Query..");
-                  return deferred.resolve(null);
-                }
-
-                console.log("Success on get project by query...."); 
-                return deferred.resolve(list);             
-                 
-              });
-
-              }catch(err){
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-                deferred.reject(err)         
-              } 
-
-             return deferred.promise;
-          },
-          changeAppMasterKey: function (currentUserId,appId) {
-
-              console.log("Change master key in project...");
-
-              var deferred = Q.defer();
-
-              try{
-                var self = this;
-
-                var authUser={
-                  appId:appId,
-                  developers: {
-                    $elemMatch: {
-                      userId:currentUserId,
-                      role:"Admin"
-                    } 
-                  }
-                };
-
-                self.getProjectBy(authUser).then(function(docs){
-
-                  if(!docs || docs.length==0){
-                    console.log("Invalid User or project not found.");
-                    var invalidDeferred = Q.defer();
-                    invalidDeferred.reject("Invalid User or project not found.");
-                    return invalidDeferred.promise;
-                  }
-
-                  if(docs && docs.length>0){
-                    return _changeMasterKeyFromDS(appId);
-                  }
-
-                }).then(function(resp){
-                  deferred.resolve(resp);
-                },function(error){
-                  deferred.reject(err);
-                });
-
-              }catch(err){
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-                deferred.reject(err);         
-              }
-
-             return deferred.promise;
-
-          },
-          changeAppClientKey: function (currentUserId,appId) {
-
-              console.log("Change client key in project...");
-
-              var deferred = Q.defer();
-
-              try{
-                var self = this;
-
-                var authUser={
-                  appId:appId,
-                  developers: {
-                    $elemMatch: {
-                      userId:currentUserId,
-                      role:"Admin"
-                    } 
-                  }
-                };
-
-                self.getProjectBy(authUser).then(function(docs){
-
-                  if(!docs || docs.length==0){
-                    console.log("Invalid User or project not found.");
-                    var invalidDeferred = Q.defer();
-                    invalidDeferred.reject("Invalid User or project not found.");
-                    return invalidDeferred.promise;
-                  }
-
-                  if(docs && docs.length>0){
-                    return _changeClientKeyFromDS(appId);
-                  }
-
-                }).then(function(resp){
-                  deferred.resolve(resp);
-                },function(error){
-                  deferred.reject(err);
-                });
-
-              }catch(err){
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-                deferred.reject(err);         
-              }
-
-             return deferred.promise;
-
-          },
-          removeDeveloper: function (currentUserId,appId,userId) {
-
-              console.log("Remove a developer from project..");
-
-              var deferred = Q.defer();
-
-              try{
-                var self = this;             
-
-                Project.findOne({appId:appId,developers: {$elemMatch: {userId:userId} }}, function (err,foundProj) {
-                  if(err){  
-                    console.log("Error on finding aproject for to remove a developer..");                
-                    deferred.reject(err);
-                  }else if(!foundProj){
-                    console.log("project not found for to remove a developer..");
-                     deferred.reject("Project not found with given userId");
-                  }else if(currentUserId==userId || checkValidUser(foundProj,currentUserId,"Admin")){
-                    //User can delete himself or can delete others when he is a Admin
-                    processRemoveDeveloper(foundProj,userId,currentUserId,self)
-                    .then(function(data){
-                      console.log("Success on remove a developer..");
+                  processInviteUser(project, email, foundUser)
+                    .then(function (data) {
+                      console.log("Success on Invite user to the app.");
                       deferred.resolve(data);
-                    },function(error){
-                      console.log("Error on to remove a developer..");
+                    }, function (error) {
+                      console.log("Error on Invite user to the app.");
                       deferred.reject(error);
-                    });                                      
-                  }else{
-                    console.log("Unauthorized user to remove a developer..");
-                    deferred.reject('Unauthorized!');
-                  }                  
-                  
-                });
+                    });
 
-              }catch(err){
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-                deferred.reject(err)         
+                } else {
+                  console.log("Already a Developer to this App!");
+                  deferred.reject("Already a Developer to this App!");
+                }
+
+              } else {//There is no user with this email in cloudboost
+                processInviteUser(project, email, foundUser)
+                  .then(function (data) {
+                    console.log("Success on Invite user to the app.");
+                    deferred.resolve(data);
+                  }, function (error) {
+                    console.log("Error on Invite user to the app.");
+                    deferred.reject(error);
+                  });
+              }
+            }, function (usererror) {
+              console.log("Error on getting user details to Invite user to the app.");
+              deferred.reject('Cannot perform this task right now.');
+            });
+
+          }
+
+        });
+
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deferred.reject(err)
+      }
+
+      return deferred.promise;
+
+    },
+    addDeveloper: function (currentUserId, appId, email) {
+
+      console.log("Add developer...");
+
+      var deferred = Q.defer();
+
+      try {
+        var self = this;
+
+        Project.findOne({ appId: appId }, function (err, project) {
+          if (err) {
+            console.log("Error on get project to Add developer...");
+            deferred.reject(err);
+          }
+          if (!project) {
+            console.log("project not found to Add developer...");
+            deferred.reject("App not found!.");
+          } else {
+
+            if (!checkValidUser(project, currentUserId, null)) {
+
+              //Adding developer                      
+              var newDeveloper = {};
+              newDeveloper.userId = currentUserId;
+              newDeveloper.role = "User";
+
+              project.developers.push(newDeveloper);
+              //End Adding developer                      
+
+              var notificationId = null;
+              if (project.invited && project.invited.length > 0) {
+                for (var i = 0; i < project.invited.length; ++i) {
+                  if (project.invited[i].email == email) {
+                    notificationId = project.invited[i].notificationId;
+                    project.invited.splice(i, 1);
+                  }
+                }
               }
 
-             return deferred.promise;
+              project.save(function (err, savedProject) {
+                if (err) {
+                  console.log("Error on adding developer..");
+                  deferred.reject(err);
+                }
+                if (!savedProject) {
+                  console.log("Cannot save the project to add developer");
+                  deferred.reject('Cannot save the app right now.');
+                } else {
+                  console.log("Successfull to add developer");
+                  deferred.resolve(savedProject);
+                  if (notificationId) {
+                    global.notificationService.removeNotificationById(notificationId);
+                  }
+                }
+              });
 
-          },
-          removeInvitee: function (currentUserId,appId,email) {
+            } else {
+              console.log("Already a developer to this app..");
+              deferred.resolve("Already added!");
+            }
 
-              console.log("Remove a invitee..");
+          }
 
-              var deferred = Q.defer();
+        });
 
-              try{
-                var self = this;             
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deferred.reject(err)
+      }
 
-                Project.findOne({appId:appId,invited: {$elemMatch:{email:email} }}, function (err,foundProj) {
-                  if(err){  
-                    console.log("Error on finding project for Remove a invitee..");                
+      return deferred.promise;
+
+    },
+
+    changeDeveloperRole: function (currentUserId, appId, requestedUserId, newRole) {
+
+      console.log("Change  developer role...");
+
+      var deferred = Q.defer();
+
+      try {
+        var self = this;
+
+        Project.findOne({ appId: appId }, function (err, project) {
+          if (err) {
+            console.log("Error on get project changing developer role...");
+            deferred.reject(err);
+          }
+          if (!project) {
+            console.log("project not found changing developer role...");
+            deferred.reject("App not found!.");
+          } else {
+
+            if (checkValidUser(project, currentUserId, "Admin")) {
+
+              var tempDeveloperArray = [].concat(project.developers || []);
+              for (var i = 0; i < tempDeveloperArray.length; ++i) {
+                if (tempDeveloperArray[i].userId == requestedUserId) {
+                  tempDeveloperArray[i].role = newRole;
+                  break;
+                }
+              }
+
+              //Check atleast one admin will be there
+              var atleastOneAdmin = _.find(tempDeveloperArray, function (eachObj) {
+                if (eachObj.role == "Admin") {
+                  return true;
+                }
+              });
+
+              if (atleastOneAdmin) {
+
+
+                project.developers = tempDeveloperArray;
+                project.markModified('developers');
+
+                project.save(function (err, savedProject) {
+                  if (err) {
+                    console.log("Error on changing developer role..");
                     deferred.reject(err);
-                  }else if(!foundProj){
-                    console.log("project not found for Remove a invitee.."); 
-                    deferred.reject("Project not found with given Email");
-                  }else{
-
-                    global.userService.getAccountByEmail(email).then(function(foundUser) {
-
-                      if(checkValidUser(foundProj,currentUserId,"Admin") || foundUser._id==currentUserId){
-                        //User can delete himself or can delete others when he is a Admin
-                        processRemoveInvitee(foundProj,email)
-                        .then(function(data){
-                          console.log("Successfull on Remove a invitee.."); 
-                          deferred.resolve(data);
-                        },function(error){
-                          console.log("Error on Remove a invitee.."); 
-                          deferred.reject(error);
-                        });                     
-
-                      }else{
-                        console.log("Unauthorized user to Remove a invitee.."); 
-                        deferred.reject("Unauthorized"); 
-                      } 
-
-                    },function(userError) { 
-                      console.log("Error on getting user details for remove invitee.."); 
-                      deferred.reject("Cannot Perform this task now");                    
-                    }); 
-
+                  }
+                  if (!savedProject) {
+                    console.log("Cannot save the project for change developer role");
+                    deferred.reject('Cannot save the project for change developer role.');
+                  } else {
+                    console.log("Successfull for changing devloper role");
+                    deferred.resolve(savedProject);
                   }
                 });
 
-              }catch(err){
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-                deferred.reject(err)         
+              } else {
+                deferred.reject('Atleast one admin should be there for an app.');
               }
 
-             return deferred.promise;
+            } else {
+              console.log("Only Admin can change role..");
+              deferred.resolve("Only Admin can change role!");
+            }
 
-          },
-         
-          inviteUser: function (appId,email) {
+          }
 
-              console.log("Invite user to the app.");
+        });
 
-              var deferred = Q.defer();
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deferred.reject(err)
+      }
 
-              try{
-                var self = this;                 
+      return deferred.promise;
 
-                Project.findOne({appId:appId}, function (err, project) {
-                  if (err){
-                    console.log("Error on get project to Invite user to the app.");
-                    deferred.reject(err);
-                  }  
-                  if(!project){
-                    console.log("project not found to Invite user to the app.");
-                    deferred.reject("App not found!.");
-                  }else{
+    },
+//------------------------------------------------------------------------RegenerateKeys----------------------------------
+    RegenerateKeys: function (criteria) {
 
-                    global.userService.getAccountByEmail(email).then(function(foundUser) {
-                      if(foundUser){
+      console.log("Initiate RegenerateKeys..");
 
-                        if(!checkValidUser(project,foundUser._id,null)){ 
+      var deffered = Q.defer();
+      try {
 
-                          processInviteUser(project,email,foundUser)
-                          .then(function(data){
-                            console.log("Success on Invite user to the app.");
-                            deferred.resolve(data);
-                          },function(error){
-                            console.log("Error on Invite user to the app.");
-                            deferred.reject(error);
-                          });     
+        var appId;
+        
+       generateNonExistingAppId().then(function (newAppId) {
+          console.log("fetched new appId");
+          appId = newAppId;
+          return console.log(appId);
+        }, function (error) {
+          console.log("Error");
+          deferred.reject(error);
+        });
+      
 
-                        }else{
-                          console.log("Already a Developer to this App!");
-                          deferred.reject("Already a Developer to this App!");
-                        } 
-
-                      }else{//There is no user with this email in cloudboost
-                        processInviteUser(project,email,foundUser)
-                        .then(function(data){
-                          console.log("Success on Invite user to the app.");
-                          deferred.resolve(data);
-                        },function(error){
-                          console.log("Error on Invite user to the app.");
-                          deferred.reject(error);
-                        });     
-                      }
-                    },function(usererror) {  
-                      console.log("Error on getting user details to Invite user to the app."); 
-                      deferred.reject('Cannot perform this task right now.');                
-                    });                                    
-                    
-                  }
-                       
-                });
-
-              }catch(err){
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-                deferred.reject(err)         
-              }
-
-             return deferred.promise;
-
-          },
-          addDeveloper: function (currentUserId,appId,email) {
-
-              console.log("Add developer...");
-
-              var deferred = Q.defer();
-
-              try{
-                var self = this;                 
-
-                Project.findOne({appId:appId}, function (err, project) {
-                  if (err){
-                    console.log("Error on get project to Add developer...");
-                    deferred.reject(err);
-                  }  
-                  if(!project){
-                    console.log("project not found to Add developer...");
-                    deferred.reject("App not found!.");
-                  }else{
-
-                    if(!checkValidUser(project,currentUserId,null)){
-
-                      //Adding developer                      
-                      var newDeveloper={};
-                      newDeveloper.userId=currentUserId;
-                      newDeveloper.role="User";
-
-                      project.developers.push(newDeveloper); 
-                      //End Adding developer                      
-
-                      var notificationId=null;
-                      if(project.invited && project.invited.length>0){
-                        for(var i=0;i<project.invited.length;++i){
-                          if(project.invited[i].email==email){
-                            notificationId=project.invited[i].notificationId;
-                            project.invited.splice(i,1);
-                          }
-                        }
-                      }                                          
-
-                      project.save(function (err, savedProject) {
-                        if (err){
-                          console.log("Error on adding developer..");
-                          deferred.reject(err);
-                        }
-                        if(!savedProject){
-                          console.log("Cannot save the project to add developer");
-                          deferred.reject('Cannot save the app right now.');
-                        }else{  
-                          console.log("Successfull to add developer");                       
-                          deferred.resolve(savedProject);  
-                          if(notificationId){
-                            global.notificationService.removeNotificationById(notificationId);
-                          }                                                                  
-                        }
-                      });
-
-                    }else{
-                      console.log("Already a developer to this app..");
-                      deferred.resolve("Already added!");
-                    } 
-                    
-                  }
-                       
-                });
-
-              }catch(err){
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-                deferred.reject(err)         
-              }
-
-             return deferred.promise;
-
-          },
-
-          changeDeveloperRole: function (currentUserId,appId,requestedUserId,newRole) {
-
-              console.log("Change  developer role...");
-
-              var deferred = Q.defer();
-
-              try{
-                var self = this;                 
-
-                Project.findOne({appId:appId}, function (err, project) {
-                  if (err){
-                    console.log("Error on get project changing developer role...");
-                    deferred.reject(err);
-                  }  
-                  if(!project){
-                    console.log("project not found changing developer role...");
-                    deferred.reject("App not found!.");
-                  }else{
-
-                    if(checkValidUser(project,currentUserId,"Admin")){
-                      
-                      var tempDeveloperArray=[].concat(project.developers || []);
-                      for(var i=0;i<tempDeveloperArray.length;++i){
-                        if(tempDeveloperArray[i].userId==requestedUserId){
-                          tempDeveloperArray[i].role=newRole;
-                          break;
-                        }
-                      }
-
-                      //Check atleast one admin will be there
-                      var atleastOneAdmin=_.find(tempDeveloperArray, function(eachObj){ 
-                        if(eachObj.role=="Admin"){ 
-                          return true;          
-                        }
-                      });
-
-                      if(atleastOneAdmin){                       
-                       
-
-                        project.developers=tempDeveloperArray;
-                        project.markModified('developers');
-                        
-                        project.save(function (err, savedProject) {
-                          if (err){
-                            console.log("Error on changing developer role..");
-                            deferred.reject(err);
-                          }
-                          if(!savedProject){
-                            console.log("Cannot save the project for change developer role");
-                            deferred.reject('Cannot save the project for change developer role.');
-                          }else{  
-                            console.log("Successfull for changing devloper role");                       
-                            deferred.resolve(savedProject);                                                                                           
-                          }
-                        });
-
-                      }else{
-                        deferred.reject('Atleast one admin should be there for an app.');
-                      }                     
-
-                    }else{
-                      console.log("Only Admin can change role..");
-                      deferred.resolve("Only Admin can change role!");
-                    } 
-                    
-                  }
-                       
-                });
-
-              }catch(err){
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-                deferred.reject(err)         
-              }
-
-             return deferred.promise;
-
-          },
-   
-    }
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deferred.reject(err)
+      }
+     },
+//-----------------------------------------------------------RegenerateKeys END--------------------------------------------------
+  }
 
 };
 
-function generateNonExistingAppId(){
+function generateNonExistingAppId() {
 
   console.log("Function for generate nonExistAppId...");
 
   var deferred = Q.defer();
 
-  try{
-    var appId=randomString({
+  try {
+    var appId = randomString({
       length: 12,
       numeric: false,
       letters: true,
       special: false
     });
-    appId=appId.toLowerCase();    
-    
+    appId = appId.toLowerCase();
+
     global.projectService.getProject(appId).then(function (existedProject) {
-      if(!existedProject){
+      if (!existedProject) {
         deferred.resolve(appId);
-      }else if(existedProject){
-        return generateNonExistingAppId();     
+      } else if (existedProject) {
+        return generateNonExistingAppId();
       }
-    }).then(function(nonExistAppId){
+    }).then(function (nonExistAppId) {
       console.log("Success on generateNonExistingAppId");
       deferred.resolve(nonExistAppId);
-    },function(error){
+    }, function (error) {
       console.log("Error on Get project to generateNonExistingAppId");
       deferred.reject(error);
     });
 
-  }catch(err){
-    global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-    deferred.reject(err)         
+  } catch (err) {
+    global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+    deferred.reject(err)
   }
 
   return deferred.promise;
 }
 
-function processRemoveDeveloper(foundProj,userId,currentUserId,self){  
+function processRemoveDeveloper(foundProj, userId, currentUserId, self) {
 
   console.log("Private function for process remove developer...");
 
   var deferred = Q.defer();
 
-  try{
-    var tempArray=foundProj.developers;
+  try {
+    var tempArray = foundProj.developers;
 
-    for(var i=0;i<foundProj.developers.length;++i){
-      if(foundProj.developers[i].userId==userId){
-        tempArray.splice(i,1);
+    for (var i = 0; i < foundProj.developers.length; ++i) {
+      if (foundProj.developers[i].userId == userId) {
+        tempArray.splice(i, 1);
       }
     }
 
     //Find Atleast one admin
-    var atleastOneAdmin=_.find(foundProj.developers, function(eachObj){ 
-      if(eachObj.role=="Admin"){ 
-        return true;          
+    var atleastOneAdmin = _.find(foundProj.developers, function (eachObj) {
+      if (eachObj.role == "Admin") {
+        return true;
       }
     });
 
-    if(tempArray.length>0 && atleastOneAdmin){
-      foundProj.developers=tempArray;
+    if (tempArray.length > 0 && atleastOneAdmin) {
+      foundProj.developers = tempArray;
       foundProj.save(function (err, project) {
-        if (err){
+        if (err) {
           console.log("Error on Private function for process remove developer...");
           deferred.reject(err);
-        }  
-        if(!project){
+        }
+        if (!project) {
           console.log("Project not found for Private function for process remove developer...");
           deferred.reject('Cannot save the app right now.');
-        }else{
+        } else {
           console.log("Successfull on Private function for process remove developer...");
-          deferred.resolve(project);                     
+          deferred.resolve(project);
         }
       });
 
-    }else{
-      self.delete(foundProj.appId,currentUserId).then(function(resp) { 
-        console.log("Successfull on Delete project Private function to remove developer..");                          
+    } else {
+      self.delete(foundProj.appId, currentUserId).then(function (resp) {
+        console.log("Successfull on Delete project Private function to remove developer..");
         deferred.resolve(resp);
-      },function(error){
-        console.log("Error on Delete project Private function to remove developer..");  
+      }, function (error) {
+        console.log("Error on Delete project Private function to remove developer..");
         deferred.reject(error);
       });
     }
 
-   }catch(err){
-    global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-    deferred.reject(err)         
+  } catch (err) {
+    global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+    deferred.reject(err)
   }
 
   return deferred.promise;
 }
 
-function processRemoveInvitee(foundProj,email){
+function processRemoveInvitee(foundProj, email) {
 
   console.log("private function for Process remove invitee..");
 
   var deferred = Q.defer();
 
-  try{
-    var tempArray=foundProj.invited;
-    var notificationId=null;
+  try {
+    var tempArray = foundProj.invited;
+    var notificationId = null;
 
-    if(tempArray && tempArray.length>0){
-      for(var i=0;i<tempArray.length;++i){
-        if(tempArray[i].email==email){
-          notificationId=tempArray[i].notificationId;
-          tempArray.splice(i,1);
+    if (tempArray && tempArray.length > 0) {
+      for (var i = 0; i < tempArray.length; ++i) {
+        if (tempArray[i].email == email) {
+          notificationId = tempArray[i].notificationId;
+          tempArray.splice(i, 1);
         }
       }
-    }   
+    }
 
-    foundProj.invited=tempArray;
+    foundProj.invited = tempArray;
     foundProj.save(function (err, project) {
-      if (err){
+      if (err) {
         console.log("Error on save project in private function for Process remove invitee..");
         deferred.reject(err);
       }
-      if(!project){
+      if (!project) {
         console.log("project not found in private function for Process remove invitee..");
         deferred.reject('Cannot save the app right now.');
-      }else{
+      } else {
         console.log("Successfull for private function for Process remove invitee..");
         deferred.resolve(project);
-        if(notificationId){
-          global.notificationService.removeNotificationById(notificationId); 
-        }                          
+        if (notificationId) {
+          global.notificationService.removeNotificationById(notificationId);
+        }
       }
     });
 
-  }catch(err){
-    global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-    deferred.reject(err)         
+  } catch (err) {
+    global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+    deferred.reject(err)
   }
 
   return deferred.promise;
 }
 
-function processInviteUser(project,email,foundUser){
+function processInviteUser(project, email, foundUser) {
 
   console.log("Private function for Process Invite User");
 
 
   var deferred = Q.defer();
-     
-  try{   
-    var alreadyInvited=_.first(_.where(project.invited, {email:email}));
+
+  try {
+    var alreadyInvited = _.first(_.where(project.invited, { email: email }));
 
     //Invitation
-    if(!alreadyInvited){
+    if (!alreadyInvited) {
 
 
-      var notificationType="confirm";
-      var type="invited-project";
-      var text="You have been invited to collaborate on <span style='font-weight:bold;'>"+project.name+"</span>. Do you want to accept the invite?";
-      
-      var userIdOREmail=null;
-      if(foundUser && foundUser._id){
-        userIdOREmail=foundUser._id;
-      }else{
-        userIdOREmail=email;
+      var notificationType = "confirm";
+      var type = "invited-project";
+      var text = "You have been invited to collaborate on <span style='font-weight:bold;'>" + project.name + "</span>. Do you want to accept the invite?";
+
+      var userIdOREmail = null;
+      if (foundUser && foundUser._id) {
+        userIdOREmail = foundUser._id;
+      } else {
+        userIdOREmail = email;
       }
 
-      global.notificationService.createNotification(project.appId,userIdOREmail,notificationType,type,text)
-      .then(function(notificationId){
+      global.notificationService.createNotification(project.appId, userIdOREmail, notificationType, type, text)
+        .then(function (notificationId) {
 
-        var inviteeObj={
-          email:email,
-          notificationId:notificationId._id
-        };
+          var inviteeObj = {
+            email: email,
+            notificationId: notificationId._id
+          };
 
-        project.invited.push(inviteeObj);
-   
-        project.save(function (err, savedProject) {
-          if (err){
-            console.log("Error on save project in Private function for Process Invite User");
-            deferred.reject(err);
-          }
-          if(!savedProject){
-            console.log("project not found in Private function for Process Invite User");
-            deferred.reject('Cannot save the app right now.');
-          }else{
-            console.log("Successfull on Private function for Process Invite User");
-            deferred.resolve("successfully Invited!");         
-            //global.mandrillService.inviteDeveloper(email,savedProject.name);
+          project.invited.push(inviteeObj);
 
-            var mailName="invitedeveloper";
-            var emailTo=email;
-            var subject="You're invited to collaborate";
+          project.save(function (err, savedProject) {
+            if (err) {
+              console.log("Error on save project in Private function for Process Invite User");
+              deferred.reject(err);
+            }
+            if (!savedProject) {
+              console.log("project not found in Private function for Process Invite User");
+              deferred.reject('Cannot save the app right now.');
+            } else {
+              console.log("Successfull on Private function for Process Invite User");
+              deferred.resolve("successfully Invited!");
+              //global.mandrillService.inviteDeveloper(email,savedProject.name);
 
-            var variableArray=[{
+              var mailName = "invitedeveloper";
+              var emailTo = email;
+              var subject = "You're invited to collaborate";
+
+              var variableArray = [{
                 "domClass": "projectname",
                 "content": savedProject.name,
                 "contentType": "text"
-            }];   
+              }];
 
-            global.mailService.sendMail(mailName, emailTo, subject, variableArray);
-          }
+              global.mailService.sendMail(mailName, emailTo, subject, variableArray);
+            }
+          });
+
+
+        }, function (error) {
+          console.log("Error on create notification in Private function for Process Invite User");
+          deferred.reject(error);
         });
 
 
-      },function(error){
-        console.log("Error on create notification in Private function for Process Invite User");
-        deferred.reject(error);
-      });
 
-      
-
-    }else{
+    } else {
       deferred.reject("Already Invited!");
     }
 
-  }catch(err){
-    global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-    deferred.reject(err)         
+  } catch (err) {
+    global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+    deferred.reject(err)
   }
 
   return deferred.promise;
 }
 
 
-function checkValidUser(app,userId,role){
+function checkValidUser(app, userId, role) {
 
-  try{
-    if(app.developers && app.developers.length>0){
-      return _.find(app.developers, function(eachObj){ 
-        if(eachObj.userId==userId){
+  try {
+    if (app.developers && app.developers.length > 0) {
+      return _.find(app.developers, function (eachObj) {
+        if (eachObj.userId == userId) {
 
-          if(role && eachObj.role==role){
+          if (role && eachObj.role == role) {
             return true;
-          }else if(role && eachObj.role!=role){
+          } else if (role && eachObj.role != role) {
             return false;
-          }else if(!role){
+          } else if (!role) {
             return true;
           }
-          
+
         }
       });
-    }else {
+    } else {
       return false;
     }
 
-  }catch(err){
-    global.winston.log('error',{"error":String(err),"stack": new Error().stack});              
+  } catch (err) {
+    global.winston.log('error', { "error": String(err), "stack": new Error().stack });
   }
 }
 
@@ -1096,225 +1121,225 @@ function checkValidUser(app,userId,role){
 
 /***********************Pinging Data Services*********************************/
 
-function _createAppFromDS(appId){
+function _createAppFromDS(appId) {
 
   console.log("Create app From Data services...");
 
-  var deferred = Q.defer();  
- 
-  try{
+  var deferred = Q.defer();
+
+  try {
     var post_data = {};
     post_data.secureKey = global.keys.secureKey;
     post_data = JSON.stringify(post_data);
 
 
-    var url = global.keys.dataServiceUrl + '/app/'+appId;  
-    request.post(url,{
-        headers: {
-            'content-type': 'application/json',
-            'content-length': post_data.length
-        },
-        body: post_data
-    },function(err,response,body){                      
-        if(err || response.statusCode === 500 || body === 'Error'){ 
-          console.log("Error on Create app From Data services...");  
-          console.log(err);    
-          deferred.reject(err);
-        }else { 
-          console.log("Successfull on create app from data services..");  
-          try{                             
-            deferred.resolve(body);
-          }catch(e){
-            deferred.reject(e); 
-          }
+    var url = global.keys.dataServiceUrl + '/app/' + appId;
+    request.post(url, {
+      headers: {
+        'content-type': 'application/json',
+        'content-length': post_data.length
+      },
+      body: post_data
+    }, function (err, response, body) {
+      if (err || response.statusCode === 500 || body === 'Error') {
+        console.log("Error on Create app From Data services...");
+        console.log(err);
+        deferred.reject(err);
+      } else {
+        console.log("Successfull on create app from data services..");
+        try {
+          deferred.resolve(body);
+        } catch (e) {
+          deferred.reject(e);
         }
+      }
     });
 
-  }catch(err){
-    global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-    deferred.reject(err);         
+  } catch (err) {
+    global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+    deferred.reject(err);
   }
 
   return deferred.promise;
 }
 
-function _deleteAppFromDS(appId){
+function _deleteAppFromDS(appId) {
 
   console.log("Delete app from data services..");
 
   var deferred = Q.defer();
 
-  try{
+  try {
     var post_data = {};
     post_data.secureKey = global.keys.secureKey;
     post_data = JSON.stringify(post_data);
 
     request.del({
       headers: {
-                  'content-type' : 'application/json', 
-                  'content-length' : post_data.length
-               },
-      url:     keys.dataServiceUrl +"/app/"+appId,
-      body:    post_data
-    }, function(error, response, body){
-      if(response){
-        try{
-            var respData=JSON.parse(response.body); 
-            if(respData.status === 'Success'){
-              console.log('successfully Delete app from data services.');
-              deferred.resolve('Successfully deleted');
-            }else{
-              console.log('unable Delete app from data services.');
-              deferred.reject("Unable to delete!");
-            }          
-        }catch(e){
+        'content-type': 'application/json',
+        'content-length': post_data.length
+      },
+      url: keys.dataServiceUrl + "/app/" + appId,
+      body: post_data
+    }, function (error, response, body) {
+      if (response) {
+        try {
+          var respData = JSON.parse(response.body);
+          if (respData.status === 'Success') {
+            console.log('successfully Delete app from data services.');
+            deferred.resolve('Successfully deleted');
+          } else {
+            console.log('unable Delete app from data services.');
+            deferred.reject("Unable to delete!");
+          }
+        } catch (e) {
           deferred.reject(e);
-        }       
+        }
 
-      }else{
+      } else {
         console.log('unable Delete app from data services.');
         deferred.reject("Unable to delete!");
       }
-       
+
     });
 
-  }catch(err){
-    global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-    deferred.reject(err)         
+  } catch (err) {
+    global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+    deferred.reject(err)
   }
 
   return deferred.promise;
 }
 
 
-function _changeClientKeyFromDS(appId){
+function _changeClientKeyFromDS(appId) {
 
   console.log("Change ClientKey From Data services...");
 
-  var deferred = Q.defer();  
- 
-  try{
+  var deferred = Q.defer();
+
+  try {
     var post_data = {};
     post_data.secureKey = global.keys.secureKey;
     post_data = JSON.stringify(post_data);
 
 
-    var url = global.keys.dataServiceUrl + '/admin/'+appId+'/clientkey';  
-    request.put(url,{
-        headers: {
-            'content-type': 'application/json',
-            'content-length': post_data.length
-        },
-        body: post_data
-    },function(err,response,body){                      
-        if(err || response.statusCode === 500 || body === 'Error'){ 
-          console.log("Error on Change ClientKey From Data services...");  
-          console.log(err);    
-          deferred.reject(err);
-        }else { 
-          console.log("Successfull on Change ClientKey from data services..");  
-          try{
-            var respBody=JSON.parse(body);                           
-            deferred.resolve(respBody);
-          }catch(e){
-            deferred.resolve(body);
-          }
+    var url = global.keys.dataServiceUrl + '/admin/' + appId + '/clientkey';
+    request.put(url, {
+      headers: {
+        'content-type': 'application/json',
+        'content-length': post_data.length
+      },
+      body: post_data
+    }, function (err, response, body) {
+      if (err || response.statusCode === 500 || body === 'Error') {
+        console.log("Error on Change ClientKey From Data services...");
+        console.log(err);
+        deferred.reject(err);
+      } else {
+        console.log("Successfull on Change ClientKey from data services..");
+        try {
+          var respBody = JSON.parse(body);
+          deferred.resolve(respBody);
+        } catch (e) {
+          deferred.resolve(body);
         }
+      }
     });
 
-  }catch(err){
-    global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-    deferred.reject(err);         
+  } catch (err) {
+    global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+    deferred.reject(err);
   }
 
   return deferred.promise;
 }
 
-function _changeMasterKeyFromDS(appId){
+function _changeMasterKeyFromDS(appId) {
 
   console.log("Change MasterKey From Data services...");
 
-  var deferred = Q.defer();  
- 
-  try{
+  var deferred = Q.defer();
+
+  try {
     var post_data = {};
     post_data.secureKey = global.keys.secureKey;
     post_data = JSON.stringify(post_data);
 
 
-    var url = global.keys.dataServiceUrl + '/admin/'+appId+'/masterkey';  
-    request.put(url,{
-        headers: {
-            'content-type': 'application/json',
-            'content-length': post_data.length
-        },
-        body: post_data
-    },function(err,response,body){                      
-        if(err || response.statusCode === 500 || body === 'Error'){ 
-          console.log("Error on Change masterkey From Data services...");  
-          console.log(err);    
-          deferred.reject(err);
-        }else { 
-          console.log("Successfull on Change masterkey from data services..");  
-          try{
-            var respBody=JSON.parse(body);                           
-            deferred.resolve(respBody);
-          }catch(e){
-            deferred.resolve(body);
-          }
+    var url = global.keys.dataServiceUrl + '/admin/' + appId + '/masterkey';
+    request.put(url, {
+      headers: {
+        'content-type': 'application/json',
+        'content-length': post_data.length
+      },
+      body: post_data
+    }, function (err, response, body) {
+      if (err || response.statusCode === 500 || body === 'Error') {
+        console.log("Error on Change masterkey From Data services...");
+        console.log(err);
+        deferred.reject(err);
+      } else {
+        console.log("Successfull on Change masterkey from data services..");
+        try {
+          var respBody = JSON.parse(body);
+          deferred.resolve(respBody);
+        } catch (e) {
+          deferred.resolve(body);
         }
+      }
     });
 
-  }catch(err){
-    global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-    deferred.reject(err);         
+  } catch (err) {
+    global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+    deferred.reject(err);
   }
 
   return deferred.promise;
 }
 
-function _createPlanInAnalytics(appId,planId){
+function _createPlanInAnalytics(appId, planId) {
 
   console.log("Create Plan in analyticsServices..");
 
   var deferred = Q.defer();
- 
-  try{
+
+  try {
     var post_data = {};
     post_data.secureKey = global.keys.secureKey;
     post_data.planId = planId;
     post_data = JSON.stringify(post_data);
 
 
-    var url = global.keys.analyticsServiceUrl + '/plan/'+appId;  
+    var url = global.keys.analyticsServiceUrl + '/plan/' + appId;
 
-    request.post(url,{
-        headers: {
-            'content-type': 'application/json',
-            'content-length': post_data.length
-        },
-        body: post_data
-    },function(err,response,body){
-      
-        if(err || response.statusCode === 500 || response.statusCode === 400 || body === 'Error'){ 
-          console.log("Error on  Create Plan in analyticsServices..");      
-          deferred.reject(err);
-        }else {    
-          console.log("Success on Create Plan in analyticsServices..");       
+    request.post(url, {
+      headers: {
+        'content-type': 'application/json',
+        'content-length': post_data.length
+      },
+      body: post_data
+    }, function (err, response, body) {
 
-          try{
-            var respBody=JSON.parse(body);                           
-            deferred.resolve(respBody);
-          }catch(e){
-            deferred.reject(e);
-          }
+      if (err || response.statusCode === 500 || response.statusCode === 400 || body === 'Error') {
+        console.log("Error on  Create Plan in analyticsServices..");
+        deferred.reject(err);
+      } else {
+        console.log("Success on Create Plan in analyticsServices..");
+
+        try {
+          var respBody = JSON.parse(body);
+          deferred.resolve(respBody);
+        } catch (e) {
+          deferred.reject(e);
         }
+      }
     });
 
-  }catch(err){
-    global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-    deferred.reject(err);         
+  } catch (err) {
+    global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+    deferred.reject(err);
   }
   return deferred.promise;
 }
-  
+

@@ -3,7 +3,7 @@
     <CloudServiceSettings>  
             <GeoRegion><%=response.provider.geoRegion%></GeoRegion>
     </CloudServiceSettings> 
-    <ETag><%=response.provider.etag%></ETag>
+    <Tags><%=response.provider.tags%></Tags>
     <Name><%=response.name%></Name>
     <OperationStatus>
         <Result>Succeeded</Result>
