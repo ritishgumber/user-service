@@ -13,6 +13,10 @@ node_js:
 before_install:
 - npm install grunt-cli -g
 install:
+- openssl aes-256-cbc -K $encrypted_335cdbfc5b4f_key -iv $encrypted_335cdbfc5b4f_iv -in credentials.tar.enc -out credentials.tar -d
+- tar -xvf credentials.tar
+- mv keys.js config/keys.js
+- rm gc_cred.json
 - npm install
 - docker build -t cloudboost/user-service:2.0.$TRAVIS_BUILD_NUMBER .
 - docker build -t cloudboost/user-service:latest .
