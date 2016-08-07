@@ -499,7 +499,6 @@ module.exports = function (User) {
             return deffered.resolve(user);
           });
         }
-
       } catch (err) {
         global.winston.log('error', { "error": String(err), "stack": new Error().stack });
         deffered.reject(err);
@@ -775,6 +774,7 @@ module.exports = function (User) {
     },
 
     getAzureUserByTenantId: function (query, newJson) {
+
       console.log("Find and update azure user...");
 
       var deffered = Q.defer();
@@ -932,11 +932,6 @@ module.exports = function (User) {
 
       return deffered.promise;
     },
-
-
-
-
-
   }
 
 };

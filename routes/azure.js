@@ -30,6 +30,7 @@ module.exports = function () {
   //SSO
   app.post('/subscriptions/:subscription_id/resourceGroups/:resourceGroupName/providers/:resourceProviderNamespace/:resource_type/:resource_name/listSingleSignOnToken', getNewToken);
   app.get('/sso',
+
     passport.authenticate('azure-store'),
     function (req, res, next) {
       if (!req.user) {
@@ -71,6 +72,7 @@ function subscription(req, res) {
 }
 
 function onSubscriptionRegistered(req, res) {
+
   var RegistrationDate = req.body.RegistrationDate;
   var tenantId = req.body.Properties.tenantId;
   var LocationPlacementId = req.body.Properties.LocationPlacementId;
@@ -189,6 +191,7 @@ function createOrUpdateResource(req, res) {
         geoRegion: georegion,
         resource_type: type,
         plan: plan
+        
       }
     };
 
@@ -504,7 +507,6 @@ function getNewToken(req, res, next) {
     return res.status(404).send('');
   });
 }
-
 
 /********Private Functions*************/
 function getPropertyFromSubscription(reqJSON, propName) {
