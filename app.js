@@ -154,17 +154,29 @@ module.exports = function(){
                                 };
                     hosts.push(obj); 
                 }else{
+
                     var i=1;
-                    while(process.env["REDIS_"+i+"_PORT_6379_TCP_ADDR"] && process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"]){
-                        if(i>1){
-                            isCluster = true;
+                    if (process.env["REDIS_PORT_6379_TCP_ADDR"] && process.env["REDIS_PORT_6379_TCP_PORT"]) {
+                      var obj = {
+                        host: process.env["REDIS_PORT_6379_TCP_ADDR"],
+                        port: process.env["REDIS_PORT_6379_TCP_PORT"],
+                        enableReadyCheck: false
+                      };
+
+                      hosts.push(obj);
+
+                    } else {
+                        while(process.env["REDIS_"+i+"_PORT_6379_TCP_ADDR"] && process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"]){
+                            if(i>1){
+                                isCluster = true;
+                            }
+                            var obj = {
+                                host : process.env["REDIS_"+i+"_PORT_6379_TCP_ADDR"],
+                                port : process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"]
+                            };
+                            hosts.push(obj);       
+                            i++;
                         }
-                        var obj = {
-                            host : process.env["REDIS_"+i+"_PORT_6379_TCP_ADDR"],
-                            port : process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"]
-                        };
-                        hosts.push(obj);       
-                        i++;
                     }
                 }
             }
@@ -191,6 +203,13 @@ module.exports = function(){
     function setUpMongoDB(passport){
 
         try{
+
+            console.log("Looking for a MongoDB Cluster...");
+
+            if ((!global.config && !process.env["MONGO_1_PORT_27017_TCP_ADDR"] && !process.env["MONGO_SERVICE_HOST"]) || (!global.config && !process.env["MONGO_PORT_27017_TCP_ADDR"] && !process.env["MONGO_SERVICE_HOST"])) {
+              console.error("INFO : Not running on Docker. Use docker-compose (recommended) from https://github.com/cloudboost/docker");
+            }
+
            //MongoDB connections. 
            var mongoConnectionString = "mongodb://";
            
@@ -225,14 +244,24 @@ module.exports = function(){
                         isReplicaSet = true;
                 }else{
                     var i=1;
-                    while(process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"] && process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]){
-                        if(i>1){
-                            isReplicaSet = true;
+
+                     if (process.env["MONGO_PORT_27017_TCP_ADDR"] && process.env["MONGO_PORT_27017_TCP_PORT"]) {
+                         
+                      mongoConnectionString += process.env["MONGO_PORT_27017_TCP_ADDR"] + ":" + process.env["MONGO_PORT_27017_TCP_PORT"];
+                      mongoConnectionString += ",";
+
+                    } else {
+
+                        while(process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"] && process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]){
+                            if(i>1){
+                                isReplicaSet = true;
+                            }
+                            mongoConnectionString+=process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"]+":"+process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]; 
+                            mongoConnectionString+=",";
+                            i++;
                         }
-                        mongoConnectionString+=process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"]+":"+process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]; 
-                        mongoConnectionString+=",";
-                        i++;
                     }
+
                 }
            }
 
