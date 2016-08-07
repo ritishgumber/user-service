@@ -1,5 +1,5 @@
 <Resource xmlns="http://schemas.microsoft.com/windowsazure">
-    <ETag><%=resource.provider.etag%></ETag>
+    <Tags><%=resource.provider.tags%></Tags>
     <Name><%=resource.name%></Name>
     <OperationStatus>
         <Result>Succeeded</Result>

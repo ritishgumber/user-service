@@ -4,7 +4,7 @@
 
         <% listResources.forEach(function(r) { %>
         <Resource>
-            <ETag><%= r.provider.etag %></ETag>
+            <Tags><%= r.provider.tags %></Tags>
             <Name><%= r.provider.resource_name %></Name>
             <OperationStatus>
                 <Result>Succeeded</Result>
