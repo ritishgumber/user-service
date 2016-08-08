@@ -5,18 +5,15 @@ module.exports = function(){
        	planName:"Free Plan"
        },{
        	id:2,       	
-       	planName:"Prototype Plan"
-       },{
-       	id:3,       	
        	planName:"Launch Plan"
        },{
-       	id:4,       	
+       	id:3,       	
        	planName:"Bootstrap Plan"
        },{
-       	id:5,       	
+       	id:4,       	
        	planName:"Scale Plan"
        },{
-       	id:6,       	
+       	id:5,       	
        	planName:"Unicorn"
        }]
     };
