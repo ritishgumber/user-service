@@ -1,0 +1,18 @@
+{
+  "id": "cloudboostservice",
+  "api": {
+    "config_vars": [ "CLOUDBOOSTSERVICE_URL","CLOUDBOOSTSERVICE_CLIENT_KEY", "CLOUDBOOSTSERVICE_MASTER_KEY", "CLOUDBOOSTSERVICE_APP_ID", "CLOUDBOOSTSERVICE_PORTAL", "CLOUDBOOSTSERVICE_PORTAL_EMAIL", "CLOUDBOOSTSERVICE_PORTAL_PASSWORD"],
+    "requires": [],
+    "regions": [ "*" ],
+    "password": "6ebf130db1d1997d99f661c0fd63a912",
+    "sso_salt": "11ff6e698ea9faa43a703d7db6a8802d",
+    "production": {
+      "base_url": "https://service.cloudboost.io/heroku/resources",
+      "sso_url": "https://service.cloudboost.io/sso/login"
+    },
+    "test": {
+      "base_url": "http://localhost:3000/heroku/resources",
+      "sso_url": "http://localhost:3000/sso/login"
+    }
+  }
+}

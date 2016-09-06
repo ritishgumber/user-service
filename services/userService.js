@@ -286,14 +286,22 @@ module.exports = function (User) {
         user.isAdmin = data.isAdmin;
         user.isActive = true;
         user.provider = data.provider || 'local';
-
-        if (data.isAdmin) {
-          user.emailVerified = true;
-        } else {
-          user.emailVerified = false;
+        
+        if(data.emailVerified){
+           user.emailVerified = data.emailVerified; 
+        }else{
+          if (data.isAdmin) {
+            user.emailVerified = true;
+          } else {
+            user.emailVerified = false;
+          }
+        }
+        
+        if (data.provider != "azure") {
+          user.emailVerificationCode = util.generateRandomString();
         }
 
-        if (data.provider != "azure") {
+        if (data.provider != "heroku") {
           user.emailVerificationCode = util.generateRandomString();
         }
 

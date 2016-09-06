@@ -13,10 +13,10 @@ module.exports = function() {
        
         if(currentUserId && data){   
                    
-          global.projectService.createProject(data.name,currentUserId , null).then(function(project) {
-              if (!project) {                               
-                  return res.status(400).send('Error : Project not created'); 
-              }          
+          global.projectService.createProject(data.name,currentUserId, null).then(function(project) {
+            if (!project) {                               
+                return res.status(400).send('Error : Project not created'); 
+            }          
             
             console.log("Successfull on App Creation");  
             return res.status(200).json(project._doc);

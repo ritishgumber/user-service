@@ -13,7 +13,7 @@ module.exports = function (Project) {
 
   return {
 
-    createProject: function (name, userId, data) {
+    createProject: function (name, userId, cloudProvider) {
 
       console.log("Create project/app");
 
@@ -29,12 +29,12 @@ module.exports = function (Project) {
         var appId;
         var newAppPlanId = 1;
 
-        if (data && data.planId) {
-          newAppPlanId = data.planId;
+        if (cloudProvider && cloudProvider.planId) {
+          newAppPlanId = cloudProvider.planId;
         }
 
         generateNonExistingAppId().then(function (newAppId) {
-          console.log("fetched new appId");
+          console.log("Fetched new AppId");
           appId = newAppId;
           return _createAppFromDS(appId);
 
@@ -59,8 +59,8 @@ module.exports = function (Project) {
             disabled: false
           };
 
-          if (data && data.provider) {
-            appendJson.provider = data.provider;
+          if (cloudProvider && cloudProvider.provider) {
+            appendJson.provider = cloudProvider.provider;
           }
           return _self.findOneAndUpdateProject(project._id, appendJson);
 
@@ -299,6 +299,7 @@ module.exports = function (Project) {
       return deffered.promise;
 
     },
+
     deleteProjectBy: function (query) {
 
       console.log("Delete Project...");
@@ -338,6 +339,7 @@ module.exports = function (Project) {
       return deferred.promise;
 
     },
+
     delete: function (appId, userId) {
 
       console.log("Delete Project...");
@@ -377,6 +379,53 @@ module.exports = function (Project) {
       return deferred.promise;
 
     },
+
+    /** 
+     * This fucntion is used to deprovision an app from 3rd party cloud services like
+     * azure, amazon, heroku, etc. 
+     *
+    */
+
+    deleteAppAsAdmin: function (appId) {
+
+      console.log("Delete Project...");
+
+      var deferred = Q.defer();
+
+      try {
+        var self = this;
+
+        console.log(' ++++++++ App Delete request +++++++++');
+
+        Project.findOne({ appId: appId }, function (err, foundProj) {
+          if (err) {
+            console.log('++++++++ App Delete failed from frontend ++++++++++');
+            deferred.reject(err);
+          } else if (foundProj) {
+
+            _deleteAppFromDS(appId).then(function (resp) {
+              console.log("Delete Project from data services......");
+              deferred.resolve(resp);
+            }, function (error) {
+              console.log("Error on Delete Project from data services......");
+              deferred.reject(error);
+            });
+
+          } else {
+            console.log("Project not found. ");
+            deferred.reject("Project not found.");
+          }
+        });
+
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deferred.reject(err)
+      }
+
+      return deferred.promise;
+
+    },
+
     allProjectList: function () {
 
       console.log("get all project list....");

@@ -303,24 +303,26 @@ module.exports = function(){
             global.paymentProcessService = require('./services/paymentProcessService.js')();
             global.userAnalyticService = require('./services/userAnalyticService.js')();
             global.analyticsNotificationsService = require('./services/analyticsNotificationsService.js')();
-            global.cbPartnerService = require('./services/cbPartnerService.js')(Cbpartner);         
+            global.cbPartnerService = require('./services/cbPartnerService.js')(Cbpartner);
+            global.utilService = require('./services/utilService.js')();         
 
             //Routes(API)
             require('./framework/config')(passport, User); 
 
-            global.app.use('/', require('./routes/auth')(passport));
-            global.app.use('/', require('./routes/subscriber.js')());
-            global.app.use('/', require('./routes/project.js')());                 
-            global.app.use('/', require('./routes/beacon.js')());
-            global.app.use('/', require('./routes/tutorial.js')());
-            global.app.use('/', require('./routes/file.js')());
-            global.app.use('/', require('./routes/cbServer.js')());
-            global.app.use('/', require('./routes/notification.js')());
-            global.app.use('/', require('./routes/paymentProcess.js')());
-            global.app.use('/', require('./routes/userAnalytics.js')());
-            global.app.use('/', require('./routes/analyticsNotifications.js')());  
-            global.app.use('/', require('./routes/cbPartner.js')());
-            global.app.use('/', require('./routes/azure.js')());           
+            global.app.use('/', require('./api/auth')(passport));
+            global.app.use('/', require('./api/subscriber.js')());
+            global.app.use('/', require('./api/heroku.js')());
+            global.app.use('/', require('./api/project.js')());                 
+            global.app.use('/', require('./api/beacon.js')());
+            global.app.use('/', require('./api/tutorial.js')());
+            global.app.use('/', require('./api/file.js')());
+            global.app.use('/', require('./api/cbServer.js')());
+            global.app.use('/', require('./api/notification.js')());
+            global.app.use('/', require('./api/paymentProcess.js')());
+            global.app.use('/', require('./api/userAnalytics.js')());
+            global.app.use('/', require('./api/analyticsNotifications.js')());  
+            global.app.use('/', require('./api/cbPartner.js')());
+            global.app.use('/', require('./api/azure.js')());           
 
             global.app.use(expressWinston.errorLogger({
               transports: [   
