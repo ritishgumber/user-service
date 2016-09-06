@@ -43,27 +43,34 @@ module.exports = function () {
             global.userService.register(user).then(function(registeredUser){
                
                 global.projectService.createProject("Heroku App",registeredUser.id, null, {
-                    provider : "heroku",
-                    planId: 2
+                    provider : "heroku"
                 }).then(function(project) {
-                    
+
                     if (!project) {                               
                         return res.status(400).send('Error : Project not created'); 
-                    }          
-                    console.log("Successfull on App Creation");
+                    } 
 
-                    return res.status(200).json({ 
-                        id: project.appId, 
-                        config: { 
-                            "CLOUDBOOSTSERVICE_URL" : "https://api.cloudboost.io", 
-                            "CLOUDBOOSTSERVICE_PORTAL":"https://dashboard.cloudboost.io", 
-                            "CLOUDBOOSTSERVICE_PORTAL_EMAIL" : user.email, 
-                            "CLOUDBOOSTSERVICE_PORTAL_PASSWORD" : user.password, 
-                            "CLOUDBOOSTSERVICE_APP_ID" : project.appId, 
-                            "CLOUDBOOSTSERVICE_CLIENT_KEY" : project.keys.js, 
-                            "CLOUDBOOSTSERVICE_MASTER_KEY" :project.keys.master
-                        }
+                    global.paymentProcessService.createThirdPartySale(project.appId,2).then(function(){
+                         console.log("Successfull on App Creation");
+
+                            return res.status(200).json({ 
+                                id: project.appId, 
+                                config: { 
+                                    "CLOUDBOOSTSERVICE_URL" : "https://api.cloudboost.io", 
+                                    "CLOUDBOOSTSERVICE_PORTAL":"https://dashboard.cloudboost.io", 
+                                    "CLOUDBOOSTSERVICE_PORTAL_EMAIL" : user.email, 
+                                    "CLOUDBOOSTSERVICE_PORTAL_PASSWORD" : user.password, 
+                                    "CLOUDBOOSTSERVICE_APP_ID" : project.appId, 
+                                    "CLOUDBOOSTSERVICE_CLIENT_KEY" : project.keys.js, 
+                                    "CLOUDBOOSTSERVICE_MASTER_KEY" :project.keys.master
+                                }
+                            });
+                    }, function(error){
+                        return res.status(500).end(error);
                     });
+                    
+                            
+                   
                 },function(error){    
                     console.log(error);       
                     return res.status(500).send(error); 
@@ -114,18 +121,21 @@ module.exports = function () {
         if(!req.body.plan)
             return res.status(400).end("Plan ID is null");
 
-        var plan = Integer.parse(req.body.plan.toString());
+        var planId = parseInt(req.body.plan.toString());
         
-        if(plan<2&&plan>5){
+        if(planId<2&&planId>5){
             return res.status(400).end("Invalid Plan ID");
         }
-        
         
         if (!credentials || credentials.name !== global.keys.herokuUsername || credentials.pass !== global.keys.herokuPassword) {
             res.statusCode = 401;
             return res.end('Access denied');
         } else {
-            return res.status(200).end();
+             global.paymentProcessService.createThirdPartySale(req.params.id,planId).then(function(){
+                return res.status(200).end();
+            }, function(error){
+                return res.status(500).end(error);
+            });
         }
   });
 

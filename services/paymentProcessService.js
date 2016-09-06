@@ -13,6 +13,39 @@ module.exports = function(){
 
   return {
 
+    createThirdPartySale: function (appId, planId) {
+
+        console.log("Create sale/charge card..");
+
+        var _self = this;
+
+        var deferred = Q.defer();  
+
+        try{
+          var user=null;
+          var saleDocument;
+
+          _createSaleInAnalytics(appId,{
+            planId : planId
+          }).then(function(){  
+            console.log("Success on create sale from analyticsService");
+            return global.projectService.updatePlanByAppId(appId,planId); 
+          }).then(function(updatedProject){
+            console.log("Updated project by planId in after create sale..");
+            deferred.resolve(updatedProject);
+          },function(error){
+            console.log("Error on create sale..");
+            deferred.reject(error);
+          });
+
+        }catch(err){
+          global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+          deferred.reject(err)         
+        }
+
+        return deferred.promise;
+    },
+
     createSale: function (userId,appId,dataObj) {
 
         console.log("Create sale/charge card..");
@@ -80,6 +113,8 @@ module.exports = function(){
 
         return deferred.promise;
     },
+
+    
     stopRecurring: function (appId,userId) {
 
         console.log("Stop recurring...");
@@ -174,7 +209,7 @@ function _createSaleInAnalytics(appId,dataObj){
     dataObj = JSON.stringify(dataObj);
 
 
-    var url = global.keys.analyticsServiceUrl + '/'+appId+'/sale';  
+    var url = global.keys.analyticsServiceUrl + '/'+appId+'/thirdPartySale';  
     request.post(url,{
         headers: {
             'content-type': 'application/json',
@@ -191,7 +226,7 @@ function _createSaleInAnalytics(appId,dataObj){
             var respBody=JSON.parse(body);
             deferred.resolve(respBody);
           }catch(e){
-            deferred.reject(e);
+            deferred.resolve();
           }
           
         }

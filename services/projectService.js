@@ -29,10 +29,6 @@ module.exports = function (Project) {
         var appId;
         var newAppPlanId = 1;
 
-        if (cloudProvider && cloudProvider.planId) {
-          newAppPlanId = cloudProvider.planId;
-        }
-
         generateNonExistingAppId().then(function (newAppId) {
           console.log("Fetched new AppId");
           appId = newAppId;
