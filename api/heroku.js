@@ -56,13 +56,13 @@ module.exports = function () {
                             return res.status(200).json({ 
                                 id: project.appId, 
                                 config: { 
-                                    "CLOUDBOOSTSERVICE_URL" : "https://api.cloudboost.io", 
-                                    "CLOUDBOOSTSERVICE_PORTAL":"https://dashboard.cloudboost.io", 
-                                    "CLOUDBOOSTSERVICE_PORTAL_EMAIL" : user.email, 
-                                    "CLOUDBOOSTSERVICE_PORTAL_PASSWORD" : user.password, 
-                                    "CLOUDBOOSTSERVICE_APP_ID" : project.appId, 
-                                    "CLOUDBOOSTSERVICE_CLIENT_KEY" : project.keys.js, 
-                                    "CLOUDBOOSTSERVICE_MASTER_KEY" :project.keys.master
+                                    "CLOUDBOOST_URL" : "https://api.cloudboost.io", 
+                                    "CLOUDBOOST_PORTAL":"https://dashboard.cloudboost.io", 
+                                    "CLOUDBOOST_PORTAL_EMAIL" : user.email, 
+                                    "CLOUDBOOST_PORTAL_PASSWORD" : user.password, 
+                                    "CLOUDBOOST_APP_ID" : project.appId, 
+                                    "CLOUDBOOST_CLIENT_KEY" : project.keys.js, 
+                                    "CLOUDBOOST_MASTER_KEY" :project.keys.master
                                 }
                             });
                     }, function(error){
@@ -121,7 +121,25 @@ module.exports = function () {
         if(!req.body.plan)
             return res.status(400).end("Plan ID is null");
 
-        var planId = parseInt(req.body.plan.toString());
+
+        var planId = 2;
+
+        if(req.body.plan.toString() === 'launch'){
+          planId =2;
+        }
+
+        if(req.body.plan.toString() === 'bootstrap'){
+          planId =3;
+        }
+
+        if(req.body.plan.toString() === 'scale'){
+          planId =4;
+        }
+
+        if(req.body.plan.toString() === 'unicorn'){
+          planId =5;
+        }
+
         
         if(planId<2&&planId>5){
             return res.status(400).end("Invalid Plan ID");
