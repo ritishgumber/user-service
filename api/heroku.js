@@ -105,13 +105,40 @@ module.exports = function () {
             
             //geenrate the userId, 
             var user = {};
-            user.email = global.utilService.generateRandomString()+"@heroku.com";
+            user.email = req.body.heroku_id;
             user.emailVerified = true; 
             user.password = global.utilService.generateRandomString();
             user.name = "Heroku";
             user.isAdmin = false;
             user.isActive = true;
             user.provider = "heroku";
+
+            if(!req.body.plan)
+                return res.status(400).end("Plan ID is null");
+
+
+            var planId = 2;
+
+            if(req.body.plan.toString() === 'launch'){
+            planId =2;
+            }
+
+            if(req.body.plan.toString() === 'bootstrap'){
+            planId =3;
+            }
+
+            if(req.body.plan.toString() === 'scale'){
+            planId =4;
+            }
+
+            if(req.body.plan.toString() === 'unicorn'){
+            planId =5;
+            }
+
+            
+            if(planId<2&&planId>5){
+                return res.status(400).end("Invalid Plan ID");
+            }
 
             global.userService.register(user).then(function(registeredUser){
                
@@ -123,7 +150,7 @@ module.exports = function () {
                         return res.status(400).send('Error : Project not created'); 
                     } 
 
-                    global.paymentProcessService.createThirdPartySale(project.appId,2).then(function(){
+                    global.paymentProcessService.createThirdPartySale(project.appId,planId).then(function(){
                          console.log("Successfull on App Creation");
 
                             return res.status(200).json({ 
