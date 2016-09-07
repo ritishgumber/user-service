@@ -7,6 +7,7 @@ var async = require('async');
 var crypto = require('crypto');
 var moment = require('moment');
 var auth = require('basic-auth');
+var sha1 = require('sha1');
 
  /*
   * This API is built from these links : 
@@ -14,6 +15,78 @@ var auth = require('basic-auth');
   */
 
 module.exports = function () {
+
+  /*
+  * This is Heroku SSO Login
+  */
+
+   app.post('/heroku/sso/login', function(req, res, next) {   
+
+        console.log("Heroku Login SSO");
+
+        var pre_token = req.body.id + ':' + global.keys.herokuSalt + ':' + req.body.timestamp;
+        var token = sha1(pre_token);
+        var navData = req.body["nav-data"];
+
+        if(token!==req.body.token){
+          return res.status(403).end("Unauthorized.");
+        }
+         
+        if(parseInt(req.body.timestamp) < (new Date().getTime()/1000) - 5*60){
+          return res.status(403).end("Session Expired.");
+        } 
+         
+        //find an app  and then find the user. 
+
+        var appId = req.body.id;
+
+        global.projectService.getProject(appId).then(function(project){
+          if(!project){
+            return res.status(404).end("App not found.");
+          }
+
+          var userId = project._userId;
+
+          if(!userId){
+            return res.status(404).end("User not found.");
+          }
+
+          global.userService.getAccountById(userId).then(function(user){
+              if(!user){
+                return res.status(404).end("User not found.");
+              }
+
+              //if user is found, then login the user.
+
+               req.login(user, function(err) {
+
+                  if (err) {
+                       return res.status(500).end(err);
+                  }
+                  
+                  console.log('++++++ User Login Success +++++++++++++');
+
+                  delete user.emailVerificationCode; 
+                  delete user.password; //delete this code form response for security
+
+                  res.writeHead(302, {
+                      'Set-Cookie': "heroku-nav-data="+navData,
+                      'Location': 'https://dashboard.cloudboost.io?provider=heroku&app='+req.body.app
+                  });
+
+                  res.end();
+                  return;
+              });
+
+            }, function(err){
+                return res.status(500).end(err);
+            });
+
+        }, function(err){
+            return res.status(500).end(err);
+        });
+  });
+
 
   /*
   * This is Heroku Create Resource Fucntion
@@ -42,7 +115,7 @@ module.exports = function () {
 
             global.userService.register(user).then(function(registeredUser){
                
-                global.projectService.createProject("Heroku App",registeredUser.id, null, {
+                global.projectService.createProject("Heroku App",registeredUser.id, {
                     provider : "heroku"
                 }).then(function(project) {
 
@@ -69,8 +142,6 @@ module.exports = function () {
                         return res.status(500).end(error);
                     });
                     
-                            
-                   
                 },function(error){    
                     console.log(error);       
                     return res.status(500).send(error); 
