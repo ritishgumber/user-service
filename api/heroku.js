@@ -105,7 +105,7 @@ module.exports = function () {
             
             //geenrate the userId, 
             var user = {};
-            user.email = req.body.heroku_id;
+            user.email = global.utilService.generateRandomString()+"@heroku.com";
             user.emailVerified = true; 
             user.password = global.utilService.generateRandomString();
             user.name = "Heroku";
@@ -158,8 +158,6 @@ module.exports = function () {
                                 config: { 
                                     "CLOUDBOOST_URL" : "https://api.cloudboost.io", 
                                     "CLOUDBOOST_PORTAL":"https://dashboard.cloudboost.io", 
-                                    "CLOUDBOOST_PORTAL_EMAIL" : user.email, 
-                                    "CLOUDBOOST_PORTAL_PASSWORD" : user.password, 
                                     "CLOUDBOOST_APP_ID" : project.appId, 
                                     "CLOUDBOOST_CLIENT_KEY" : project.keys.js, 
                                     "CLOUDBOOST_MASTER_KEY" :project.keys.master
