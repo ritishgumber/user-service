@@ -50,7 +50,7 @@ module.exports = function(){
         });
 
         return deferred.promise;        
-    }
+    },
    
     sendMail: function(mailName, emailTo, subject, variableArray){
 
