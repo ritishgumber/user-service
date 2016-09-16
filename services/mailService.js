@@ -24,6 +24,33 @@ var nodemailerMailgun = nodemailer.createTransport(mailgun({
 module.exports = function(){
 
   return { 
+
+    sendTextMail: function(from, to, subject, text){
+
+        console.log("Send Mail Function...");
+
+        var deferred = Q.defer();
+
+
+        nodemailerMailgun.sendMail({
+              from: from,
+              'h:Reply-To': from,
+              to: to,           
+              subject: subject,                  
+              text: text        
+            }, function (err, info) {
+              if (err) {
+                console.log(err);
+                deferred.reject(error);
+              }
+              else {
+                console.log(info);
+                deferred.resolve(info);
+              }
+        });
+
+        return deferred.promise;        
+    }
    
     sendMail: function(mailName, emailTo, subject, variableArray){
 

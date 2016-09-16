@@ -44,5 +44,5 @@ after_success:
 - docker push cloudboost/user-service:2.0.$TRAVIS_BUILD_NUMBER
 - docker push cloudboost/user-service:latest
 #Upload to Kubernetes for deployment.
-- kubectl rolling-update cloudboost-user-service --image=cloudboost/user-service:latest
+- kubectl rolling-update cloudboost-user-service --image=cloudboost/user-service:latest --image-pull-policy=Always
 

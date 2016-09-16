@@ -6,6 +6,7 @@ var http = require('http');
 var _ = require('underscore');
 var crypto = require('crypto');
 var request = require('request');
+var keys = require('../config/keys');
 
 
 module.exports = function(CbPartner){
@@ -58,7 +59,7 @@ module.exports = function(CbPartner){
 
                           var partnersListId="4c5ae5e681";       
                           global.mailChimpService.addSubscriber(partnersListId,data.companyEmail);
-
+                          global.mailService.sendTextMail(keys.adminEmailAddress,keys.adminEmailAddress, "CloudBoost Partner Application", JSON.stringify(cbPartner));
                           deferred.resolve({message:"Success","id":cbPartner._id});
                         } 
                      });

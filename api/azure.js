@@ -57,13 +57,13 @@ function subscription(req, res) {
       onSubscriptionRegistered(req, res);
       break;
     case 'Suspended':
-      onSubscriptionSuspended(req, res);
+      onSubscriptionUnregistered(req, res);
       break;
     case 'Unregistered':
       onSubscriptionUnregistered(req, res);
       break;
-    case 'Enabled':
-      onSubscriptionEnabled(req, res);
+    case 'Warned':
+      onSubscriptionUnregistered(req, res);
       break;
     case 'Deleted':
       onSubscriptionDeleted(req, res);

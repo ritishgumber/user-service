@@ -12,7 +12,7 @@ module.exports = function() {
         var data = req.body || {};      
 
         global.cbPartnerService.save(data).then(function(result){
-            return res.status(200).json(result);
+            res.status(200).json(result);
         },function(error){
         	return res.status(400).json(error); 
         });          
