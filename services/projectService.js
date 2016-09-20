@@ -58,6 +58,12 @@ module.exports = function (Project) {
           if (cloudProvider && cloudProvider.provider) {
             appendJson.provider = cloudProvider.provider;
           }
+
+          if (cloudProvider && cloudProvider.providerProperties) {
+            appendJson.providerProperties = cloudProvider.providerProperties;
+          }
+
+
           return _self.findOneAndUpdateProject(project._id, appendJson);
 
         }).then(function (newProject) {
@@ -79,6 +85,93 @@ module.exports = function (Project) {
 
       return deferred.promise;
     },
+
+
+
+    blockProject: function(appId, reason){
+
+      var deferred = Q.defer();
+
+      try {
+        var post_data = {};
+        
+        post_data.host = global.keys.secureKey;
+        post_data.appId = global.keys.appId;
+        post_data.reason = global.keys.reason;
+
+        post_data = JSON.stringify(post_data);
+
+        var url = global.keys.analyticsServiceUrl + '/app/block';
+        request.post(url, {
+          headers: {
+            'content-type': 'application/json',
+            'content-length': post_data.length
+          },
+          body: post_data
+        }, function (err, response, body) {
+          if (err || response.statusCode === 500 || body === 'Error') {
+            console.log("Error on block app from analytics service");
+            console.log(err);
+            deferred.reject(err);
+          } else {
+            console.log("Successful on block app from analytics services.");
+            try {
+              deferred.resolve(body);
+            } catch (e) {
+              deferred.reject(e);
+            }
+          }
+        });
+
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deferred.reject(err);
+      }
+
+      return deferred.promise;
+    }, 
+
+    blockProject: function(appId){
+      var deferred = Q.defer();
+
+      try {
+        var post_data = {};
+        
+        post_data.host = global.keys.secureKey;
+        post_data.appId = global.keys.appId;
+
+        post_data = JSON.stringify(post_data);
+
+        var url = global.keys.analyticsServiceUrl + '/app/unblock';
+        request.post(url, {
+          headers: {
+            'content-type': 'application/json',
+            'content-length': post_data.length
+          },
+          body: post_data
+        }, function (err, response, body) {
+          if (err || response.statusCode === 500 || body === 'Error') {
+            console.log("Error on unblock app from analytics service");
+            console.log(err);
+            deferred.reject(err);
+          } else {
+            console.log("Successful on unblock app from analytics services.");
+            try {
+              deferred.resolve(body);
+            } catch (e) {
+              deferred.reject(e);
+            }
+          }
+        });
+
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deferred.reject(err);
+      }
+
+      return deferred.promise;
+    },
+
     projectList: function (userId) {
 
       console.log("Get project list..");
@@ -98,6 +191,78 @@ module.exports = function (Project) {
           }
           console.log("Success on Get project list..");
           deferred.resolve(list);
+        });
+
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deferred.reject(err)
+      }
+
+      return deferred.promise;
+    },
+
+     getProjectByUserIdAndQuery: function (userId, query) {
+
+      console.log("Get project list..");
+
+      var _self = this;
+
+      var deferred = Q.defer();
+
+      if(!query){
+        query = {};
+      }
+
+      query.developers =  { $elemMatch: { userId: userId } };
+
+
+      try {
+
+        var self = this;
+
+        Project.findOne(query, function (err, project) {
+          if (err) {
+            console.log("Error on Get project list..");
+            deferred.reject(err);
+          }
+          console.log("Success on Get project list..");
+          deferred.resolve(project);
+        });
+
+      } catch (err) {
+        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        deferred.reject(err)
+      }
+
+      return deferred.promise;
+    },
+
+     getProjectsByUserIdAndQuery: function (userId, query) {
+
+      console.log("Get project list..");
+
+      var _self = this;
+
+      var deferred = Q.defer();
+
+      if(!query){
+        query = {};
+      }
+
+      query.developers =  { $elemMatch: { userId: userId } };
+
+
+      try {
+
+        var self = this;
+
+        Project.find(query, function (err, projects) {
+          if (err) {
+            console.log("Error on Get project list..");
+            deferred.reject(err);
+          }
+          console.log("Success on Get project list..");
+          deferred.resolve(projects);
         });
 
       } catch (err) {
@@ -884,33 +1049,7 @@ module.exports = function (Project) {
 
       return deferred.promise;
 
-    },
-//------------------------------------------------------------------------RegenerateKeys----------------------------------
-    RegenerateKeys: function (criteria) {
-
-      console.log("Initiate RegenerateKeys..");
-
-      var deffered = Q.defer();
-      try {
-
-        var appId;
-        
-       generateNonExistingAppId().then(function (newAppId) {
-          console.log("fetched new appId");
-          appId = newAppId;
-          return console.log(appId);
-        }, function (error) {
-          console.log("Error");
-          deferred.reject(error);
-        });
-      
-
-      } catch (err) {
-        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
-        deferred.reject(err)
-      }
-     },
-//-----------------------------------------------------------RegenerateKeys END--------------------------------------------------
+    }
   }
 
 };

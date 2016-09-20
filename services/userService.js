@@ -843,7 +843,7 @@ module.exports = function (User) {
       return deffered.promise;
     },
 
-    UpdateAccountBySubscription: function (query, userData) {
+    updateAccountByQuery: function (query, userData) {
 
       console.log("Get account by Subscription..");
 
@@ -898,48 +898,9 @@ module.exports = function (User) {
         deffered.reject(err)
       }
       return deffered.promise;
-    },
+    }
 
-    azureregister: function (data) {
-
-      console.log("Register User..");
-
-      var deffered = Q.defer();
-      try {
-        var self = this;
-
-        self.getAccountByTenantId(data.azure.tenantId).then(function (user) {
-
-          if (user) {
-            console.log("A user with this tenantId already exists to Register");
-            return deffered.reject('A user with this tenantId already exists.');
-          }
-
-          //create a new user
-          self.createUser(data).then(function (user) {
-            console.log("Success on Register User..");
-            deffered.resolve(user);
-
-            //Create Beacons For New Users
-            if (user) {
-              global.beaconService.createBeacon(user._doc._id.toString());
-            }
-          }, function (error) {
-            console.log("Error on Register User..");
-            deffered.reject(error);
-          });
-        }, function (error) {
-          console.log("Error on get account by tenantId in Register User..");
-          deffered.reject(error);
-        });
-
-      } catch (err) {
-        global.winston.log('error', { "error": String(err), "stack": new Error().stack });
-        deffered.reject(err);
-      }
-
-      return deffered.promise;
-    },
+   
   }
 
 };
