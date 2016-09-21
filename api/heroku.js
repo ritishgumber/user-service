@@ -70,7 +70,7 @@ module.exports = function () {
                   delete user.password; //delete this code form response for security
 
                   res.writeHead(302, {
-                      'Set-Cookie': "heroku-nav-data="+navData,
+                      'Set-Cookie': "heroku-nav-data="+navData+";userId="+userId,
                       'Location': 'https://dashboard.cloudboost.io?provider=heroku&app='+req.body.app
                   });
 

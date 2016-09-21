@@ -32,60 +32,62 @@ module.exports = function () {
   app.post('/subscriptions/:subscription_id/providers/:resourceProviderNamespace/listCommunicationPreference', getCommunicationPreference);
   app.post('/subscriptions/:subscription_id/resourceGroups/:resourceGroupName/providers/:resourceProviderNamespace/:resource_type/:resource_name/RegenerateKey', regenerateKeys);
   app.delete('/subscriptions/:subscription_id/resourceGroups/:resourceGroupName/providers/:resourceProviderNamespace/:resource_type/:resource_name', removeResource);
-  
+
   //SSO
   app.post('/subscriptions/:subscription_id/resourceGroups/:resourceGroupName/providers/:resourceProviderNamespace/:resource_type/:resource_name/listSingleSignOnToken', getToken);
   app.get('/sso', sso);
-    
+
+  //RETURN
+  return app;
 };
 
-function sso(req,res){
+function sso(req, res) {
 
   var url = require('url');
   var url_parts = url.parse(req.url, true);
   var query = url_parts.query;
 
   var resourceParams = new Buffer(query.resourceId.toString(), 'base64').toString('ascii').aplit('/');
-  var password = new Buffer(query.token.toString(), 'base64').toString('ascii'); 
+  var password = new Buffer(query.token.toString(), 'base64').toString('ascii');
 
-  if(resourceParams[1])
+  if (resourceParams[1])
     var subscriptionId = resourceParams[1];
   else
     return res.status(400).send('Bad Params');
 
 
-   getUserBySubscription(subscriptionId).then(function(user){
-      if(!user){
-        return res.status(404).send('User not found.'); //subscription not found.
-      }else{
+  getUserBySubscription(subscriptionId).then(function (user) {
+    if (!user) {
+      return res.status(404).send('User not found.'); //subscription not found.
+    } else {
 
-        if(user.password === password){
+      if (user.password === password) {
 
-         req.login(user, function(err) {
+        req.login(user, function (err) {
 
-            if (err) {
-                 return res.status(500).end(err);
-            }
-            
-            console.log('++++++ User Login Success +++++++++++++');
+          if (err) {
+            return res.status(500).end(err);
+          }
 
-            delete user.emailVerificationCode; 
-            delete user.password; //delete this code form response for security
+          console.log('++++++ User Login Success +++++++++++++');
 
-            res.writeHead(302, {
-                'Location': 'https://dashboard.cloudboost.io'
-            });
+          delete user.emailVerificationCode;
+          delete user.password; //delete this code form response for security
 
-            res.end();
-            return;
+          res.writeHead(302, {
+            'Location': 'https://dashboard.cloudboost.io'
+          });
+
+          res.end();
+          return;
         });
 
-       }else{
-         return res.status(401).send('Unauthorized');
-       }
-
+      } else {
+        return res.status(401).send('Unauthorized');
       }
-    });
+
+    }
+  });
 }
 
 function subscription(req, res) {
@@ -121,8 +123,8 @@ function onSubscriptionRegistered(req, res) {
 
   //generate the new user. 
   var user = {};
-  user.email = req.params['subscription_id']+"@azure.com";
-  user.emailVerified = true; 
+  user.email = req.params['subscription_id'] + "@azure.com";
+  user.emailVerified = true;
   user.password = global.utilService.generateRandomString();
   user.name = "Azure User";
   user.isAdmin = false;
@@ -130,11 +132,11 @@ function onSubscriptionRegistered(req, res) {
   user.provider = "azure";
   user.providerProperties = req.body.Properties;
 
-  global.userService.register(user).then(function(registeredUser){
-      return res.status(200).json(registeredUser);    
-  },function(error){    
-      console.log(error);       
-      return res.status(500).send(error); 
+  global.userService.register(user).then(function (registeredUser) {
+    return res.status(200).json(registeredUser);
+  }, function (error) {
+    console.log(error);
+    return res.status(500).send(error);
   });
 }
 
@@ -148,28 +150,28 @@ function onSubscriptionUnregistered(req, res) {
   //get list of all projects. 
   //block all projects. 
 
-   getProjectListBySubscription(req.params['subscription_id'] ).then(function(projects){
-      if(projects && projects.length >0){
-        var promsies = []; 
+  getProjectListBySubscription(req.params['subscription_id']).then(function (projects) {
+    if (projects && projects.length > 0) {
+      var promsies = [];
 
-        for(var i=0;i<projects.length; i++){
-          promises.push(global.projectService.blockProject(projects[i]._id));
-        }
+      for (var i = 0; i < projects.length; i++) {
+        promises.push(global.projectService.blockProject(projects[i]._id));
+      }
 
-        Q.all(promises).then(function(statuses){
-          return res.status(200).send();
-        }, function(error){
-          console.log(error);       
-          return res.status(500).send(error); 
-        });
-        
-      }else{   
-        return res.status(200).send(); 
-      } 
-    },function(error){    
-        console.log(error);       
-        return res.status(500).send(error); 
-    });
+      Q.all(promises).then(function (statuses) {
+        return res.status(200).send();
+      }, function (error) {
+        console.log(error);
+        return res.status(500).send(error);
+      });
+
+    } else {
+      return res.status(200).send();
+    }
+  }, function (error) {
+    console.log(error);
+    return res.status(500).send(error);
+  });
 }
 
 /**
@@ -177,28 +179,28 @@ function onSubscriptionUnregistered(req, res) {
 */
 
 function onSubscriptionEnabled(req, res) {
-   getProjectListBySubscription(req.params['subscription_id']).then(function(projects){
-      if(projects && projects.length >0){
-        var promsies = []; 
+  getProjectListBySubscription(req.params['subscription_id']).then(function (projects) {
+    if (projects && projects.length > 0) {
+      var promsies = [];
 
-        for(var i=0;i<projects.length; i++){
-          promises.push(global.projectService.unblockProject(projects[i]._id));
-        }
+      for (var i = 0; i < projects.length; i++) {
+        promises.push(global.projectService.unblockProject(projects[i]._id));
+      }
 
-        Q.all(promises).then(function(statuses){
-          return res.status(200).send();
-        }, function(error){
-          console.log(error);       
-          return res.status(500).send(error); 
-        });
-        
-      }else{   
-        return res.status(200).send(); 
-      } 
-    },function(error){    
-        console.log(error);       
-        return res.status(500).send(error); 
-    });
+      Q.all(promises).then(function (statuses) {
+        return res.status(200).send();
+      }, function (error) {
+        console.log(error);
+        return res.status(500).send(error);
+      });
+
+    } else {
+      return res.status(200).send();
+    }
+  }, function (error) {
+    console.log(error);
+    return res.status(500).send(error);
+  });
 }
 
 /**
@@ -207,128 +209,128 @@ function onSubscriptionEnabled(req, res) {
 
 function onSubscriptionDeleted(req, res) {
 
-   getProjectListBySubscription(req.params['subscription_id']).then(function(projects){
-      if(projects && projects.length >0){
-        var promises = [];
-        
-        for (var i = 0; i < tenants.length; ++i) {
-          promises.push(global.projectService.deleteProjectBy({_id : projects[i].id}));
-        }
+  getProjectListBySubscription(req.params['subscription_id']).then(function (projects) {
+    if (projects && projects.length > 0) {
+      var promises = [];
 
-        Q.all(promises).then(function (list) {
-          res.status(200).send('Resources has been deleted.');
-        }, function (error) {
-          return res.status(500).send(error);
-        });
-        
-      }else{   
-        return res.status(200).send(); 
-      } 
-    },function(error){    
-        console.log(error);       
-        return res.status(500).send(error); 
-    });
+      for (var i = 0; i < tenants.length; ++i) {
+        promises.push(global.projectService.deleteProjectBy({ _id: projects[i].id }));
+      }
+
+      Q.all(promises).then(function (list) {
+        res.status(200).send('Resources has been deleted.');
+      }, function (error) {
+        return res.status(500).send(error);
+      });
+
+    } else {
+      return res.status(200).send();
+    }
+  }, function (error) {
+    console.log(error);
+    return res.status(500).send(error);
+  });
 }
 
-function getOperations(req,res){
+function getOperations(req, res) {
   res.status(200).json({
-      "value": [
-          {
-              "name": "hackerbay.cloudboost/operations/read",
-              "display": {
-                  "operation": "Read Operations",
-                  "resource": "Operations",
-                  "description": "Read any Operation",
-                  "provider": "HackerBay CloudBoost"
-              }
-          },
-          {
-              "name": "hackerbay.cloudboost/updateCommunicationPreference/action",
-              "display": {
-                  "operation": "Update Communication Preferences",
-                  "resource": "Update Communication Preferences",
-                  "description": "Updates Communication Preferences",
-                  "provider": "HackerBay CloudBoost"
-              }
-          },
-          {
-              "name": "hackerbay.cloudboost/listCommunicationPreference/action",
-              "display": {
-                  "operation": "List Communication Preferences",
-                  "resource": "List Communication Preferences",
-                  "description": "Read any Communication Preferences",
-                  "provider": "HackerBay CloudBoost"
-              }
-          },
-          {
-              "name": "hackerbay.cloudboost/services/read",
-              "display": {
-                  "operation": "Read CloudBoost app",
-                  "resource": "services",
-                  "description": "Read any CloudBoost app",
-                  "provider": "HackerBay CloudBoost"
-              }
-          },
-          {
-              "name": "hackerbay.cloudboost/services/write",
-              "display": {
-                  "operation": "Create or Update CloudBoost app",
-                  "resource": "services",
-                  "description": "Create or Update any CloudBoost app",
-                  "provider": "HackerBay CloudBoost"
-              }
-          },
-          {
-              "name": "hackerbay.cloudboost/services/delete",
-              "display": {
-                  "operation": "Delete CloudBoost apps",
-                  "resource": "services",
-                  "description": "Deletes any CloudBoost app",
-                  "provider": "HackerBay CloudBoost"
-              }
-          },
-          {
-              "name": "hackerbay.cloudboost/services/listSecrets/action",
-              "display": {
-                  "operation": "List Master Key and Client Keys",
-                  "resource": "services",
-                  "description": "Read any app Master Key and Client key.",
-                  "provider": "HackerBay CloudBoost"
-              }
-          },
-          {
-              "name": "hackerbay.cloudboost/services/regenerateKeys/action",
-              "display": {
-                  "operation": "Regenerate Master Key and Client Keys",
-                  "resource": "services",
-                  "description": "Regenerate any CloudBoost app's Master Key and Client Key.",
-                  "provider": "HackerBay CloudBoost"
-              }
-          },
-          {
-              "name": "hackerbay.cloudboost/services/listSingleSignOnToken/action",
-              "display": {
-                  "operation": "List Single Sign On Tokens",
-                  "resource": "services",
-                  "description": "Read Single Sign On Tokens",
-                  "provider": "HackerBay CloudBoost"
-              }
-          }
-      ],
+    "value": [
+      {
+        "name": "hackerbay.cloudboost/operations/read",
+        "display": {
+          "operation": "Read Operations",
+          "resource": "Operations",
+          "description": "Read any Operation",
+          "provider": "HackerBay CloudBoost"
+        }
+      },
+      {
+        "name": "hackerbay.cloudboost/updateCommunicationPreference/action",
+        "display": {
+          "operation": "Update Communication Preferences",
+          "resource": "Update Communication Preferences",
+          "description": "Updates Communication Preferences",
+          "provider": "HackerBay CloudBoost"
+        }
+      },
+      {
+        "name": "hackerbay.cloudboost/listCommunicationPreference/action",
+        "display": {
+          "operation": "List Communication Preferences",
+          "resource": "List Communication Preferences",
+          "description": "Read any Communication Preferences",
+          "provider": "HackerBay CloudBoost"
+        }
+      },
+      {
+        "name": "hackerbay.cloudboost/services/read",
+        "display": {
+          "operation": "Read CloudBoost app",
+          "resource": "services",
+          "description": "Read any CloudBoost app",
+          "provider": "HackerBay CloudBoost"
+        }
+      },
+      {
+        "name": "hackerbay.cloudboost/services/write",
+        "display": {
+          "operation": "Create or Update CloudBoost app",
+          "resource": "services",
+          "description": "Create or Update any CloudBoost app",
+          "provider": "HackerBay CloudBoost"
+        }
+      },
+      {
+        "name": "hackerbay.cloudboost/services/delete",
+        "display": {
+          "operation": "Delete CloudBoost apps",
+          "resource": "services",
+          "description": "Deletes any CloudBoost app",
+          "provider": "HackerBay CloudBoost"
+        }
+      },
+      {
+        "name": "hackerbay.cloudboost/services/listSecrets/action",
+        "display": {
+          "operation": "List Master Key and Client Keys",
+          "resource": "services",
+          "description": "Read any app Master Key and Client key.",
+          "provider": "HackerBay CloudBoost"
+        }
+      },
+      {
+        "name": "hackerbay.cloudboost/services/regenerateKeys/action",
+        "display": {
+          "operation": "Regenerate Master Key and Client Keys",
+          "resource": "services",
+          "description": "Regenerate any CloudBoost app's Master Key and Client Key.",
+          "provider": "HackerBay CloudBoost"
+        }
+      },
+      {
+        "name": "hackerbay.cloudboost/services/listSingleSignOnToken/action",
+        "display": {
+          "operation": "List Single Sign On Tokens",
+          "resource": "services",
+          "description": "Read Single Sign On Tokens",
+          "provider": "HackerBay CloudBoost"
+        }
+      }
+    ],
 
-    });
+  });
 }
 
 function createOrUpdateResource(req, res) {
 
   var subscriptionId = req.params['subscription_id'];
-  
+
   var criteria = {
     'providerProperties.resourceGroupName': req.params['resourceGroupName'],
     'providerProperties.resourceProviderNamespace': req.params['resourceProviderNamespace'],
     'providerProperties.resource_name': req.params['resource_name'],
-    'providerProperties.subscriptionId' : req.params['subscription_id'],
-    'provider' : azure
+    'providerProperties.subscriptionId': req.params['subscription_id'],
+    'provider': azure
   };
 
   getProjectByAzureSubscriptionAndQuery(subscriptionId, criteria).then(function (project) {
@@ -343,111 +345,113 @@ function createOrUpdateResource(req, res) {
     var type = req.params.resource_type;
     var properties = req.body.properties;
 
-    getUserBySubscription(req.params['subscription_id']).then(function(user){
-      if(!user){
+    getUserBySubscription(req.params['subscription_id']).then(function (user) {
+      if (!user) {
         return res.status(404).send(); //subscription not found.
-      }else{
-         if (!user) {
-           //insert project.
-           global.projectService.createProject(resource_name,user.id, {
-              provider : "azure",
-              providerProperties : {
-                      tags: tags,
-                      subscription_id: subscription_id,
-                      resourceGroupName: resourceGroupName,
-                      resourceProviderNamespace: resourceProviderNamespace,
-                      resource_name: resource_name,
-                      geoRegion: georegion,
-                      resource_type: type,
-                      plan: plan,
-                      properties : properties
-                    }
-           }).then(function(project) {
+      } else {
+        if (!user) {
+          //insert project.
+          global.projectService.createProject(resource_name, user.id, {
+            provider: "azure",
+            providerProperties: {
+              tags: tags,
+              subscription_id: subscription_id,
+              resourceGroupName: resourceGroupName,
+              resourceProviderNamespace: resourceProviderNamespace,
+              resource_name: resource_name,
+              geoRegion: georegion,
+              resource_type: type,
+              plan: plan,
+              properties: properties
+            }
+          }).then(function (project) {
 
-              if (!project) {                               
-                  return res.status(500).send(); 
-              } 
+            if (!project) {
+              return res.status(500).send();
+            }
 
-              global.paymentProcessService.createThirdPartySale(project.appId,plan).then(function(){
-              
-                  return res.status(200).json({  "location":geoRegion,
-                        "id":"/subscriptions/"+subscription_id+"/resourceGroups/"+resourceGroupName+"/providers/"+resourceProviderNamespace+"/"+type+"/"+resource_name,
-                        "name":resource_name,
-                        "Type":"hackerbay.cloudboost\\services",
-                        "tags": tags,
-                        "properties":{
-                             "provisioningState":"Succeeded",
-                             "CLOUDBOOST_URL" : "https://api.cloudboost.io", 
-                             "CLOUDBOOST_PORTAL":"https://dashboard.cloudboost.io", 
-                             "CLOUDBOOST_APP_ID" : project.appId, 
-                             "CLOUDBOOST_CLIENT_KEY" : project.keys.js, 
-                             "CLOUDBOOST_MASTER_KEY" :project.keys.master
-                        }
-                      });
-              }, function(error){
-                  return res.status(500).send(); 
+            global.paymentProcessService.createThirdPartySale(project.appId, plan).then(function () {
+
+              return res.status(200).json({
+                "location": geoRegion,
+                "id": "/subscriptions/" + subscription_id + "/resourceGroups/" + resourceGroupName + "/providers/" + resourceProviderNamespace + "/" + type + "/" + resource_name,
+                "name": resource_name,
+                "Type": "hackerbay.cloudboost\\services",
+                "tags": tags,
+                "properties": {
+                  "provisioningState": "Succeeded",
+                  "CLOUDBOOST_URL": "https://api.cloudboost.io",
+                  "CLOUDBOOST_PORTAL": "https://dashboard.cloudboost.io",
+                  "CLOUDBOOST_APP_ID": project.appId,
+                  "CLOUDBOOST_CLIENT_KEY": project.keys.js,
+                  "CLOUDBOOST_MASTER_KEY": project.keys.master
+                }
               });
-              
-          },function(error){    
-              console.log(error);       
-              return res.status(500).send(); 
-          });          
-        }else{
-            //update the project
-            var projectId = resources[0]._id;
-            var appId = resources[0].appId;
-
-            //In case of update
-            var updateData = {
-              providerProperties: {
-                tags: tags,
-                subscription_id: subscription_id,
-                resourceGroupName: resourceGroupName,
-                resourceProviderNamespace: resourceProviderNamespace,
-                resource_name: resource_name,
-                geoRegion: georegion,
-                resource_type: type,
-                plan: plan,
-                properties : properties
-              }, 
-              provider : 'azure'
-              name : resource_name,
-              planId : plan
-            };
-
-            global.projectService.findOneAndUpdateProject(projectId, updateData).then(function (project) {
-
-              if (!project) {                               
-                  return res.status(400).send('Error : Project not created'); 
-              } 
-
-              global.paymentProcessService.createThirdPartySale(project.appId,plan).then(function(){
-                  console.log("Successfull on App Creation");
-
-                   return res.status(200).json({  "location":geoRegion,
-                        "id":"/subscriptions/"+subscription_id+"/resourceGroups/"+resourceGroupName+"/providers/"+resourceProviderNamespace+"/"+type+"/"+resource_name,
-                        "name":resource_name,
-                        "Type":"hackerbay.cloudboost\\services",
-                        "tags": tags,
-                        "properties":{
-                             "provisioningState":"Succeeded",
-                             "CLOUDBOOST_URL" : "https://api.cloudboost.io", 
-                             "CLOUDBOOST_PORTAL":"https://dashboard.cloudboost.io", 
-                             "CLOUDBOOST_APP_ID" : project.appId, 
-                             "CLOUDBOOST_CLIENT_KEY" : project.keys.js, 
-                             "CLOUDBOOST_MASTER_KEY" :project.keys.master
-                        }
-                    });
-              }, function(error){
-                  return res.status(500).send();
-              });
-              
             }, function (error) {
               return res.status(500).send();
             });
+
+          }, function (error) {
+            console.log(error);
+            return res.status(500).send();
+          });
+        } else {
+          //update the project
+          var projectId = resources[0]._id;
+          var appId = resources[0].appId;
+
+          //In case of update
+          var updateData = {
+            providerProperties: {
+              tags: tags,
+              subscription_id: subscription_id,
+              resourceGroupName: resourceGroupName,
+              resourceProviderNamespace: resourceProviderNamespace,
+              resource_name: resource_name,
+              geoRegion: georegion,
+              resource_type: type,
+              plan: plan,
+              properties: properties
+            },
+            provider: 'azure',
+            name: resource_name,
+            planId: plan
+          };
+
+          global.projectService.findOneAndUpdateProject(projectId, updateData).then(function (project) {
+
+            if (!project) {
+              return res.status(400).send('Error : Project not created');
+            }
+
+            global.paymentProcessService.createThirdPartySale(project.appId, plan).then(function () {
+              console.log("Successfull on App Creation");
+
+              return res.status(200).json({
+                "location": geoRegion,
+                "id": "/subscriptions/" + subscription_id + "/resourceGroups/" + resourceGroupName + "/providers/" + resourceProviderNamespace + "/" + type + "/" + resource_name,
+                "name": resource_name,
+                "Type": "hackerbay.cloudboost\\services",
+                "tags": tags,
+                "properties": {
+                  "provisioningState": "Succeeded",
+                  "CLOUDBOOST_URL": "https://api.cloudboost.io",
+                  "CLOUDBOOST_PORTAL": "https://dashboard.cloudboost.io",
+                  "CLOUDBOOST_APP_ID": project.appId,
+                  "CLOUDBOOST_CLIENT_KEY": project.keys.js,
+                  "CLOUDBOOST_MASTER_KEY": project.keys.master
+                }
+              });
+            }, function (error) {
+              return res.status(500).send();
+            });
+
+          }, function (error) {
+            return res.status(500).send();
+          });
         }
       }
-    }, function(error){
+    }, function (error) {
       return res.status(500).send();
     });
 
@@ -457,183 +461,186 @@ function createOrUpdateResource(req, res) {
 function getResource(req, res, next) {
 
   var subscriptionId = req.params['subscription_id'];
-  
+
   var criteria = {
     'providerProperties.resourceGroupName': req.params['resourceGroupName'],
     'providerProperties.resourceProviderNamespace': req.params['resourceProviderNamespace'],
     'providerProperties.resource_name': req.params['resource_name'],
-    'providerProperties.subscriptionId' : req.params['subscription_id'],
-    'provider' : azure
+    'providerProperties.subscriptionId': req.params['subscription_id'],
+    'provider': azure
   };
 
-  getProjectByAzureSubscriptionAndQuery(subscriptionId, criteria).then(function (project) { 
+  getProjectByAzureSubscriptionAndQuery(subscriptionId, criteria).then(function (project) {
 
-    if(project){
-        return res.status(200).json({  "location":project.providerProperties.geoRegion,
-            "id":"/subscriptions/"+req.params['subscription_id']+"/resourceGroups/"+req.params['resourceGroupName']+"/providers/"+req.params['resourceProviderNamespace']+"/"+req.params['resource_type']+"/"+req.params['resource_name'],
-            "name":resource_name,
-            "Type":"hackerbay.cloudboost\\services",
-            "tags": tags,
-            "properties":{
-                 "provisioningState":"Succeeded",
-                 "CLOUDBOOST_URL" : "https://api.cloudboost.io", 
-                 "CLOUDBOOST_PORTAL":"https://dashboard.cloudboost.io", 
-                 "CLOUDBOOST_APP_ID" : project.appId, 
-                 "CLOUDBOOST_CLIENT_KEY" : project.keys.js, 
-                 "CLOUDBOOST_MASTER_KEY" :project.keys.master
-            }
-        });
-      }else{
-        return res.status(404).send();
-      }
+    if (project) {
+      return res.status(200).json({
+        "location": project.providerProperties.geoRegion,
+        "id": "/subscriptions/" + req.params['subscription_id'] + "/resourceGroups/" + req.params['resourceGroupName'] + "/providers/" + req.params['resourceProviderNamespace'] + "/" + req.params['resource_type'] + "/" + req.params['resource_name'],
+        "name": resource_name,
+        "Type": "hackerbay.cloudboost\\services",
+        "tags": tags,
+        "properties": {
+          "provisioningState": "Succeeded",
+          "CLOUDBOOST_URL": "https://api.cloudboost.io",
+          "CLOUDBOOST_PORTAL": "https://dashboard.cloudboost.io",
+          "CLOUDBOOST_APP_ID": project.appId,
+          "CLOUDBOOST_CLIENT_KEY": project.keys.js,
+          "CLOUDBOOST_MASTER_KEY": project.keys.master
+        }
+      });
+    } else {
+      return res.status(404).send();
+    }
 
-  }, function(error){
-      return res.status(500).send();
+  }, function (error) {
+    return res.status(500).send();
   });
 }
 
 function getProjectsInResourceGroup(req, res, next) {
 
-   var subscriptionId = req.params['subscription_id'];
-  
+  var subscriptionId = req.params['subscription_id'];
+
   var criteria = {
     'providerProperties.resourceGroupName': req.params['resourceGroupName'],
     'providerProperties.resourceProviderNamespace': req.params['resourceProviderNamespace'],
-    'providerProperties.subscriptionId' : req.params['subscription_id'],
-    'provider' : azure
+    'providerProperties.subscriptionId': req.params['subscription_id'],
+    'provider': azure
   };
 
-  global.projectService.getProjectsBySubscriptionAndQuery(subscriptionId, criteria).then(function (projects) { 
+  global.projectService.getProjectsBySubscriptionAndQuery(subscriptionId, criteria).then(function (projects) {
 
-    if(projects && projects.length>0){
+    if (projects && projects.length > 0) {
 
-        var value = [];
+      var value = [];
 
-        for(var i=0;i<projects.length;i++){
-          value.push({  "location":projects[i].providerProperties.geoRegion,
-              "id":"/subscriptions/"+req.params['subscription_id']+"/resourceGroups/"+req.params['resourceGroupName']+"/providers/"+req.params['resourceProviderNamespace']+"/"+req.params['resource_type']+"/"+projects[i].name,
-              "name":projects[i].name,
-              "Type":"hackerbay.cloudboost\\services",
-              "tags": projects[i].providerProperties.tags,
-              "properties":{
-                   "provisioningState":"Succeeded",
-                   "CLOUDBOOST_URL" : "https://api.cloudboost.io", 
-                   "CLOUDBOOST_PORTAL":"https://dashboard.cloudboost.io", 
-                   "CLOUDBOOST_APP_ID" : projects[i].appId, 
-                   "CLOUDBOOST_CLIENT_KEY" : projects[i].keys.js, 
-                   "CLOUDBOOST_MASTER_KEY" :projects[i].keys.master
-              }
-          });
-        }
-
-        return res.status(200).json({  
-          value : value,
-          nextLink : ""
-         });
-       }else{
-         return res.status(200).json({  
-          value : [],
-          nextLink : ""
-         });
+      for (var i = 0; i < projects.length; i++) {
+        value.push({
+          "location": projects[i].providerProperties.geoRegion,
+          "id": "/subscriptions/" + req.params['subscription_id'] + "/resourceGroups/" + req.params['resourceGroupName'] + "/providers/" + req.params['resourceProviderNamespace'] + "/" + req.params['resource_type'] + "/" + projects[i].name,
+          "name": projects[i].name,
+          "Type": "hackerbay.cloudboost\\services",
+          "tags": projects[i].providerProperties.tags,
+          "properties": {
+            "provisioningState": "Succeeded",
+            "CLOUDBOOST_URL": "https://api.cloudboost.io",
+            "CLOUDBOOST_PORTAL": "https://dashboard.cloudboost.io",
+            "CLOUDBOOST_APP_ID": projects[i].appId,
+            "CLOUDBOOST_CLIENT_KEY": projects[i].keys.js,
+            "CLOUDBOOST_MASTER_KEY": projects[i].keys.master
+          }
+        });
       }
 
-  }, function(error){
-      return res.status(500).send();
+      return res.status(200).json({
+        value: value,
+        nextLink: ""
+      });
+    } else {
+      return res.status(200).json({
+        value: [],
+        nextLink: ""
+      });
+    }
+
+  }, function (error) {
+    return res.status(500).send();
   });
 }
 
 function getProjectsInSubscription(req, res, next) {
 
   var subscriptionId = req.params['subscription_id'];
-  
+
   var criteria = {
     'providerProperties.resourceProviderNamespace': req.params['resourceProviderNamespace'],
-    'providerProperties.subscriptionId' : req.params['subscription_id'],
-    'provider' : azure
+    'providerProperties.subscriptionId': req.params['subscription_id'],
+    'provider': azure
   };
 
-  global.projectService.getProjectsBySubscriptionAndQuery(subscriptionId, criteria).then(function (projects) { 
+  global.projectService.getProjectsBySubscriptionAndQuery(subscriptionId, criteria).then(function (projects) {
 
-    if(projects && projects.length>0){
+    if (projects && projects.length > 0) {
 
-        var value = [];
+      var value = [];
 
-        for(var i=0;i<projects.length;i++){
-          value.push({  "location":projects[i].providerProperties.geoRegion,
-              "id":"/subscriptions/"+req.params['subscription_id']+"/resourceGroups/"+req.params['resourceGroupName']+"/providers/"+req.params['resourceProviderNamespace']+"/"+req.params['resource_type']+"/"+projects[i].name,
-              "name":projects[i].name,
-              "Type":"hackerbay.cloudboost\\services",
-              "tags": projects[i].providerProperties.tags,
-              "properties":{
-                   "provisioningState":"Succeeded",
-                   "CLOUDBOOST_URL" : "https://api.cloudboost.io", 
-                   "CLOUDBOOST_PORTAL":"https://dashboard.cloudboost.io", 
-                   "CLOUDBOOST_APP_ID" : projects[i].appId, 
-                   "CLOUDBOOST_CLIENT_KEY" : projects[i].keys.js, 
-                   "CLOUDBOOST_MASTER_KEY" :projects[i].keys.master
-              }
-          });
-        }
-
-        return res.status(200).json({  
-          value : value,
-          nextLink : ""
-         });
-       }else{
-         return res.status(200).json({  
-          value : [],
-          nextLink : ""
-         });
+      for (var i = 0; i < projects.length; i++) {
+        value.push({
+          "location": projects[i].providerProperties.geoRegion,
+          "id": "/subscriptions/" + req.params['subscription_id'] + "/resourceGroups/" + req.params['resourceGroupName'] + "/providers/" + req.params['resourceProviderNamespace'] + "/" + req.params['resource_type'] + "/" + projects[i].name,
+          "name": projects[i].name,
+          "Type": "hackerbay.cloudboost\\services",
+          "tags": projects[i].providerProperties.tags,
+          "properties": {
+            "provisioningState": "Succeeded",
+            "CLOUDBOOST_URL": "https://api.cloudboost.io",
+            "CLOUDBOOST_PORTAL": "https://dashboard.cloudboost.io",
+            "CLOUDBOOST_APP_ID": projects[i].appId,
+            "CLOUDBOOST_CLIENT_KEY": projects[i].keys.js,
+            "CLOUDBOOST_MASTER_KEY": projects[i].keys.master
+          }
+        });
       }
 
-  }, function(error){
-      return res.status(500).send();
+      return res.status(200).json({
+        value: value,
+        nextLink: ""
+      });
+    } else {
+      return res.status(200).json({
+        value: [],
+        nextLink: ""
+      });
+    }
+
+  }, function (error) {
+    return res.status(500).send();
   });
 }
 
 function getListofSecrets(req, res) {
 
   var subscriptionId = req.params['subscription_id'];
-  
+
   var criteria = {
     'providerProperties.resourceGroupName': req.params['resourceGroupName'],
     'providerProperties.resourceProviderNamespace': req.params['resourceProviderNamespace'],
     'providerProperties.resource_name': req.params['resource_name'],
-    'providerProperties.subscriptionId' : req.params['subscription_id'],
-    'provider' : azure
+    'providerProperties.subscriptionId': req.params['subscription_id'],
+    'provider': azure
   };
 
-  getProjectByAzureSubscriptionAndQuery(subscriptionId, criteria).then(function (project) { 
+  getProjectByAzureSubscriptionAndQuery(subscriptionId, criteria).then(function (project) {
 
-      if(project){
-        return res.status(200).json(
-            {
-                 "CLOUDBOOST_CLIENT_KEY" : project.keys.js, 
-                 "CLOUDBOOST_MASTER_KEY" :project.keys.master
-            }
-          );
-      }else{
-        return res.status(404).send("Project not found.");
-      }
+    if (project) {
+      return res.status(200).json(
+        {
+          "CLOUDBOOST_CLIENT_KEY": project.keys.js,
+          "CLOUDBOOST_MASTER_KEY": project.keys.master
+        }
+      );
+    } else {
+      return res.status(404).send("Project not found.");
+    }
 
-  }, function (error){ 
+  }, function (error) {
     return res.status(500).send(error);
   });
 }
 
 function updateCommunicationPreference(req, res) {
-  
+
   var userData = {
-    "azure.firstName" : req.body.firstName,
-    "azure.lastName" : req.body.lastName,
-    "azure.email" : req.body.email,
+    "azure.firstName": req.body.firstName,
+    "azure.lastName": req.body.lastName,
+    "azure.email": req.body.email,
     "azure.optInForCommunication": req.body.optInForCommunication
   };
 
   getUserBySubscription(req.params['subscription_id']).then(function (user) {
-    global.userService.updateAccountByQuery({id:user.id}, userData).then(function(user){
+    global.userService.updateAccountByQuery({ id: user.id }, userData).then(function (user) {
       return res.status(200).send(req.body);
-    }, function(error){
+    }, function (error) {
       return res.status(500).send(error);
     });
   }, function (error) {
@@ -643,14 +650,14 @@ function updateCommunicationPreference(req, res) {
 
 function getCommunicationPreference(req, res) {
   getUserBySubscription(req.params['subscription_id']).then(function (user) {
-    if(user){
+    if (user) {
       return res.status(200).json({
         "firstName": user.azure.firstName || "",
         "lastName": user.azure.lastName || "",
         "email": user.azure.email || "",
         "optInForCommunication": user.azure.optInForCommunication || true
       });
-    }else{
+    } else {
       return res.status(404).send(error);
     }
   }, function (error) {
@@ -661,61 +668,61 @@ function getCommunicationPreference(req, res) {
 //----------------------------------------------------------RegenerateKeys--------------------------
 function regenerateKeys(req, res) {
 
-   var subscriptionId = req.params['subscription_id'];
-  
-    var criteria = {
-      'providerProperties.resourceGroupName': req.params['resourceGroupName'],
-      'providerProperties.resourceProviderNamespace': req.params['resourceProviderNamespace'],
-      'providerProperties.resource_name': req.params['resource_name'],
-      'providerProperties.subscriptionId' : req.params['subscription_id'],
-      'provider' : azure
-    };
+  var subscriptionId = req.params['subscription_id'];
 
-    getProjectByAzureSubscriptionAndQuery(subscriptionId, criteria).then(function (project) {
-      if(project){
-        //get user. 
-        getUserBySubscription(subscriptionId).then(function(user){
-          if(user){
-            if(req.body["CLOUDBOOST_CLIENT_KEY"]){
-              //regenerate client key
-              global.projectService.changeAppMasterKey(user.id,project.appId).then(function(project){
-                return res.status(200).json(
-                  {
-                       "CLOUDBOOST_MASTER_KEY" :project.keys.master
-                  }
-                );
-              },function(error){
-                return res.status(500).send(error);
-              });
+  var criteria = {
+    'providerProperties.resourceGroupName': req.params['resourceGroupName'],
+    'providerProperties.resourceProviderNamespace': req.params['resourceProviderNamespace'],
+    'providerProperties.resource_name': req.params['resource_name'],
+    'providerProperties.subscriptionId': req.params['subscription_id'],
+    'provider': azure
+  };
 
-            }else if(req.body["CLOUDBOOST_CLIENT_KEY"]){
-              //regenerate master key
-              global.projectService.changeAppClientKey(user.id,project.appId).then(function(project){
-                return res.status(200).json(
-                  {
-                       "CLOUDBOOST_CLIENT_KEY" :project.keys.js
-                  }
-                );
-              },function(error){
-                return res.status(500).send(error);
-              });
+  getProjectByAzureSubscriptionAndQuery(subscriptionId, criteria).then(function (project) {
+    if (project) {
+      //get user. 
+      getUserBySubscription(subscriptionId).then(function (user) {
+        if (user) {
+          if (req.body["CLOUDBOOST_CLIENT_KEY"]) {
+            //regenerate client key
+            global.projectService.changeAppMasterKey(user.id, project.appId).then(function (project) {
+              return res.status(200).json(
+                {
+                  "CLOUDBOOST_MASTER_KEY": project.keys.master
+                }
+              );
+            }, function (error) {
+              return res.status(500).send(error);
+            });
 
-            }else{
-              res.status(400).send();
-            }
-          }else{
-            return res.status(404).send("Subscription not found.");
+          } else if (req.body["CLOUDBOOST_CLIENT_KEY"]) {
+            //regenerate master key
+            global.projectService.changeAppClientKey(user.id, project.appId).then(function (project) {
+              return res.status(200).json(
+                {
+                  "CLOUDBOOST_CLIENT_KEY": project.keys.js
+                }
+              );
+            }, function (error) {
+              return res.status(500).send(error);
+            });
+
+          } else {
+            res.status(400).send();
           }
-        }, function(error){
-          return res.status(500).send(error);
-        });
-          
-      }else{
-        return res.status(404).send("Project not found.");
-      }
-    }, function (error){ 
-      return res.status(500).send(error);
-    });
+        } else {
+          return res.status(404).send("Subscription not found.");
+        }
+      }, function (error) {
+        return res.status(500).send(error);
+      });
+
+    } else {
+      return res.status(404).send("Project not found.");
+    }
+  }, function (error) {
+    return res.status(500).send(error);
+  });
 }
 
 
@@ -725,17 +732,17 @@ function removeResource(req, res, next) {
     'providerProperties.resourceGroupName': req.params['resourceGroupName'],
     'providerProperties.resourceProviderNamespace': req.params['resourceProviderNamespace'],
     'providerProperties.resource_name': req.params['resource_name'],
-    'providerProperties.subscriptionId' : req.params['subscription_id'],
-    'provider' : azure
+    'providerProperties.subscriptionId': req.params['subscription_id'],
+    'provider': azure
   };
 
   getProjectByAzureSubscriptionAndQuery(subscriptionId, criteria).then(function (project) {
-    global.projectService.deleteAppAsAdmin(project.appId).then(function(project){
-        return res.status(200).end();
-    }, function(error){
-        return res.status(500).end(error);
+    global.projectService.deleteAppAsAdmin(project.appId).then(function (project) {
+      return res.status(200).end();
+    }, function (error) {
+      return res.status(500).end(error);
     });
-  }, function(error){
+  }, function (error) {
     return res.status(500).end(error);
   });
 
@@ -745,21 +752,19 @@ function removeResource(req, res, next) {
 
 function getToken(req, res) {
 
-  var resourceId = "/subscriptions/"+req.params[subscription_id]+"/resourceGroups/"+req.params[resourceGroupName]+"/providers/"+req.params[resourceProviderNamespace]+"/"+req.params[resource_type]+"/"+req.params[resource_name];
+  var resourceId = "/subscriptions/" + req.params[subscription_id] + "/resourceGroups/" + req.params[resourceGroupName] + "/providers/" + req.params[resourceProviderNamespace] + "/" + req.params[resource_type] + "/" + req.params[resource_name];
 
-  getUserBySubscription(req.params['subscription_id']).then(function(user){
-      if(!user){
-        return res.status(404).send('User not found.'); //subscription not found.
-      }else{
-        res.status(200).json({
-          {
-            "url":"https://service.cloudboost.io/azure/sso", 
-            "resourceId":new Buffer(resourceId).toString('base64'), 
-            "token": new Buffer(user.password).toString('base64')
-          }
-        });
-      }
-    });
+  getUserBySubscription(req.params['subscription_id']).then(function (user) {
+    if (!user) {
+      return res.status(404).send('User not found.'); //subscription not found.
+    } else {
+      res.status(200).json({
+        "url": "https://service.cloudboost.io/azure/sso",
+        "resourceId": new Buffer(resourceId).toString('base64'),
+        "token": new Buffer(user.password).toString('base64')
+      });
+    }
+  });
 }
 
 /********Private Functions*************/
@@ -773,103 +778,103 @@ function getPropertyFromSubscription(reqJSON, propName) {
   }
 }
 
-function getProjectListBySubscription(subscriptionId){
+function getProjectListBySubscription(subscriptionId) {
 
-   var deferred= Q.defer(); 
+  var deferred = Q.defer();
 
-   global.userService.getUserBy({email:req.params['subscription_id']+"@azure.com"}).then(function(user){
-    if(user){
-      global.projectService.projectList(user._id).then(function(projects){
-         deferred.resolve(projects);
-      },function(error){    
-         console.log(error);       
-         deferred.reject(error);
+  global.userService.getUserBy({ email: req.params['subscription_id'] + "@azure.com" }).then(function (user) {
+    if (user) {
+      global.projectService.projectList(user._id).then(function (projects) {
+        deferred.resolve(projects);
+      }, function (error) {
+        console.log(error);
+        deferred.reject(error);
       });
-    }else{   
-     deferred.reject("Azure Subscription not found."); 
-    } 
-  },function(error){    
-      console.log(error);       
-      deferred.reject(error);
+    } else {
+      deferred.reject("Azure Subscription not found.");
+    }
+  }, function (error) {
+    console.log(error);
+    deferred.reject(error);
   });
 }
 
-function getUserBySubscription(subscriptionId){
-   var deferred= Q.defer(); 
+function getUserBySubscription(subscriptionId) {
+  var deferred = Q.defer();
 
-   global.userService.getUserBy({email:req.params['subscription_id']+"@azure.com"}).then(function(user){
-    if(user){
+  global.userService.getUserBy({ email: req.params['subscription_id'] + "@azure.com" }).then(function (user) {
+    if (user) {
       deferred.resolve(user);
-    }else{   
-     deferred.reject("Azure Subscription not found."); 
-    } 
-  },function(error){    
-      console.log(error);       
-      deferred.reject(error);
+    } else {
+      deferred.reject("Azure Subscription not found.");
+    }
+  }, function (error) {
+    console.log(error);
+    deferred.reject(error);
   });
 }
 
-function getProjectByAzureSubscriptionAndQuery(subscriptionId,query){
+function getProjectByAzureSubscriptionAndQuery(subscriptionId, query) {
 
-   var deferred= Q.defer(); 
+  var deferred = Q.defer();
 
-   global.userService.getUserBy({email:req.params['subscription_id']+"@azure.com"}).then(function(user){
-    if(user){
-      global.projectService.getProjectByUserIdAndQuery(user._id,query).then(function(project){
-         deferred.resolve(project);
-      },function(error){    
-         console.log(error);       
-         deferred.reject(error);
+  global.userService.getUserBy({ email: req.params['subscription_id'] + "@azure.com" }).then(function (user) {
+    if (user) {
+      global.projectService.getProjectByUserIdAndQuery(user._id, query).then(function (project) {
+        deferred.resolve(project);
+      }, function (error) {
+        console.log(error);
+        deferred.reject(error);
       });
-    }else{   
-     deferred.reject("Azure Subscription not found."); 
-    } 
-  },function(error){    
-      console.log(error);       
-      deferred.reject(error);
+    } else {
+      deferred.reject("Azure Subscription not found.");
+    }
+  }, function (error) {
+    console.log(error);
+    deferred.reject(error);
   });
 }
 
-function getProjectsByAzureSubscriptionAndQuery(subscriptionId,query){
+function getProjectsByAzureSubscriptionAndQuery(subscriptionId, query) {
 
-   var deferred= Q.defer(); 
+  var deferred = Q.defer();
 
-   global.userService.getUserBy({email:req.params['subscription_id']+"@azure.com"}).then(function(user){
-    if(user){
-      global.projectService.getProjectsByUserIdAndQuery(user._id,query).then(function(projects){
-         deferred.resolve(projects);
-      },function(error){    
-         console.log(error);       
-         deferred.reject(error);
+  global.userService.getUserBy({ email: req.params['subscription_id'] + "@azure.com" }).then(function (user) {
+    if (user) {
+      global.projectService.getProjectsByUserIdAndQuery(user._id, query).then(function (projects) {
+        deferred.resolve(projects);
+      }, function (error) {
+        console.log(error);
+        deferred.reject(error);
       });
-    }else{   
-     deferred.reject("Azure Subscription not found."); 
-    } 
-  },function(error){    
-      console.log(error);       
-      deferred.reject(error);
+    } else {
+      deferred.reject("Azure Subscription not found.");
+    }
+  }, function (error) {
+    console.log(error);
+    deferred.reject(error);
   });
 }
 
-function getPlanId(plan){
-            
-    var planId = 2;
+function getPlanId(plan) {
 
-    if(plan === 'launch'){
-      planId =2;
-    }
+  var planId = 2;
 
-    if(plan === 'bootstrap'){
-      planId =3;
-    }
+  if (plan === 'launch') {
+    planId = 2;
+  }
 
-    if(plan === 'scale'){
-      planId =4;
-    }
+  if (plan === 'bootstrap') {
+    planId = 3;
+  }
 
-    if(plan === 'unicorn'){
-      planId =5;
-    }
+  if (plan === 'scale') {
+    planId = 4;
+  }
 
-    return planId;
+  if (plan === 'unicorn') {
+    planId = 5;
+  }
+
+  return planId;
 }
