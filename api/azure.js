@@ -27,9 +27,11 @@ module.exports = function () {
   app.get('/subscriptions/:subscription_id/resourceGroups/:resourceGroupName/providers/:resourceProviderNamespace/:resource_type', getProjectsInResourceGroup);
   app.get('/subscriptions/:subscription_id/providers/:resourceProviderNamespace/:resourceType', getProjectsInSubscription);
   app.get('/providers/:resourceProviderNamespace/operations', getOperations);
+  app.get('/providers/:resourceProviderNamespace//operations', getOperations);
   app.post('/subscriptions/:subscription_id/resourceGroups/:resourceGroupName/providers/:resourceProviderNamespace/:resource_type/:resource_name/listSecrets', getListofSecrets);
   app.post('/subscriptions/:subscription_id/providers/:resourceProviderNamespace/updateCommunicationPreference', updateCommunicationPreference);
   app.post('/subscriptions/:subscription_id/providers/:resourceProviderNamespace/listCommunicationPreference', getCommunicationPreference);
+  app.post('/subscriptions/:subscription_id/providers/:resourceProviderNamespace//listCommunicationPreference', getCommunicationPreference);
   app.post('/subscriptions/:subscription_id/resourceGroups/:resourceGroupName/providers/:resourceProviderNamespace/:resource_type/:resource_name/RegenerateKey', regenerateKeys);
   app.delete('/subscriptions/:subscription_id/resourceGroups/:resourceGroupName/providers/:resourceProviderNamespace/:resource_type/:resource_name', removeResource);
 
@@ -75,7 +77,7 @@ function sso(req, res) {
           delete user.password; //delete this code form response for security
 
           res.writeHead(302, {
-            'Location': 'https://dashboard.cloudboost.io'
+            'Location': 'https://dashboard.cloudboost.io?userId='+user.id
           });
 
           res.end();
@@ -133,7 +135,7 @@ function onSubscriptionRegistered(req, res) {
   user.providerProperties = req.body.Properties;
 
   global.userService.register(user).then(function (registeredUser) {
-    return res.status(200).json(registeredUser);
+    return res.status(200).json(req.body);
   }, function (error) {
     console.log(error);
     return res.status(500).send(error);
@@ -329,8 +331,8 @@ function createOrUpdateResource(req, res) {
     'providerProperties.resourceGroupName': req.params['resourceGroupName'],
     'providerProperties.resourceProviderNamespace': req.params['resourceProviderNamespace'],
     'providerProperties.resource_name': req.params['resource_name'],
-    'providerProperties.subscriptionId': req.params['subscription_id'],
-    'provider': azure
+    'providerProperties.subscription_id': req.params['subscription_id'],
+    'provider': "azure"
   };
 
   getProjectByAzureSubscriptionAndQuery(subscriptionId, criteria).then(function (project) {
@@ -339,22 +341,22 @@ function createOrUpdateResource(req, res) {
     var resourceGroupName = req.params['resourceGroupName'];
     var resourceProviderNamespace = req.params['resourceProviderNamespace'];
     var resource_name = req.params['resource_name'];
-    var tags = req.body.tags;
+    var tags = req.body.tags || {};
     var plan = getPlanId(req.body.plan.toString());
     var georegion = req.body.location;
     var type = req.params.resource_type;
-    var properties = req.body.properties;
+    var properties = req.body.properties || {};
 
     getUserBySubscription(req.params['subscription_id']).then(function (user) {
       if (!user) {
         return res.status(404).send(); //subscription not found.
       } else {
-        if (!user) {
+        if (!project) {
           //insert project.
           global.projectService.createProject(resource_name, user.id, {
             provider: "azure",
             providerProperties: {
-              tags: tags,
+              tags: tags || {},
               subscription_id: subscription_id,
               resourceGroupName: resourceGroupName,
               resourceProviderNamespace: resourceProviderNamespace,
@@ -362,7 +364,7 @@ function createOrUpdateResource(req, res) {
               geoRegion: georegion,
               resource_type: type,
               plan: plan,
-              properties: properties
+              properties: properties || {}
             }
           }).then(function (project) {
 
@@ -373,7 +375,7 @@ function createOrUpdateResource(req, res) {
             global.paymentProcessService.createThirdPartySale(project.appId, plan).then(function () {
 
               return res.status(200).json({
-                "location": geoRegion,
+                "location": georegion,
                 "id": "/subscriptions/" + subscription_id + "/resourceGroups/" + resourceGroupName + "/providers/" + resourceProviderNamespace + "/" + type + "/" + resource_name,
                 "name": resource_name,
                 "Type": "hackerbay.cloudboost\\services",
@@ -397,8 +399,8 @@ function createOrUpdateResource(req, res) {
           });
         } else {
           //update the project
-          var projectId = resources[0]._id;
-          var appId = resources[0].appId;
+          var projectId = project.id;
+          var appId = project.appId;
 
           //In case of update
           var updateData = {
@@ -428,7 +430,7 @@ function createOrUpdateResource(req, res) {
               console.log("Successfull on App Creation");
 
               return res.status(200).json({
-                "location": geoRegion,
+                "location": georegion,
                 "id": "/subscriptions/" + subscription_id + "/resourceGroups/" + resourceGroupName + "/providers/" + resourceProviderNamespace + "/" + type + "/" + resource_name,
                 "name": resource_name,
                 "Type": "hackerbay.cloudboost\\services",
@@ -466,8 +468,8 @@ function getResource(req, res, next) {
     'providerProperties.resourceGroupName': req.params['resourceGroupName'],
     'providerProperties.resourceProviderNamespace': req.params['resourceProviderNamespace'],
     'providerProperties.resource_name': req.params['resource_name'],
-    'providerProperties.subscriptionId': req.params['subscription_id'],
-    'provider': azure
+    'providerProperties.subscription_id': req.params['subscription_id'],
+    'provider': "azure"
   };
 
   getProjectByAzureSubscriptionAndQuery(subscriptionId, criteria).then(function (project) {
@@ -476,9 +478,9 @@ function getResource(req, res, next) {
       return res.status(200).json({
         "location": project.providerProperties.geoRegion,
         "id": "/subscriptions/" + req.params['subscription_id'] + "/resourceGroups/" + req.params['resourceGroupName'] + "/providers/" + req.params['resourceProviderNamespace'] + "/" + req.params['resource_type'] + "/" + req.params['resource_name'],
-        "name": resource_name,
+        "name": req.params['resource_name'],
         "Type": "hackerbay.cloudboost\\services",
-        "tags": tags,
+        "tags": project.providerProperties.tags || {},
         "properties": {
           "provisioningState": "Succeeded",
           "CLOUDBOOST_URL": "https://api.cloudboost.io",
@@ -504,11 +506,11 @@ function getProjectsInResourceGroup(req, res, next) {
   var criteria = {
     'providerProperties.resourceGroupName': req.params['resourceGroupName'],
     'providerProperties.resourceProviderNamespace': req.params['resourceProviderNamespace'],
-    'providerProperties.subscriptionId': req.params['subscription_id'],
-    'provider': azure
+    'providerProperties.subscription_id': req.params['subscription_id'],
+    'provider': "azure"
   };
 
-  global.projectService.getProjectsBySubscriptionAndQuery(subscriptionId, criteria).then(function (projects) {
+  getProjectsByAzureSubscriptionAndQuery(subscriptionId, criteria).then(function (projects) {
 
     if (projects && projects.length > 0) {
 
@@ -554,11 +556,11 @@ function getProjectsInSubscription(req, res, next) {
 
   var criteria = {
     'providerProperties.resourceProviderNamespace': req.params['resourceProviderNamespace'],
-    'providerProperties.subscriptionId': req.params['subscription_id'],
-    'provider': azure
+    'providerProperties.subscription_id': req.params['subscription_id'],
+    'provider': "azure"
   };
 
-  global.projectService.getProjectsBySubscriptionAndQuery(subscriptionId, criteria).then(function (projects) {
+  getProjectsByAzureSubscriptionAndQuery(subscriptionId, criteria).then(function (projects) {
 
     if (projects && projects.length > 0) {
 
@@ -606,8 +608,8 @@ function getListofSecrets(req, res) {
     'providerProperties.resourceGroupName': req.params['resourceGroupName'],
     'providerProperties.resourceProviderNamespace': req.params['resourceProviderNamespace'],
     'providerProperties.resource_name': req.params['resource_name'],
-    'providerProperties.subscriptionId': req.params['subscription_id'],
-    'provider': azure
+    'providerProperties.subscription_id': req.params['subscription_id'],
+    'provider': "azure"
   };
 
   getProjectByAzureSubscriptionAndQuery(subscriptionId, criteria).then(function (project) {
@@ -638,7 +640,7 @@ function updateCommunicationPreference(req, res) {
   };
 
   getUserBySubscription(req.params['subscription_id']).then(function (user) {
-    global.userService.updateAccountByQuery({ id: user.id }, userData).then(function (user) {
+    global.userService.updateAccountByQuery({ _id: user.id }, userData).then(function (user) {
       return res.status(200).send(req.body);
     }, function (error) {
       return res.status(500).send(error);
@@ -674,8 +676,8 @@ function regenerateKeys(req, res) {
     'providerProperties.resourceGroupName': req.params['resourceGroupName'],
     'providerProperties.resourceProviderNamespace': req.params['resourceProviderNamespace'],
     'providerProperties.resource_name': req.params['resource_name'],
-    'providerProperties.subscriptionId': req.params['subscription_id'],
-    'provider': azure
+    'providerProperties.subscription_id': req.params['subscription_id'],
+    'provider': "azure"
   };
 
   getProjectByAzureSubscriptionAndQuery(subscriptionId, criteria).then(function (project) {
@@ -683,7 +685,7 @@ function regenerateKeys(req, res) {
       //get user. 
       getUserBySubscription(subscriptionId).then(function (user) {
         if (user) {
-          if (req.body["CLOUDBOOST_CLIENT_KEY"]) {
+          if (req.body["CLOUDBOOST_MASTER_KEY"]) {
             //regenerate client key
             global.projectService.changeAppMasterKey(user.id, project.appId).then(function (project) {
               return res.status(200).json(
@@ -728,15 +730,23 @@ function regenerateKeys(req, res) {
 
 function removeResource(req, res, next) {
 
+  var subscriptionId = req.params['subscription_id'];
+
+
   var criteria = {
     'providerProperties.resourceGroupName': req.params['resourceGroupName'],
     'providerProperties.resourceProviderNamespace': req.params['resourceProviderNamespace'],
     'providerProperties.resource_name': req.params['resource_name'],
-    'providerProperties.subscriptionId': req.params['subscription_id'],
-    'provider': azure
+    'providerProperties.subscription_id': req.params['subscription_id'],
+    'provider': "azure"
   };
 
   getProjectByAzureSubscriptionAndQuery(subscriptionId, criteria).then(function (project) {
+    
+    if(!project){
+       return res.status(404).end();
+    }
+
     global.projectService.deleteAppAsAdmin(project.appId).then(function (project) {
       return res.status(200).end();
     }, function (error) {
@@ -782,9 +792,9 @@ function getProjectListBySubscription(subscriptionId) {
 
   var deferred = Q.defer();
 
-  global.userService.getUserBy({ email: req.params['subscription_id'] + "@azure.com" }).then(function (user) {
+  global.userService.getUserBy({ email: subscriptionId + "@azure.com" }).then(function (user) {
     if (user) {
-      global.projectService.projectList(user._id).then(function (projects) {
+      global.projectService.projectList(user.id).then(function (projects) {
         deferred.resolve(projects);
       }, function (error) {
         console.log(error);
@@ -802,7 +812,7 @@ function getProjectListBySubscription(subscriptionId) {
 function getUserBySubscription(subscriptionId) {
   var deferred = Q.defer();
 
-  global.userService.getUserBy({ email: req.params['subscription_id'] + "@azure.com" }).then(function (user) {
+  global.userService.getUserBy({ email: subscriptionId + "@azure.com" }).then(function (user) {
     if (user) {
       deferred.resolve(user);
     } else {
@@ -812,15 +822,17 @@ function getUserBySubscription(subscriptionId) {
     console.log(error);
     deferred.reject(error);
   });
+
+  return deferred.promise;
 }
 
 function getProjectByAzureSubscriptionAndQuery(subscriptionId, query) {
 
   var deferred = Q.defer();
 
-  global.userService.getUserBy({ email: req.params['subscription_id'] + "@azure.com" }).then(function (user) {
+  global.userService.getUserBy({ email: subscriptionId + "@azure.com" }).then(function (user) {
     if (user) {
-      global.projectService.getProjectByUserIdAndQuery(user._id, query).then(function (project) {
+      global.projectService.getProjectByUserIdAndQuery(user.id, query).then(function (project) {
         deferred.resolve(project);
       }, function (error) {
         console.log(error);
@@ -833,15 +845,18 @@ function getProjectByAzureSubscriptionAndQuery(subscriptionId, query) {
     console.log(error);
     deferred.reject(error);
   });
+
+  return deferred.promise;
+
 }
 
 function getProjectsByAzureSubscriptionAndQuery(subscriptionId, query) {
 
   var deferred = Q.defer();
 
-  global.userService.getUserBy({ email: req.params['subscription_id'] + "@azure.com" }).then(function (user) {
+  global.userService.getUserBy({ email: subscriptionId + "@azure.com" }).then(function (user) {
     if (user) {
-      global.projectService.getProjectsByUserIdAndQuery(user._id, query).then(function (projects) {
+      global.projectService.getProjectsByUserIdAndQuery(user.id, query).then(function (projects) {
         deferred.resolve(projects);
       }, function (error) {
         console.log(error);
@@ -854,6 +869,8 @@ function getProjectsByAzureSubscriptionAndQuery(subscriptionId, query) {
     console.log(error);
     deferred.reject(error);
   });
+
+  return deferred.promise;
 }
 
 function getPlanId(plan) {

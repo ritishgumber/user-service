@@ -5,6 +5,8 @@
     global.config = null;
 }
 
+var fs = require('fs');
+
 //Load keys.
 global.keys = require('./config/keys.js');
 require('./app')();

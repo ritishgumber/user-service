@@ -648,7 +648,9 @@ module.exports = function (Project) {
 
       return deferred.promise;
     },
-    changeAppMasterKey: function (currentUserId, appId) {
+    changeAppMasterKey: function (currentUserId, appId, value) {
+
+      //if value is null. Key will automatically be generated.
 
       console.log("Change master key in project...");
 
@@ -677,7 +679,7 @@ module.exports = function (Project) {
           }
 
           if (docs && docs.length > 0) {
-            return _changeMasterKeyFromDS(appId);
+            return _changeMasterKeyFromDS(appId,value);
           }
 
         }).then(function (resp) {
@@ -694,7 +696,9 @@ module.exports = function (Project) {
       return deferred.promise;
 
     },
-    changeAppClientKey: function (currentUserId, appId) {
+    changeAppClientKey: function (currentUserId, appId,value) {
+
+      //if value is null. Key will automatically be generated.
 
       console.log("Change client key in project...");
 
@@ -723,7 +727,7 @@ module.exports = function (Project) {
           }
 
           if (docs && docs.length > 0) {
-            return _changeClientKeyFromDS(appId);
+            return _changeClientKeyFromDS(appId,value);
           }
 
         }).then(function (resp) {
@@ -1396,7 +1400,7 @@ function _deleteAppFromDS(appId) {
 }
 
 
-function _changeClientKeyFromDS(appId) {
+function _changeClientKeyFromDS(appId,value) {
 
   console.log("Change ClientKey From Data services...");
 
@@ -1405,6 +1409,7 @@ function _changeClientKeyFromDS(appId) {
   try {
     var post_data = {};
     post_data.secureKey = global.keys.secureKey;
+    post_data.value = value;
     post_data = JSON.stringify(post_data);
 
 
@@ -1439,7 +1444,7 @@ function _changeClientKeyFromDS(appId) {
   return deferred.promise;
 }
 
-function _changeMasterKeyFromDS(appId) {
+function _changeMasterKeyFromDS(appId,value) {
 
   console.log("Change MasterKey From Data services...");
 
@@ -1448,6 +1453,7 @@ function _changeMasterKeyFromDS(appId) {
   try {
     var post_data = {};
     post_data.secureKey = global.keys.secureKey;
+    post_data.value = value;
     post_data = JSON.stringify(post_data);
 
 
