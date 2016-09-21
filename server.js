@@ -11,7 +11,33 @@ require('./app')();
 
 global.app.set('port', process.env.PORT || 3000);
 
-var server = global.app.listen(global.app.get('port'), function(){
+var http = null;
+var https = null;
+try {
+  if (fs.statSync('./config/cert.crt').isFile() && fs.statSync('./config/key.key').isFile()) {
+    //use https
+    console.log("Running on HTTPS protocol.");
+    var httpsOptions = {
+      key: fs.readFileSync('./config/key.key'),
+      cert: fs.readFileSync('./config/cert.crt')
+    };
+    https = require('https').Server(httpsOptions, global.app);
+
+  }
+} catch (e) {
+  console.log("INFO : SSL Certificate not found or is invalid.");
+  console.log("Switching ONLY to HTTP...");
+}
+
+http = require('http').createServer(global.app);
+
+http.listen(global.app.get('port'), function(){
 	console.log("");
 	console.log("CBFrontend Services runing on PORT:"+global.app.get('port'));
 });
+
+if (https) {
+  https.listen(3001, function () {
+    console.log("HTTPS Server started.");
+  });
+}
