@@ -71,7 +71,7 @@ module.exports = function () {
 
                   res.writeHead(302, {
                       'Set-Cookie': "heroku-nav-data="+navData+";userId="+userId,
-                      'Location': 'https://dashboard.cloudboost.io?provider=heroku&app='+req.body.app+'&userId='+userId;
+                      'Location': 'https://dashboard.cloudboost.io?provider=heroku&app='+req.body.app+'&userId='+userId
                   });
 
                   res.end();
