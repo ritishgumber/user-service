@@ -131,7 +131,7 @@ module.exports = function (Project) {
       return deferred.promise;
     }, 
 
-    blockProject: function(appId){
+    unblockProject: function(appId){
       var deferred = Q.defer();
 
       try {

@@ -154,21 +154,21 @@ function onSubscriptionUnregistered(req, res) {
 
   getProjectListBySubscription(req.params['subscription_id']).then(function (projects) {
     if (projects && projects.length > 0) {
-      var promsies = [];
+      var promises = [];
 
       for (var i = 0; i < projects.length; i++) {
-        promises.push(global.projectService.blockProject(projects[i]._id));
+        promises.push(global.projectService.blockProject(projects[i].id));
       }
 
       Q.all(promises).then(function (statuses) {
-        return res.status(200).send();
+        return res.status(200).send(req.body);
       }, function (error) {
         console.log(error);
         return res.status(500).send(error);
       });
 
     } else {
-      return res.status(200).send();
+      return res.status(200).send(req.body);
     }
   }, function (error) {
     console.log(error);
@@ -183,21 +183,21 @@ function onSubscriptionUnregistered(req, res) {
 function onSubscriptionEnabled(req, res) {
   getProjectListBySubscription(req.params['subscription_id']).then(function (projects) {
     if (projects && projects.length > 0) {
-      var promsies = [];
+      var promises = [];
 
       for (var i = 0; i < projects.length; i++) {
-        promises.push(global.projectService.unblockProject(projects[i]._id));
+        promises.push(global.projectService.unblockProject(projects[i].id));
       }
 
       Q.all(promises).then(function (statuses) {
-        return res.status(200).send();
+        return res.status(200).send(req.body);
       }, function (error) {
         console.log(error);
         return res.status(500).send(error);
       });
 
     } else {
-      return res.status(200).send();
+      return res.status(200).send(req.body);
     }
   }, function (error) {
     console.log(error);
@@ -215,18 +215,18 @@ function onSubscriptionDeleted(req, res) {
     if (projects && projects.length > 0) {
       var promises = [];
 
-      for (var i = 0; i < tenants.length; ++i) {
+      for (var i = 0; i < projects.length; ++i) {
         promises.push(global.projectService.deleteProjectBy({ _id: projects[i].id }));
       }
 
       Q.all(promises).then(function (list) {
-        res.status(200).send('Resources has been deleted.');
+        res.status(200).send(req.body);
       }, function (error) {
         return res.status(500).send(error);
       });
 
     } else {
-      return res.status(200).send();
+      return res.status(200).send(req.body);
     }
   }, function (error) {
     console.log(error);
@@ -807,6 +807,8 @@ function getProjectListBySubscription(subscriptionId) {
     console.log(error);
     deferred.reject(error);
   });
+
+  return deferred.promise;
 }
 
 function getUserBySubscription(subscriptionId) {

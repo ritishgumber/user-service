@@ -322,7 +322,7 @@ module.exports = function(){
             global.app.use('/', require('./api/userAnalytics.js')());
             global.app.use('/', require('./api/analyticsNotifications.js')());  
             global.app.use('/', require('./api/cbPartner.js')());
-            global.app.use('/azure/', require('./api/azure.js')());           
+            global.app.use('/', require('./api/azure.js')());           
 
             global.app.use(expressWinston.errorLogger({
               transports: [   
