@@ -49,11 +49,13 @@ function sso(req, res) {
   var url_parts = url.parse(req.url, true);
   var query = url_parts.query;
 
-  var resourceParams = new Buffer(query.resourceId.toString(), 'base64').toString('ascii').aplit('/');
+  var resourceParams = new Buffer(query.resourceId.toString(), 'base64').toString('ascii').split('/');
   var password = new Buffer(query.token.toString(), 'base64').toString('ascii');
 
+  var subscriptionId = null;
+
   if (resourceParams[1])
-    var subscriptionId = resourceParams[1];
+    subscriptionId = resourceParams[1];
   else
     return res.status(400).send('Bad Params');
 
@@ -77,7 +79,7 @@ function sso(req, res) {
           delete user.password; //delete this code form response for security
 
           res.writeHead(302, {
-            'Location': 'https://dashboard.cloudboost.io?userId='+user.id
+            'Location': 'https://dashboard.cloudboost.io?provider=azure&userId='+user.id
           });
 
           res.end();
@@ -769,7 +771,7 @@ function getToken(req, res) {
       return res.status(404).send('User not found.'); //subscription not found.
     } else {
       res.status(200).json({
-        "url": "https://service.cloudboost.io/azure/sso",
+        "url": "https://service.cloudboost.io/sso",
         "resourceId": new Buffer(resourceId).toString('base64'),
         "token": new Buffer(user.password).toString('base64')
       });
