@@ -31,6 +31,22 @@ try {
   console.log("Switching ONLY to HTTP...");
 }
 
+try {
+  if (fs.statSync('./config/cert.pem').isFile() && fs.statSync('./config/key.pem').isFile()) {
+    //use https
+    console.log("Running on HTTPS protocol.");
+    var httpsOptions = {
+      key: fs.readFileSync('./config/key.pem'),
+      cert: fs.readFileSync('./config/cert.pem')
+    };
+    https = require('https').Server(httpsOptions, global.app);
+
+  }
+} catch (e) {
+  console.log("INFO : SSL Certificate not found or is invalid.");
+  console.log("Switching ONLY to HTTP...");
+}
+
 http = require('http').createServer(global.app);
 
 http.listen(global.app.get('port'), function(){

@@ -1,4 +1,6 @@
 encrypt.tar
+cert.pem
+key.pem
 credentials.tar
 keys.js
 smtp.json
