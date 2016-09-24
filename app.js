@@ -65,9 +65,9 @@ module.exports = function(){
         res.send(JSON.stringify({ status : 200,message:"Service Status - OK", version : pjson.version }));
     });
 
-    global.app.get('/.well-known/acme-challenge/x8foveS15YMvcNFp7hdR4jZvXLFXiymz4E8JJMD3WgA', function(req, res) {
+    global.app.get('/.well-known/acme-challenge/u5JVbJMEosYSLnqHtebw1K83qUBRV5pBs2DvUTWLhwY', function(req, res) {
         res.setHeader('Content-Type', 'text/plain');
-        res.send("x8foveS15YMvcNFp7hdR4jZvXLFXiymz4E8JJMD3WgA.Q5RS6xtDOF3HVgnCHGQPs62ITYobAKgFrcMtOZnDoMc");
+        res.send("u5JVbJMEosYSLnqHtebw1K83qUBRV5pBs2DvUTWLhwY.Q5RS6xtDOF3HVgnCHGQPs62ITYobAKgFrcMtOZnDoMc");
     });
     
 
