@@ -27,20 +27,21 @@ try {
 
   }
 } catch (e) {
-  console.log("INFO : SSL Certificate not found or is invalid.");
-  console.log("Switching ONLY to HTTP...");
+  //crt and key not found.
 }
 
 try {
-  if (fs.statSync('./config/cert.pem').isFile() && fs.statSync('./config/key.pem').isFile()) {
-    //use https
-    console.log("Running on HTTPS protocol.");
-    var httpsOptions = {
-      key: fs.readFileSync('./config/key.pem'),
-      cert: fs.readFileSync('./config/cert.pem')
-    };
-    https = require('https').Server(httpsOptions, global.app);
+  if(!https){
+    if (fs.statSync('./config/cert.pem').isFile() && fs.statSync('./config/key.pem').isFile()) {
+      //use https
+      console.log("Running on HTTPS protocol.");
+      var httpsOptions = {
+        key: fs.readFileSync('./config/key.pem'),
+        cert: fs.readFileSync('./config/cert.pem')
+      };
+      https = require('https').Server(httpsOptions, global.app);
 
+    }
   }
 } catch (e) {
   console.log("INFO : SSL Certificate not found or is invalid.");
