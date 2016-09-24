@@ -41,6 +41,9 @@ after_success:
 - gcloud auth activate-service-account --key-file gc_cred.json
 #Install Kubectl
 - gcloud components install kubectl
+- cwd=$(pwd)
+- auth_file="$cwd/gc_cred.json"
+- gcloud beta auth application-default login
 - gcloud container clusters get-credentials $GOOGLECLUSTERNAME --zone $GOOGLEZONE --project $GOOGLEPROJECT
 #Push docker images. 
 - docker push cloudboost/user-service:2.0.$TRAVIS_BUILD_NUMBER
