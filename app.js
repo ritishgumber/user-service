@@ -60,11 +60,16 @@ module.exports = function(){
         }
     });   
     
-
     global.app.get('/', function(req, res) {
         res.setHeader('Content-Type', 'application/json');
         res.send(JSON.stringify({ status : 200,message:"Service Status - OK", version : pjson.version }));
     });
+
+    global.app.get('/.well-known/acme-challenge/x8foveS15YMvcNFp7hdR4jZvXLFXiymz4E8JJMD3WgA', function(req, res) {
+        res.setHeader('Content-Type', 'text/plain');
+        res.send("x8foveS15YMvcNFp7hdR4jZvXLFXiymz4E8JJMD3WgA.Q5RS6xtDOF3HVgnCHGQPs62ITYobAKgFrcMtOZnDoMc");
+    });
+    
 
     //this fucntion add connections to the DB.
     function addConnections(passport){ 
