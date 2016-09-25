@@ -10,8 +10,13 @@ var passport = require('passport');
 var AzureStoreStrategy = require('passport-azure-store').Strategy;
 var xmlBodyParser = require('express-xml-bodyparser');
 var pricingPlans = require('../config/pricingPlans.js')();
+var request = require('request');
+var azureCertificate = null; //this is where certificate details will be stored.
+
+getAzureCertificate(); //init with azure certificate.
 
 app.use(xmlBodyParser());
+
 
 /**
 
@@ -95,7 +100,7 @@ function sso(req, res) {
 }
 
 function subscription(req, res) {
-
+  validateRequest(req,res);
   var state = req.body.state;
   switch (state) {
     case 'Registered':
@@ -903,4 +908,23 @@ function getPlanId(plan) {
   }
 
   return planId;
+}
+
+//This is used to validate the request if it comes from azure. 
+function validateRequest(req,res){
+
+  if(!req.secure){
+    return res.status(404).send();
+  }
+
+  var certificate = req.connection.getPeerCertificate();
+  console.log(JSON.stringify(certificate));
+}
+
+function getAzureCertificate(){
+  request('https://management.azure.com:24582/metadata/authentication?api-version=2015-01-01', function (error, response, body) {
+    if (!error && response.statusCode == 200) {
+      azureCertificate = JSON.parse(body);
+    }
+  });
 }
