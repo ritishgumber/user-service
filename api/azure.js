@@ -993,7 +993,7 @@ function validateRequest(req,res){
     return false;
   }
   var certificate = req.connection.getPeerCertificate();
-  if(certificate.subject && certificate.subject.CN){
+  if(certificate && certificate.subject && certificate.subject.CN){
     if(certificate.subject.CN === "aspa-invalidcert.publishingapi.azure.com"){
       res.status(404).send();
       return false;
