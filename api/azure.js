@@ -344,7 +344,7 @@ function createOrUpdateResource(req, res) {
     var resourceProviderNamespace = req.params['resourceProviderNamespace'];
     var resource_name = req.params['resource_name'];
     var tags = req.body.tags || {};
-    var plan = getPlanId(req.body.plan.toString());
+    var plan = getPlanId(req.body.plan.name.toString());
     var georegion = req.body.location;
     var type = req.params.resource_type;
     var properties = req.body.properties || {};
@@ -365,7 +365,7 @@ function createOrUpdateResource(req, res) {
               resource_name: resource_name,
               geoRegion: georegion,
               resource_type: type,
-              plan: plan,
+              plan: req.body.plan,
               properties: properties || {}
             }
           }).then(function (project) {
@@ -382,6 +382,7 @@ function createOrUpdateResource(req, res) {
                 "name": resource_name,
                 "Type": "hackerbay.cloudboost\\services",
                 "tags": tags,
+                "plan":req.body.plan,
                 "properties": {
                   "provisioningState": "Succeeded",
                   "CLOUDBOOST_URL": "https://api.cloudboost.io",
@@ -414,7 +415,7 @@ function createOrUpdateResource(req, res) {
               resource_name: resource_name,
               geoRegion: georegion,
               resource_type: type,
-              plan: plan,
+              plan: req.body.plan,
               properties: properties
             },
             provider: 'azure',
@@ -437,6 +438,7 @@ function createOrUpdateResource(req, res) {
                 "name": resource_name,
                 "Type": "hackerbay.cloudboost\\services",
                 "tags": tags,
+                "plan":req.body.plan,
                 "properties": {
                   "provisioningState": "Succeeded",
                   "CLOUDBOOST_URL": "https://api.cloudboost.io",
@@ -483,6 +485,7 @@ function getResource(req, res, next) {
         "name": req.params['resource_name'],
         "Type": "hackerbay.cloudboost\\services",
         "tags": project.providerProperties.tags || {},
+        "plan": project.providerProperties.plan || {},
         "properties": {
           "provisioningState": "Succeeded",
           "CLOUDBOOST_URL": "https://api.cloudboost.io",
@@ -525,6 +528,7 @@ function getProjectsInResourceGroup(req, res, next) {
           "name": projects[i].name,
           "Type": "hackerbay.cloudboost\\services",
           "tags": projects[i].providerProperties.tags,
+          "plan": projects[i].providerProperties.plan || {},
           "properties": {
             "provisioningState": "Succeeded",
             "CLOUDBOOST_URL": "https://api.cloudboost.io",
@@ -575,6 +579,7 @@ function getProjectsInSubscription(req, res, next) {
           "name": projects[i].name,
           "Type": "hackerbay.cloudboost\\services",
           "tags": projects[i].providerProperties.tags,
+          "plan": projects[i].providerProperties.plan || {},
           "properties": {
             "provisioningState": "Succeeded",
             "CLOUDBOOST_URL": "https://api.cloudboost.io",
@@ -764,7 +769,7 @@ function removeResource(req, res, next) {
 
 function getToken(req, res) {
 
-  var resourceId = "/subscriptions/" + req.params[subscription_id] + "/resourceGroups/" + req.params[resourceGroupName] + "/providers/" + req.params[resourceProviderNamespace] + "/" + req.params[resource_type] + "/" + req.params[resource_name];
+  var resourceId = "/subscriptions/" + req.params["subscription_id"] + "/resourceGroups/" + req.params["resourceGroupName"] + "/providers/" + req.params["resourceProviderNamespace"] + "/" + req.params["resource_type"] + "/" + req.params["resource_name"];
 
   getUserBySubscription(req.params['subscription_id']).then(function (user) {
     if (!user) {
