@@ -918,6 +918,7 @@ function validateRequest(req,res){
   }
 
   var certificate = req.connection.getPeerCertificate();
+  console.log("Client Certificate...");
   console.log(JSON.stringify(certificate));
 }
 
