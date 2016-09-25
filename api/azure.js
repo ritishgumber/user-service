@@ -999,7 +999,6 @@ function validateRequest(req,res){
       return false;
     }
     else if(certificate.subject.CN.endsWith("azure.com") || certificate.subject.CN.endsWith("azurewebsites.net")){
-      res.status(404).send();
       return true;
     }else{
       res.status(404).send();
