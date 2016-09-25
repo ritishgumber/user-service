@@ -50,6 +50,10 @@ module.exports = function () {
 
 function sso(req, res) {
 
+  if(!validateRequest(req,res)){
+    return;
+  }
+
   var url = require('url');
   var url_parts = url.parse(req.url, true);
   var query = url_parts.query;
@@ -100,7 +104,10 @@ function sso(req, res) {
 }
 
 function subscription(req, res) {
-  validateRequest(req,res);
+  if(!validateRequest(req,res)){
+    return;
+  }
+
   var state = req.body.state;
   switch (state) {
     case 'Registered':
@@ -129,6 +136,11 @@ function subscription(req, res) {
 */
 
 function onSubscriptionRegistered(req, res) {
+
+  if(!validateRequest(req,res)){
+    return;
+  }
+
 
   //generate the new user. 
   var user = {};
@@ -159,6 +171,11 @@ function onSubscriptionUnregistered(req, res) {
   //get list of all projects. 
   //block all projects. 
 
+  if(!validateRequest(req,res)){
+    return;
+  }
+
+
   getProjectListBySubscription(req.params['subscription_id']).then(function (projects) {
     if (projects && projects.length > 0) {
       var promises = [];
@@ -188,6 +205,12 @@ function onSubscriptionUnregistered(req, res) {
 */
 
 function onSubscriptionEnabled(req, res) {
+
+  if(!validateRequest(req,res)){
+    return;
+  }
+
+
   getProjectListBySubscription(req.params['subscription_id']).then(function (projects) {
     if (projects && projects.length > 0) {
       var promises = [];
@@ -218,6 +241,10 @@ function onSubscriptionEnabled(req, res) {
 
 function onSubscriptionDeleted(req, res) {
 
+  if(!validateRequest(req,res)){
+    return;
+  }
+
   getProjectListBySubscription(req.params['subscription_id']).then(function (projects) {
     if (projects && projects.length > 0) {
       var promises = [];
@@ -242,6 +269,12 @@ function onSubscriptionDeleted(req, res) {
 }
 
 function getOperations(req, res) {
+
+  if(!validateRequest(req,res)){
+    return;
+  }
+
+
   res.status(200).json({
     "value": [
       {
@@ -331,6 +364,11 @@ function getOperations(req, res) {
 }
 
 function createOrUpdateResource(req, res) {
+
+  if(!validateRequest(req,res)){
+    return;
+  }
+
 
   var subscriptionId = req.params['subscription_id'];
 
@@ -471,6 +509,10 @@ function createOrUpdateResource(req, res) {
 
 function getResource(req, res, next) {
 
+  if(!validateRequest(req,res)){
+    return;
+  }
+
   var subscriptionId = req.params['subscription_id'];
 
   var criteria = {
@@ -510,6 +552,10 @@ function getResource(req, res, next) {
 }
 
 function getProjectsInResourceGroup(req, res, next) {
+
+  if(!validateRequest(req,res)){
+    return;
+  }
 
   var subscriptionId = req.params['subscription_id'];
 
@@ -563,6 +609,10 @@ function getProjectsInResourceGroup(req, res, next) {
 
 function getProjectsInSubscription(req, res, next) {
 
+  if(!validateRequest(req,res)){
+    return;
+  }
+
   var subscriptionId = req.params['subscription_id'];
 
   var criteria = {
@@ -614,6 +664,10 @@ function getProjectsInSubscription(req, res, next) {
 
 function getListofSecrets(req, res) {
 
+  if(!validateRequest(req,res)){
+    return;
+  }
+
   var subscriptionId = req.params['subscription_id'];
 
   var criteria = {
@@ -644,6 +698,10 @@ function getListofSecrets(req, res) {
 
 function updateCommunicationPreference(req, res) {
 
+  if(!validateRequest(req,res)){
+    return;
+  }
+
   var userData = {
     "azure.firstName": req.body.firstName,
     "azure.lastName": req.body.lastName,
@@ -663,6 +721,12 @@ function updateCommunicationPreference(req, res) {
 }
 
 function getCommunicationPreference(req, res) {
+
+  if(!validateRequest(req,res)){
+    return;
+  }
+
+
   getUserBySubscription(req.params['subscription_id']).then(function (user) {
     if (user) {
       return res.status(200).json({
@@ -681,6 +745,10 @@ function getCommunicationPreference(req, res) {
 
 //----------------------------------------------------------RegenerateKeys--------------------------
 function regenerateKeys(req, res) {
+
+  if(!validateRequest(req,res)){
+    return;
+  }
 
   var subscriptionId = req.params['subscription_id'];
 
@@ -742,6 +810,10 @@ function regenerateKeys(req, res) {
 
 function removeResource(req, res, next) {
 
+  if(!validateRequest(req,res)){
+    return;
+  }
+
   var subscriptionId = req.params['subscription_id'];
 
 
@@ -773,6 +845,10 @@ function removeResource(req, res, next) {
 
 
 function getToken(req, res) {
+
+  if(!validateRequest(req,res)){
+    return;
+  }
 
   var resourceId = "/subscriptions/" + req.params["subscription_id"] + "/resourceGroups/" + req.params["resourceGroupName"] + "/providers/" + req.params["resourceProviderNamespace"] + "/" + req.params["resource_type"] + "/" + req.params["resource_name"];
 
@@ -912,14 +988,27 @@ function getPlanId(plan) {
 
 //This is used to validate the request if it comes from azure. 
 function validateRequest(req,res){
-
   if(!req.secure){
-    return res.status(404).send();
+    res.status(404).send();
+    return false;
   }
-
   var certificate = req.connection.getPeerCertificate();
-  console.log("Client Certificate...");
-  console.log(JSON.stringify(certificate));
+  if(certificate.subject && certificate.subject.CN){
+    if(certificate.subject.CN === "aspa-invalidcert.publishingapi.azure.com"){
+      res.status(404).send();
+      return false;
+    }
+    else if(certificate.subject.CN.endsWith("azure.com") || certificate.subject.CN.endsWith("azurewebsites.net")){
+      res.status(404).send();
+      return true;
+    }else{
+      res.status(404).send();
+      return false;
+    }
+  }else{
+    res.status(404).send();
+    return false;
+  }
 }
 
 function getAzureCertificate(){
