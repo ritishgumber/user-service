@@ -406,7 +406,7 @@ function createOrUpdateResource(req, res) {
               resourceGroupName: resourceGroupName,
               resourceProviderNamespace: resourceProviderNamespace,
               resource_name: resource_name,
-              geoRegion: georegion,
+              geoRegion: req.body.location,
               resource_type: type,
               plan: req.body.plan,
               properties: properties || {}
@@ -420,7 +420,7 @@ function createOrUpdateResource(req, res) {
             global.paymentProcessService.createThirdPartySale(project.appId, plan).then(function () {
 
               return res.status(200).json({
-                "location": georegion,
+                "location": project.providerProperties.geoRegion,
                 "id": "/subscriptions/" + subscription_id + "/resourceGroups/" + resourceGroupName + "/providers/" + resourceProviderNamespace + "/" + type + "/" + resource_name,
                 "name": resource_name,
                 "Type": "hackerbay.cloudboost\\services",
@@ -456,7 +456,7 @@ function createOrUpdateResource(req, res) {
               resourceGroupName: resourceGroupName,
               resourceProviderNamespace: resourceProviderNamespace,
               resource_name: resource_name,
-              geoRegion: georegion,
+              geoRegion: req.body.location,
               resource_type: type,
               plan: req.body.plan,
               properties: properties
@@ -476,10 +476,10 @@ function createOrUpdateResource(req, res) {
               console.log("Successfull on App Creation");
 
               return res.status(200).json({
-                "location": georegion,
+                "location": project.providerProperties.geoRegion,
                 "id": "/subscriptions/" + subscription_id + "/resourceGroups/" + resourceGroupName + "/providers/" + resourceProviderNamespace + "/" + type + "/" + resource_name,
                 "name": resource_name,
-                "Type": "hackerbay.cloudboost\\services",
+                "type": "hackerbay.cloudboost\\services",
                 "tags": tags,
                 "plan":req.body.plan,
                 "properties": {
@@ -530,7 +530,7 @@ function getResource(req, res, next) {
         "location": project.providerProperties.geoRegion,
         "id": "/subscriptions/" + req.params['subscription_id'] + "/resourceGroups/" + req.params['resourceGroupName'] + "/providers/" + req.params['resourceProviderNamespace'] + "/" + req.params['resource_type'] + "/" + req.params['resource_name'],
         "name": req.params['resource_name'],
-        "Type": "hackerbay.cloudboost\\services",
+        "Type": "hackerbay.cloudboost/services",
         "tags": project.providerProperties.tags || {},
         "plan": project.providerProperties.plan || {},
         "properties": {
@@ -577,7 +577,7 @@ function getProjectsInResourceGroup(req, res, next) {
           "location": projects[i].providerProperties.geoRegion,
           "id": "/subscriptions/" + req.params['subscription_id'] + "/resourceGroups/" + req.params['resourceGroupName'] + "/providers/" + req.params['resourceProviderNamespace'] + "/" + req.params['resource_type'] + "/" + projects[i].name,
           "name": projects[i].name,
-          "Type": "hackerbay.cloudboost\\services",
+          "type": "hackerbay.cloudboost/services",
           "tags": projects[i].providerProperties.tags,
           "plan": projects[i].providerProperties.plan || {},
           "properties": {
@@ -632,7 +632,7 @@ function getProjectsInSubscription(req, res, next) {
           "location": projects[i].providerProperties.geoRegion,
           "id": "/subscriptions/" + req.params['subscription_id'] + "/resourceGroups/" + req.params['resourceGroupName'] + "/providers/" + req.params['resourceProviderNamespace'] + "/" + req.params['resource_type'] + "/" + projects[i].name,
           "name": projects[i].name,
-          "Type": "hackerbay.cloudboost\\services",
+          "type": "hackerbay.cloudboost/services",
           "tags": projects[i].providerProperties.tags,
           "plan": projects[i].providerProperties.plan || {},
           "properties": {
