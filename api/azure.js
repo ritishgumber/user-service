@@ -398,7 +398,7 @@ function createOrUpdateResource(req, res) {
       } else {
         if (!project) {
           //insert project.
-          global.projectService.createProject(resource_name, user.id, {
+          var projObj = {
             provider: "azure",
             providerProperties: {
               tags: tags || {},
@@ -406,12 +406,17 @@ function createOrUpdateResource(req, res) {
               resourceGroupName: resourceGroupName,
               resourceProviderNamespace: resourceProviderNamespace,
               resource_name: resource_name,
-              geoRegion: req.body.location,
               resource_type: type,
               plan: req.body.plan,
               properties: properties || {}
             }
-          }).then(function (project) {
+          };
+
+          if(req.body.location){
+            projObj.providerProperties.geoRegion =  req.body.location.toString();
+          }
+
+          global.projectService.createProject(resource_name, user.id, projObj).then(function (project) {
 
             if (!project) {
               return res.status(500).send();
@@ -456,7 +461,6 @@ function createOrUpdateResource(req, res) {
               resourceGroupName: resourceGroupName,
               resourceProviderNamespace: resourceProviderNamespace,
               resource_name: resource_name,
-              geoRegion: req.body.location,
               resource_type: type,
               plan: req.body.plan,
               properties: properties
@@ -465,6 +469,10 @@ function createOrUpdateResource(req, res) {
             name: resource_name,
             planId: plan
           };
+
+          if(req.body.location){
+            updateData.providerProperties.geoRegion =  req.body.location.toString();
+          }
 
           global.projectService.findOneAndUpdateProject(projectId, updateData).then(function (project) {
 
