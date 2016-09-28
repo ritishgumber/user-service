@@ -423,7 +423,7 @@ function createOrUpdateResource(req, res) {
                 "location": project.providerProperties.geoRegion,
                 "id": "/subscriptions/" + subscription_id + "/resourceGroups/" + resourceGroupName + "/providers/" + resourceProviderNamespace + "/" + type + "/" + resource_name,
                 "name": resource_name,
-                "Type": "hackerbay.cloudboost\\services",
+                "type": "hackerbay.cloudboost/services",
                 "tags": tags,
                 "plan":req.body.plan,
                 "properties": {
@@ -479,7 +479,7 @@ function createOrUpdateResource(req, res) {
                 "location": project.providerProperties.geoRegion,
                 "id": "/subscriptions/" + subscription_id + "/resourceGroups/" + resourceGroupName + "/providers/" + resourceProviderNamespace + "/" + type + "/" + resource_name,
                 "name": resource_name,
-                "type": "hackerbay.cloudboost\\services",
+                "type": "hackerbay.cloudboost/services",
                 "tags": tags,
                 "plan":req.body.plan,
                 "properties": {
@@ -530,7 +530,7 @@ function getResource(req, res, next) {
         "location": project.providerProperties.geoRegion,
         "id": "/subscriptions/" + req.params['subscription_id'] + "/resourceGroups/" + req.params['resourceGroupName'] + "/providers/" + req.params['resourceProviderNamespace'] + "/" + req.params['resource_type'] + "/" + req.params['resource_name'],
         "name": req.params['resource_name'],
-        "Type": "hackerbay.cloudboost/services",
+        "type": "hackerbay.cloudboost/services",
         "tags": project.providerProperties.tags || {},
         "plan": project.providerProperties.plan || {},
         "properties": {
