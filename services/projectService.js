@@ -37,8 +37,11 @@ module.exports = function (Project) {
         }).then(function (project) {
 
           console.log("Successfull on create app from data service..");
+          console.log("Project as string..");
+          console.log(project);
           project = JSON.parse(project);
-
+          console.log("Project as JSON");
+          console.log(project);
           //Adding default developer
           var developers = [];
           var newDeveloper = {};
