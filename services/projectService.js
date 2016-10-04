@@ -75,11 +75,13 @@ module.exports = function (Project) {
 
         }, function (error) {
           console.log("Error on create new project");
+          console.log(error);
           deferred.reject(error);
         });
 
       } catch (err) {
         global.winston.log('error', { "error": String(err), "stack": new Error().stack });
+        console.log(err);
         deferred.reject(err)
       }
 
