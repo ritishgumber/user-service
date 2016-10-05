@@ -5,9 +5,9 @@ module.exports = function() {
 
     app.post('/dbaccess/enable/:appId', function(req,res,next) {
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.body.userId;
-        var id = req.params.appId
-        if(currentUserId && id){
-            global.dbaccessService.createAccessurl(currentUserId,id).then(function(data){
+        var appId = req.params.appId
+        if(currentUserId && appId){
+            global.dbAccessService.createAccessUrl(currentUserId,appId).then(function(data){
                 res.status(200).json({success:true,data:data})
             },function(err){
                 res.status(400).json({err:err})
@@ -19,9 +19,9 @@ module.exports = function() {
 
     app.post('/dbaccess/get/:appId', function(req,res,next) {
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.body.userId;
-        var id = req.params.appId
-        if(currentUserId && id){
-            global.dbaccessService.getAccessUrl(currentUserId,id).then(function(data){
+        var appId = req.params.appId
+        if(currentUserId && appId){
+            global.dbAccessService.getAccessUrl(currentUserId,appId).then(function(data){
                 console.log(data)
                 res.status(200).json({"success":true,"data":data})
             },function(err){

@@ -8,5 +8,5 @@ module.exports = function () {
 		username : String
 	});
 
-	return global.mongoose.model('dbaccess', dbaccessSchema);
+	return global.mongoose.model('dbAccess', dbaccessSchema);
 };

@@ -8,7 +8,7 @@ module.exports = function(dbaccessModel){
 
   return {
 
-    createAccessurl: function(userId,appId){
+    createAccessUrl: function(userId,appId){
         var deferred = Q.defer();
         checkIfAlreadyExists(userId,appId,dbaccessModel)
         .then(function(data){
