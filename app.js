@@ -293,7 +293,8 @@ module.exports = function(){
             var Tutorial = require('./model/tutorial.js')();
             var _Settings = require('./model/_settings.js')();
             var Notification = require('./model/notification.js')();
-            var Cbpartner = require('./model/cbpartner.js')();           
+            var Cbpartner = require('./model/cbpartner.js')();
+            var dbAccess = require('./model/dbAccess.js')();       
 
             //Services            
             global.beaconService  = require('./services/beaconService.js')(Beacon);        
@@ -310,7 +311,8 @@ module.exports = function(){
             global.userAnalyticService = require('./services/userAnalyticService.js')();
             global.analyticsNotificationsService = require('./services/analyticsNotificationsService.js')();
             global.cbPartnerService = require('./services/cbPartnerService.js')(Cbpartner);
-            global.utilService = require('./services/utilService.js')();         
+            global.utilService = require('./services/utilService.js')();
+            global.dbAccessService = require('./services/dbAccessService.js')(dbAccess);     
 
             //Routes(API)
             require('./framework/config')(passport, User); 
@@ -328,6 +330,7 @@ module.exports = function(){
             global.app.use('/', require('./api/userAnalytics.js')());
             global.app.use('/', require('./api/analyticsNotifications.js')());  
             global.app.use('/', require('./api/cbPartner.js')());
+            global.app.use('/', require('./api/dbAccess.js')());
             global.app.use('/', require('./api/azure.js')());           
 
             global.app.use(expressWinston.errorLogger({
