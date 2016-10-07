@@ -10,7 +10,10 @@ module.exports = function(dbaccessModel){
 
     createAccessUrl: function(userId,appId){
         var deferred = Q.defer();
-        checkIfAlreadyExists(userId,appId,dbaccessModel)
+        checkIfAppByUser(userId,appId)
+        .then(function(data){
+          return checkIfAlreadyExists(userId,appId,dbaccessModel)
+        })
         .then(function(data){
           return createUserInDb(appId)
         })
@@ -31,8 +34,14 @@ module.exports = function(dbaccessModel){
           if(data == null || data == undefined){
             deferred.reject({found:false})
           } else {
-            var string = "mongo localhost:27017/"+appId+" -u "+data.username+" -p "+data.password;
-            deferred.resolve(string)
+            var url = ''
+            for(var k in global.keys.mongoPublicUrls){
+              url += global.keys.mongoPublicUrls[k]
+              if(k != global.keys.mongoPublicUrls.length-1){
+                url += ","
+              }
+            }
+            deferred.resolve({data:data,url:url})
           }
         })
         return deferred.promise
@@ -101,6 +110,21 @@ function checkIfAlreadyExists(userId,appId,dbaccessModel){
     } else {
       deferred.reject({error:"DbAccess Already Existis"})
     }
+  })
+  return deferred.promise
+}
+
+function checkIfAppByUser(userId,appId){
+  var deferred = Q.defer();
+  global.projectService.projectList(userId).then(function(data){
+    for(var k in data){
+      if(data[k].appId == appId){
+          deferred.resolve(true)
+      }
+    }
+    deferred.reject({error:"given user does not exists for the given application"})
+  },function(err){
+    deferred.reject(err)
   })
   return deferred.promise
 }

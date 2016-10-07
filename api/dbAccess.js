@@ -8,7 +8,7 @@ module.exports = function() {
         var appId = req.params.appId
         if(currentUserId && appId){
             global.dbAccessService.createAccessUrl(currentUserId,appId).then(function(data){
-                res.status(200).json({success:true,data:data})
+                res.status(200).json({data:data})
             },function(err){
                 res.status(400).json({err:err})
             })
@@ -22,8 +22,7 @@ module.exports = function() {
         var appId = req.params.appId
         if(currentUserId && appId){
             global.dbAccessService.getAccessUrl(currentUserId,appId).then(function(data){
-                console.log(data)
-                res.status(200).json({"success":true,"data":data})
+                res.status(200).json(data)
             },function(err){
                 res.status(400).json({err:err})
             })
