@@ -734,7 +734,6 @@ function getCommunicationPreference(req, res) {
     return;
   }
 
-
   getUserBySubscription(req.params['subscription_id']).then(function (user) {
     if (user) {
       return res.status(200).json({
@@ -994,29 +993,42 @@ function getPlanId(plan) {
   return planId;
 }
 
-//This is used to validate the request if it comes from azure. 
+//This is used to validate the request if it comes from azure-service project of CloudBoost.
+
 function validateRequest(req,res){
-  if(!req.secure){
-    res.status(404).send();
-    return false;
-  }
-  var certificate = req.connection.getPeerCertificate();
-  if(certificate && certificate.subject && certificate.subject.CN){
-    if(certificate.subject.CN === "aspa-invalidcert.publishingapi.azure.com"){
-      res.status(404).send();
-      return false;
-    }
-    else if(certificate.subject.CN.endsWith("azure.com") || certificate.subject.CN.endsWith("azurewebsites.net")){
-      return true;
-    }else{
-      res.status(404).send();
-      return false;
-    }
+  if(req.body && global.keys.secureKey === req.body.secureKey) {
+    delete req.body.secureKey;
+    return true;
   }else{
     res.status(404).send();
     return false;
   }
-}
+} 
+
+
+
+// function validateRequest(req,res){
+//   if(!req.secure){
+//     res.status(404).send();
+//     return false;
+//   }
+//   var certificate = req.connection.getPeerCertificate();
+//   if(certificate && certificate.subject && certificate.subject.CN){
+//     if(certificate.subject.CN === "aspa-invalidcert.publishingapi.azure.com"){
+//       res.status(404).send();
+//       return false;
+//     }
+//     else if(certificate.subject.CN.endsWith("azure.com") || certificate.subject.CN.endsWith("azurewebsites.net")){
+//       return true;
+//     }else{
+//       res.status(404).send();
+//       return false;
+//     }
+//   }else{
+//     res.status(404).send();
+//     return false;
+//   }
+// }
 
 function getAzureCertificate(){
   request('https://management.azure.com:24582/metadata/authentication?api-version=2015-01-01', function (error, response, body) {

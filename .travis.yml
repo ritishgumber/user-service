@@ -16,8 +16,6 @@ install:
 - openssl aes-256-cbc -K $encrypted_669777908d02_key -iv $encrypted_669777908d02_iv -in credentials.tar.enc -out credentials.tar -d
 - tar -xvf credentials.tar
 - mv keys.js config/keys.js
-- mv cert.pem config/cert.pem
-- mv key.pem config/key.pem
 - rm gc_cred.json
 - npm install
 - docker build -t cloudboost/user-service:2.0.$TRAVIS_BUILD_NUMBER .

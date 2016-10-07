@@ -38,8 +38,6 @@ try {
       var httpsOptions = {
         key: fs.readFileSync('./config/key.pem'),
         cert: fs.readFileSync('./config/cert.pem'),
-        requestCert: true,
-        rejectUnauthorized: false
       };
       https = require('https').Server(httpsOptions, global.app);
 
