@@ -264,6 +264,12 @@ module.exports = function(){
 
                 }
            }
+           var m = 1
+           global.keys.mongoPublicUrls = []
+           while(process.env["CB_MONGO_"+m+"_SERVER"]){
+                global.keys.mongoPublicUrls.push(process.env["CB_MONGO_"+m+"_SERVER"])
+                m++
+           }
 
            mongoConnectionString = mongoConnectionString.substring(0, mongoConnectionString.length - 1);
            mongoConnectionString += "/"; //de limitter. 
