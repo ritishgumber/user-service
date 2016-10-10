@@ -34,6 +34,9 @@ module.exports = function(dbaccessModel){
           if(data == null || data == undefined){
             deferred.reject({found:false})
           } else {
+            if(global.keys.mongoPublicUrls.length == 0){
+              deferred.reject({message:"No public url's"})
+            }
             var url = ''
             for(var k in global.keys.mongoPublicUrls){
               url += global.keys.mongoPublicUrls[k]
