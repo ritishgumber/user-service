@@ -1334,7 +1334,7 @@ function _createAppFromDS(appId) {
       },
       body: post_data
     }, function (err, response, body) {
-      if (err || response.statusCode === 500 || body === 'Error') {
+      if (err || response.statusCode === 500 || body === 'Error' || response.statusCode === 401) {
         console.log("Error on Create app From Data services...");
         console.log(err);
         deferred.reject(err);
