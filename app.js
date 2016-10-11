@@ -312,7 +312,7 @@ module.exports = function(){
             global.analyticsNotificationsService = require('./services/analyticsNotificationsService.js')();
             global.cbPartnerService = require('./services/cbPartnerService.js')(Cbpartner);
             global.utilService = require('./services/utilService.js')();
-            global.dbAccessService = require('./services/dbAccessService.js')(dbAccess);     
+            global.dbAccessService = require('./services/dbAccessService.js')(dbAccess);  
 
             //Routes(API)
             require('./framework/config')(passport, User); 

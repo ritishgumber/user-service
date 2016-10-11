@@ -132,8 +132,21 @@ module.exports = function(passport) {
         global.userService.getAccountByEmail(data.email).then(function(user) {
 
             console.log('++++++ Resent verification Code Successful +++++++++++++');
-            //resend verify code.
-            global.mandrillService.sendSignupEmail(user);
+            var mailName="signupwelcome";
+            var emailTo=user.email;
+            var subject="Welcome to CloudBoost";
+
+            var variableArray=[{
+                "domClass": "username",
+                "content": user.name,
+                "contentType": "text"
+            },{
+                "domClass": "link",
+                "content": "<a href='https://dashboard.cloudboost.io/accounts/#/activate?code="+user.emailVerificationCode+"' class='btn-primary'>Activate your account</a>",
+                "contentType": "html"
+            }];
+
+            global.mailService.sendMail(mailName, emailTo, subject, variableArray);
             return res.send(200);
         },function(error){           
             return res.send(500, error);
