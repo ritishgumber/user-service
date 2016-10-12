@@ -100,6 +100,70 @@ module.exports = function(){
         }
 
         return deferred.promise;        
+    },
+
+    sendSignupMail: function(user){
+      var mailName="signupwelcome";
+      var emailTo=user.email;
+      var subject="Welcome to CloudBoost";
+
+      var variableArray=[{
+          "domClass": "username",
+          "content": user.name,
+          "contentType": "text"
+      },{
+          "domClass": "link",
+          "content": "<a href='https://dashboard.cloudboost.io/accounts/#/activate?code="+user.emailVerificationCode+"' class='btn-primary'>Activate your account</a>",
+          "contentType": "html"
+      }];
+
+      this.sendMail(mailName, emailTo, subject, variableArray);
+    },
+
+    sendActivationMail: function(user){
+      var mailName="accountactivated";
+      var emailTo=user.email;
+      var subject="Your account is now activated";
+
+      var variableArray=[{
+          "domClass": "username",
+          "content": user.name,
+          "contentType": "text"
+      }];
+
+      this.sendMail(mailName, emailTo, subject, variableArray);
+    },
+
+    sendResetPasswordMail: function(user){
+      var mailName="forgotpassword";
+      var emailTo=user.email;
+      var subject="Reset your password";
+
+      var variableArray=[{
+          "domClass": "username",
+          "content": user.name,
+          "contentType":"text"
+      },{
+          "domClass": "link",
+          "content": "<a href='https://dashboard.cloudboost.io/accounts/#/forgotpassword?code="+user.emailVerificationCode+"' class='btn-primary'>Reset your password</a>",
+          "contentType":"html"
+      }];
+
+      this.sendMail(mailName, emailTo, subject, variableArray);
+    },
+
+    sendUpdatePasswordMail: function(user){
+      var mailName="passwordchanged";
+      var emailTo=user.email;
+      var subject="You've changed your password";
+
+      var variableArray=[{
+          "domClass": "username",
+          "content": user.name,
+          "contentType": "text"
+      }];
+
+      this.sendMail(mailName, emailTo, subject, variableArray);
     }
 
   }
