@@ -245,19 +245,40 @@ module.exports = function (User) {
             return deffered.reject('A user with this email already exists.');
           }
 
-          //create a new user
-          self.createUser(data).then(function (user) {
-            console.log("Success on Register User..");
-            deffered.resolve(user);
+          if(data.isAdmin){
+            self.isNewServer().then(function(res){
+              //create a new user
+              self.createUser(data).then(function (user) {
+                console.log("Success on Register User..");
+                deffered.resolve(user);
 
-            //Create Beacons For New Users
-            if (user) {
-              global.beaconService.createBeacon(user._doc._id.toString());
-            }
-          }, function (error) {
-            console.log("Error on Register User..");
-            deffered.reject(error);
-          });
+                //Create Beacons For New Users
+                if (user) {
+                  global.beaconService.createBeacon(user._doc._id.toString());
+                }
+              }, function (error) {
+                console.log("Error on Register User..");
+                deffered.reject(error);
+              });
+            },function(err){
+              console.log("Error on setting up a new server..");
+              deffered.reject(err);
+            })
+          } else {
+            //create a new user
+            self.createUser(data).then(function (user) {
+              console.log("Success on Register User..");
+              deffered.resolve(user);
+
+              //Create Beacons For New Users
+              if (user) {
+                global.beaconService.createBeacon(user._doc._id.toString());
+              }
+            }, function (error) {
+              console.log("Error on Register User..");
+              deffered.reject(error);
+            });
+          }
         }, function (error) {
           console.log("Error on get account by email in Register User..");
           deffered.reject(error);
