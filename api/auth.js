@@ -54,24 +54,8 @@ module.exports = function(passport) {
                     return res.status(200).json(user);    
                 });
 
-            }else{               
-
-                var mailName="signupwelcome";
-                var emailTo=user.email;
-                var subject="Welcome to CloudBoost";
-
-                var variableArray=[{
-                    "domClass": "username",
-                    "content": user.name,
-                    "contentType": "text"
-                },{
-                    "domClass": "link",
-                    "content": "<a href='https://dashboard.cloudboost.io/accounts/#/activate?code="+user.emailVerificationCode+"' class='btn-primary'>Activate your account</a>",
-                    "contentType": "html"
-                }];
-
-                global.mailService.sendMail(mailName, emailTo, subject, variableArray);
-
+            } else {
+                global.mailService.sendSignupMail(user);
                 return res.status(200).send('You have signed up Successfully!');  
             }                
         },function(error){
@@ -89,18 +73,7 @@ module.exports = function(passport) {
 
             console.log('++++++ Activation Successful +++++++++++++');
             //send activated email.           
-
-            var mailName="accountactivated";
-            var emailTo=user.email;
-            var subject="Your account is now activated";
-
-            var variableArray=[{
-                "domClass": "username",
-                "content": user.name,
-                "contentType": "text"
-            }]; 
-
-            global.mailService.sendMail(mailName, emailTo, subject, variableArray);
+            global.mailService.sendActivationMail(user);
 
             req.login(user, function(err) {
 
@@ -132,21 +105,7 @@ module.exports = function(passport) {
         global.userService.getAccountByEmail(data.email).then(function(user) {
 
             console.log('++++++ Resent verification Code Successful +++++++++++++');
-            var mailName="signupwelcome";
-            var emailTo=user.email;
-            var subject="Welcome to CloudBoost";
-
-            var variableArray=[{
-                "domClass": "username",
-                "content": user.name,
-                "contentType": "text"
-            },{
-                "domClass": "link",
-                "content": "<a href='https://dashboard.cloudboost.io/accounts/#/activate?code="+user.emailVerificationCode+"' class='btn-primary'>Activate your account</a>",
-                "contentType": "html"
-            }];
-
-            global.mailService.sendMail(mailName, emailTo, subject, variableArray);
+            global.mailService.sendSignupMail(user);
             return res.send(200);
         },function(error){           
             return res.send(500, error);
@@ -161,23 +120,7 @@ module.exports = function(passport) {
 
             console.log('++++++ Request Reset Password Successful +++++++++++++');
             //send activated email. 
-
-
-            var mailName="forgotpassword";
-            var emailTo=user.email;
-            var subject="Reset your password";
-
-            var variableArray=[{
-                "domClass": "username",
-                "content": user.name,
-                "contentType":"text"
-            },{
-                "domClass": "link",
-                "content": "<a href='https://dashboard.cloudboost.io/accounts/#/forgotpassword?code="+user.emailVerificationCode+"' class='btn-primary'>Reset your password</a>",
-                "contentType":"html"
-            }];
-
-            global.mailService.sendMail(mailName, emailTo, subject, variableArray);
+            global.mailService.sendResetPasswordMail(user);
             return res.send(200);
         },function(error){
             console.log('++++++ Request Reset Password Failed +++++++++++++');
@@ -192,21 +135,9 @@ module.exports = function(passport) {
 
         global.userService.resetPassword(data.code, data.password).then(function(user) {
 
-            console.log('++++++ Request Reset Password Successful +++++++++++++');
+            console.log('++++++ Request Update Password Successful +++++++++++++');
             //send activated email            
-
-            var mailName="passwordchanged";
-            var emailTo=user.email;
-            var subject="You've changed your password";
-
-            var variableArray=[{
-                "domClass": "username",
-                "content": user.name,
-                "contentType": "text"
-            }];
-
-            global.mailService.sendMail(mailName, emailTo, subject, variableArray);              
-
+            global.mailService.sendUpdatePasswordMail(user);
             return res.status(200).send('You have changed password successfully!');    
         },function(error){
             console.log('++++++ Request Reset Password Failed +++++++++++++');
