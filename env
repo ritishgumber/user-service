@@ -1,0 +1,2 @@
+process.env["ACCOUNTS_URL"]
+process.env["CLOUDBOOST_HOSTED"]
