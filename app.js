@@ -214,7 +214,7 @@ module.exports = function(){
            var mongoConnectionString = "mongodb://";
 
            if(process.env["CLOUDBOOST_MONGODB_USERNAME"] && process.env["CLOUDBOOST_MONGODB_PASSWORD"]){
-              mongoConnectionString += process.env["MONGODB_USERNAME"] +":"+ process.env["MONGODB_PASSWORD"]+"@";
+              mongoConnectionString += process.env["CLOUDBOOST_MONGODB_USERNAME"] +":"+ process.env["CLOUDBOOST_MONGODB_PASSWORD"]+"@";
            }
            
            var isReplicaSet = false;
