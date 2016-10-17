@@ -276,21 +276,16 @@ function _mongoDbStatus(){
         responseJson.success=null;
         responseJson.error=null;
 
-        global.mongoClient.command({ serverStatus: 1},function(err, status){
+        global.mongoClient.command({ listCollections: 1},function(err, status){
           if(err) { 
             console.log(err);
             responseJson.error="Unable to know CBService Mongodb status";
-            deferred.reject(responseJson);                                    
-          }
-
-          console.log("MongoDB Status:"+status.ok);
-          if(status && status.ok===1){ 
+            deferred.reject();                                    
+          }else{
+            console.log("MongoDB Status:");
             responseJson.success="CBService Mongodb status is okay";        
-            deferred.resolve(responseJson);                                              
-          }else{   
-            responseJson.error="CBService Mongodb status is failed";
-            deferred.reject(responseJson);
-          }
+            deferred.resolve();         
+          }                                     
         });
 
     }catch(err){
