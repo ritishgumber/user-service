@@ -276,7 +276,7 @@ function _mongoDbStatus(){
         responseJson.success=null;
         responseJson.error=null;
 
-        global.mongoClient.command({ ping: 1},function(err, status){
+        global.mongoClient.command({ whatsmyuri: 1},function(err, status){
           if(err) { 
             console.log(err);
             responseJson.error="Unable to know CBService Mongodb status";
