@@ -83,8 +83,8 @@ module.exports = function(){
 
     function setUpDataServices() {
         try{
-            if(process.env["CLOUDBOOST_PORT_4730_TCP_ADDR"] || process.env["CLOUDBOOST_"+1+"_PORT_4730_TCP_ADDR"]){
-                global.keys.dataServiceUrl="http://"+(process.env["CLOUDBOOST_PORT_4730_TCP_ADDR"] || process.env["CLOUDBOOST_"+1+"_PORT_4730_TCP_ADDR"])+":4730";            
+            if(process.env["API_PORT_4730_TCP_ADDR"] || process.env["API_"+1+"_PORT_4730_TCP_ADDR"]){
+                global.keys.dataServiceUrl="http://"+(process.env["API_PORT_4730_TCP_ADDR"] || process.env["API_"+1+"_PORT_4730_TCP_ADDR"])+":4730";            
             }
             if(process.env["CLOUDBOOST_ENGINE_SERVICE_HOST"]){
                 global.keys.dataServiceUrl="http://"+process.env["CLOUDBOOST_ENGINE_SERVICE_HOST"]+":"+process.env["CLOUDBOOST_ENGINE_SERVICE_PORT"]; 
