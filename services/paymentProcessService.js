@@ -209,7 +209,7 @@ function _createSaleInAnalytics(appId,dataObj){
     dataObj = JSON.stringify(dataObj);
 
 
-    var url = global.keys.analyticsServiceUrl + '/'+appId+'/thirdPartySale';  
+    var url = global.keys.analyticsServiceUrl + '/'+appId+'/sale';  
     request.post(url,{
         headers: {
             'content-type': 'application/json',
