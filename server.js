@@ -13,6 +13,11 @@ require('./app')();
 
 global.app.set('port', process.env.PORT || 3000);
 
+//Account URL
+if(!process.env["ACCOUNTS_URL"]){
+  process.env["ACCOUNTS_URL"] = "http://localhost:1447";
+}
+
 var http = null;
 var https = null;
 try {

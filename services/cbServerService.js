@@ -241,10 +241,8 @@ module.exports = function(_Settings){
           promises.push(_cloudboostEngineStatus());                       
 
           Q.all(promises).then(function(resultList){
-              if(resultList && resultList[0] && resultList[1] && resultList[2]){
-                deferred.resolve("All are running..");                
-              }
-              console.log("hello");
+              deferred.resolve("All are running..");                 
+              console.log("All Status OK.");
           },function(error){ 
             console.log(error); 
               deferred.reject(error.error);          
@@ -276,21 +274,16 @@ function _mongoDbStatus(){
         responseJson.success=null;
         responseJson.error=null;
 
-        global.mongoClient.command({ serverStatus: 1},function(err, status){
+        global.mongoClient.command({ whatsmyuri: 1},function(err, status){
           if(err) { 
             console.log(err);
             responseJson.error="Unable to know CBService Mongodb status";
-            deferred.reject(responseJson);                                    
-          }
-
-          console.log("MongoDB Status:"+status.ok);
-          if(status && status.ok===1){ 
+            deferred.reject();                                    
+          }else{
+            console.log("MongoDB Status: OK");
             responseJson.success="CBService Mongodb status is okay";        
-            deferred.resolve(responseJson);                                              
-          }else{   
-            responseJson.error="CBService Mongodb status is failed";
-            deferred.reject(responseJson);
-          }
+            deferred.resolve();         
+          }                                     
         });
 
     }catch(err){
