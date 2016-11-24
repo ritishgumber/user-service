@@ -118,16 +118,23 @@ module.exports = function() {
 
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
         var id=req.params.appId;
-        
+        var authUser = {
+          appId: id,
+          developers: {
+            $elemMatch: {
+              userId: currentUserId
+            }
+          }
+        };
         if(id && currentUserId){   
-    		global.projectService.getProject(id).then(function(project) {
+    		global.projectService.getProjectBy(authUser).then(function(project) {
     		
-                if (!project) {
-                     return res.send(500, 'Error: Project not found');
+                if (!project || project.length == 0) {
+                     return res.send(500, 'Error: Invalid User or project not found');
                 }             
                 
                 console.log("Successfull on Get app by appId"); 
-                return res.status(200).json(project);
+                return res.status(200).json(project[0]);
 
             },function(error){ 
                 console.log("Error on Get app by appId");               
