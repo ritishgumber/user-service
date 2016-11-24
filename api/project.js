@@ -115,23 +115,28 @@ module.exports = function() {
     app.get('/app/:appId', function(req,res,next) {
 
         console.log("Get app by appId");
-		//console.log(req.body);
-        //var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
-        var id=req.params.appId;
-                 
-		global.projectService.getProject(id).then(function(project) {
-		
-            if (!project) {
-                 return res.send(500, 'Error: Project not found');
-            }             
-            
-            console.log("Successfull on Get app by appId"); 
-            return res.status(200).json(project);
 
-        },function(error){ 
-            console.log("Error on Get app by appId");               
-            return res.status(500).send(error);  
-        });    
+        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+        var id=req.params.appId;
+        
+        if(id && currentUserId){   
+    		global.projectService.getProject(id).then(function(project) {
+    		
+                if (!project) {
+                     return res.send(500, 'Error: Project not found');
+                }             
+                
+                console.log("Successfull on Get app by appId"); 
+                return res.status(200).json(project);
+
+            },function(error){ 
+                console.log("Error on Get app by appId");               
+                return res.status(500).send(error);  
+            });
+        }else{
+            console.log("Unauthorised Get masterkey by appId");
+            return res.send(401);
+        }
     });
     
     app.get('/app/:appId/masterkey', function(req,res,next) {
@@ -141,7 +146,7 @@ module.exports = function() {
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
         var id = req.params.appId;
 		var key = req.body.key;
-        if(key && id){
+        if(key && id && currentUserId){
             global.projectService.getProject(id).then(function(project) {
                 if (!project) {
                     return res.send(500, 'Error: Project not found');
