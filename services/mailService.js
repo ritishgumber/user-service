@@ -113,7 +113,7 @@ module.exports = function(){
           "contentType": "text"
       },{
           "domClass": "link",
-          "content": "<a href='"+process.env["ACCOUNTS_URL"]+"/#/activate?code="+user.emailVerificationCode+"' class='btn-primary'>Activate your account</a>",
+          "content": "<a href='"+process.env["ACCOUNTS_URL"]+"/activate?code="+user.emailVerificationCode+"' class='btn-primary'>Activate your account</a>",
           "contentType": "html"
       }];
 
@@ -145,7 +145,7 @@ module.exports = function(){
           "contentType":"text"
       },{
           "domClass": "link",
-          "content": "<a href='"+process.env["ACCOUNTS_URL"]+"/#/changepassword?code="+user.emailVerificationCode+"' class='btn-primary'>Reset your password</a>",
+          "content": "<a href='"+process.env["ACCOUNTS_URL"]+"/changepassword?code="+user.emailVerificationCode+"' class='btn-primary'>Reset your password</a>",
           "contentType":"html"
       }];
 
