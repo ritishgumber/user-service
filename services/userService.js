@@ -431,6 +431,28 @@ module.exports = function (User) {
 
       return deffered.promise;
     },
+    updateUserLastLogin: function (userId) {
+
+      console.log("Update user last login...");
+
+      var deffered = Q.defer();
+      var newDate = new Date()
+
+      User.update({ _id: userId }, { $set: { lastLogin: newDate } }, function (err, mod) {
+        if (err) {
+          console.log("Error on  update");
+          return deffered.reject(err);
+        }
+        if (!mod) {
+          console.log("Unable to set last login");
+          return deffered.reject(null);
+        }
+        console.log("Success on set last login...");
+        return deffered.resolve(userId);
+      });
+
+      return deffered.promise;
+    },
     updateUserRole: function (currentUserId, userId, isAdmin) {
 
       console.log("Update user role...");

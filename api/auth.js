@@ -56,7 +56,7 @@ module.exports = function(passport) {
 
             } else {
                 global.mailService.sendSignupMail(user);
-                return res.status(200).send('You have signed up Successfully!');  
+                return res.status(200).json(user);  
             }                
         },function(error){
             console.log('++++++ User Registration Failed +++++++++++++');
@@ -164,7 +164,7 @@ module.exports = function(passport) {
             }
             req.login(user, function(err) {
                 if (err) {
-                     console.log("User login failed.");
+                    console.log("User login failed.");
                     return next(err);
                 }
                                 
@@ -172,9 +172,14 @@ module.exports = function(passport) {
                 delete user._doc.password; //delete this code form response for security
                 delete user._doc.salt;
 
-                console.log("User successfully logged in");
-                return res.status(200).send(user);
-
+                global.userService.updateUserLastLogin(user._doc._id).then(function(id) {
+                    console.log("User successfully logged in");
+                    return res.status(200).send(user);
+                },function(error){
+                    console.log('++++++ User login failed +++++++++++++');
+                    console.log(error);
+                    return res.send(500, error);         
+                });
             });
         })(req, res, next);
     });

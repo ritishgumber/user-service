@@ -16,7 +16,8 @@ module.exports = function(){
 		fileId:String,
 		isAdmin:Boolean,
 		isActive:Boolean,
-		azure: Object
+		azure: Object,
+		lastLogin: Date
 	});
 
 	return global.mongoose.model('User', userSchema);
