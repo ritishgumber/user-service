@@ -35,7 +35,6 @@ module.exports = function() {
 
     });
 
-    //api for active app
     app.post('/app/active/:appId', function(req, res, next) {
 
         console.log("App Active API");
@@ -60,6 +59,24 @@ module.exports = function() {
             console.log("Missing appId in the parameter.");
             return res.send(401);
         }
+
+    });
+
+    app.post('/app/notifyInactive', function(req, res, next) {
+
+        console.log("Notify Inactive Apps");
+        global.projectService.notifyInactiveApps().then(function(inactiveApps) {
+            if (!inactiveApps) {
+                return res.send(500, 'Error:  Fetching inactiveApps');
+            }
+
+            console.log("Successfully notified inactiveApps");
+            return res.status(200).send(inactiveApps);
+
+        }, function(error) {
+            console.log("Error Fetching inactiveApps.");
+            return res.status(500).send(error);
+        });
 
     });
 

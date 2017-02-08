@@ -9,7 +9,7 @@ var crypto = require('crypto');
 var request = require('request');
 var randomString = require('random-string');
 
-module.exports = function(Project) {
+module.exports = function(Project, User) {
 
     return {
 
@@ -431,6 +431,54 @@ module.exports = function(Project) {
                             }
 
                         });
+                    }
+                });
+
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err)
+            }
+
+            return deferred.promise;
+        },
+        notifyInactiveApps: function() {
+
+            console.log("Inside notify Inactive apps api ...");
+
+            var deferred = Q.defer();
+
+            try {
+                var self = this;
+                var inactiveApps = [];
+                Project.find({}, function(err, projects) {
+                    if (err) {
+                        console.log("Error in Getting projects...");
+                        deferred.reject(err);
+                    } else {
+                        var length = projects.length;
+                        projects.forEach(function(project, index) {
+                            length--;
+                            if (Date.now() - project._doc.lastActive > 5184000000) {
+                                inactiveApps.push(project._doc.appId);
+                                User.findById(project._userId, function(err, user) {
+                                    global.mailService.sendTextMail(keys.adminEmailAddress, user.email, "Inactive App", "Its been more than 60 days .").then(function(info) {
+                                        if (length == 0)
+                                            deferred.resolve(inactiveApps);
+                                        }
+                                    , function(err) {
+                                        deferred.reject(err);
+                                    });
+
+                                })
+                            } else {
+                                if (length == 0)
+                                    deferred.resolve(inactiveApps);
+
+                                }
+                            })
                     }
                 });
 
