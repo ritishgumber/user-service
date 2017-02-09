@@ -62,6 +62,25 @@ module.exports = function() {
 
     });
 
+    app.delete('/app/inactive', function(req, res, next) {
+
+        console.log("App Active API");
+
+        global.projectService.deleteInactiveApps().then(function(inactiveApps) {
+            if (!inactiveApps) {
+                return res.send(500, 'Error: Deleting inactiveApps');
+            }
+
+            console.log("Successfully deleted inactiveApps");
+            return res.status(200).send(inactiveApps);
+
+        }, function(error) {
+            console.log("Error deleting inactiveApps.");
+            return res.status(500).send(error);
+        });
+
+    });
+
     app.post('/app/notifyInactive', function(req, res, next) {
 
         console.log("Notify Inactive Apps");

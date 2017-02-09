@@ -55,7 +55,8 @@ module.exports = function(Project, User) {
                         name: name,
                         developers: developers,
                         planId: newAppPlanId,
-                        disabled: false
+                        disabled: false,
+                        lastActive: Date.now()
                     };
 
                     if (cloudProvider && cloudProvider.provider) {
@@ -463,8 +464,8 @@ module.exports = function(Project, User) {
                             length--;
                             if (Date.now() - project._doc.lastActive > 5184000000) {
                                 inactiveApps.push(project._doc.appId);
-                                User.findById(project._userId, function(err, user) {
-                                    global.mailService.sendTextMail(keys.adminEmailAddress, user.email, "Inactive App", "Its been more than 60 days .").then(function(info) {
+                                User.findById(project._doc._userId, function(err, user) {
+                                    global.mailService.sendTextMail(keys.adminEmailAddress, user._doc.email, "Inactive App", "Its been more than 60 days .").then(function(info) {
                                         if (length == 0)
                                             deferred.resolve(inactiveApps);
                                         }
@@ -477,6 +478,65 @@ module.exports = function(Project, User) {
                                 if (length == 0)
                                     deferred.resolve(inactiveApps);
 
+                                }
+                            })
+                    }
+                });
+
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err)
+            }
+
+            return deferred.promise;
+        },
+        deleteInactiveApps: function() {
+            console.log("Inside delete Inactive apps api ...");
+
+            var deferred = Q.defer();
+
+            try {
+                var self = this;
+                var inactiveApps = [];
+                Project.find({}, function(err, projects) {
+                    if (err) {
+                        console.log("Error in Getting projects...");
+                        deferred.reject(err);
+                    } else {
+                        var length = projects.length;
+                        projects.forEach(function(project) {
+                            length--;
+                            //7776000000
+                            if (Date.now() - project._doc.lastActive > 7776000000) {
+                                inactiveApps.push(project._doc.appId);
+                                User.findById(project._doc._userId, function(err, user) {
+                                    if (err)
+                                        deferred.reject(err);
+                                    else {
+                                        global.mailService.sendTextMail(keys.adminEmailAddress, user._doc.email, "Delete App", "Its been more than 90 days,thus deleting your app .").then(function(info) {
+                                            Project.findOneAndRemove({
+                                                appId: project._doc.appId
+                                            }, function(err, deletedProject) {
+                                                if (err)
+                                                    deferred.reject(err);
+                                                if (!deletedProject)
+                                                    deferred.reject('Error deleting project');
+                                                else {
+                                                    if (length == 0)
+                                                        deferred.resolve(inactiveApps);
+                                                    }
+                                                });
+                                        }, function(err) {
+                                            deferred.reject(err);
+                                        });
+                                    }
+                                })
+                            } else {
+                                if (length == 0)
+                                    deferred.resolve(inactiveApps);
                                 }
                             })
                     }
