@@ -21,7 +21,7 @@ install:
 - docker build -t cloudboost/user-service:latest .
 - docker run --name user-service -e  MANDRILL=$MANDRILL -e  MIXPANEL_TOKEN=$MIXPANEL_TOKEN -e  MAILCHIMP_API_KEY=$MAILCHIMP_API_KEY -e  LOG_TOKEN=$LOG_TOKEN -e  MAILGUN_API_KEY=$MAILGUN_API_KEY -e  MAIL_GUN_DOMAIN=$MAIL_GUN_DOMAIN -e ADMIN_EMAIL=$ADMIN_EMAIL -e HEROKU_USERNAME=$HEROKU_USERNAME -e HEROKU_PASSWORD=$HEROKU_PASSWORD -e HEROKU_SALT=$HEROKU_SALT -p 3000:3000 -it --link cloudboost:api --link mongo:mongo -d cloudboost/user-service:2.0.$TRAVIS_BUILD_NUMBER 
 - sleep 30s
-- npm test
+- curl http://localhost:3000/status
 - docker logs user-service
 - docker logs cloudboost
 after_success:
