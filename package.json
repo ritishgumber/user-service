@@ -8,6 +8,10 @@
     "node": ">=5.0.0"
   },
   "version": "0.1.1",
+  "scripts": {
+    "start": "node server.js",
+    "test": "mocha test/test.js"
+  },
   "dependencies": {
     "2checkout-node": "0.0.1",
     "async": "^1.4.2",
