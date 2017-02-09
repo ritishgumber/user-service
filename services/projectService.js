@@ -9,6 +9,8 @@ var crypto = require('crypto');
 var request = require('request');
 var randomString = require('random-string');
 
+var utils = require('../helpers/utils');
+
 module.exports = function(Project, User) {
 
     return {
@@ -517,19 +519,11 @@ module.exports = function(Project, User) {
                                         deferred.reject(err);
                                     else {
                                         global.mailService.sendTextMail(keys.adminEmailAddress, user._doc.email, "Delete App", "Its been more than 90 days,thus deleting your app .").then(function(info) {
-                                            Project.findOneAndRemove({
-                                                appId: project._doc.appId
-                                            }, function(err, deletedProject) {
-                                                if (err)
-                                                    deferred.reject(err);
-                                                if (!deletedProject)
-                                                    deferred.reject('Error deleting project');
-                                                else {
-                                                    if (length == 0)
-                                                        deferred.resolve(inactiveApps);
-                                                    }
-                                                });
-                                        }, function(err) {
+                                            utils._request('delete', global.keys.dataServiceUrl + '/app/' + project._doc.appId, {'secureKey': global.keys.secureKey});
+                                            if (length == 0)
+                                                deferred.resolve(inactiveApps);
+                                            }
+                                        , function(err) {
                                             deferred.reject(err);
                                         });
                                     }

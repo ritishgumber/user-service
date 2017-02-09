@@ -280,6 +280,7 @@ module.exports = function() {
 
             mongoConnectionString = mongoConnectionString.substring(0, mongoConnectionString.length - 1);
             mongoConnectionString += "/"; //de limitter.
+            global.mongoConnectionString=mongoConnectionString;
 
             global.keys.db = mongoConnectionString + global.keys.globalDb;
 
