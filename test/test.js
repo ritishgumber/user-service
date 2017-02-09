@@ -19,6 +19,10 @@ describe("USER SERVICE STATUS CHECK", function() {
     request.get({
         url:  baseUrl +'/status'
     }, function (err, resp, body) {
+        if(err){
+          console.log(err)
+          done(err)
+        }
         assert.equal(200, resp.statusCode);
         done()
     });
