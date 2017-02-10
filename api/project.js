@@ -62,32 +62,34 @@ module.exports = function() {
 
     });
 
-    app.delete('/app/inactive', function(req, res, next) {
+    app.delete('/apps/inactive', function(req, res, next) {
 
-        console.log("App Active API");
+        console.log("Delete Inactive apps API");
+        if (global.keys.secureKey == body.secureKey) {
+            console.log('Authorized');
+            global.projectService.deleteInactiveApps().then(function(inactiveApps) {
 
-        global.projectService.deleteInactiveApps().then(function(inactiveApps) {
-            if (!inactiveApps) {
-                return res.send(500, 'Error: Deleting inactiveApps');
-            }
+                console.log("Successfully deleted inactiveApps");
+                return res.status(200).send(inactiveApps);
 
-            console.log("Successfully deleted inactiveApps");
-            return res.status(200).send(inactiveApps);
+            }, function(error) {
+                console.log("Error deleting inactiveApps.");
+                return res.status(500).send(error);
+            });
+        }
+    } else {
+        console.log('Unauthorized');
+    }
 
-        }, function(error) {
-            console.log("Error deleting inactiveApps.");
-            return res.status(500).send(error);
-        });
+});
 
-    });
+app.post('/apps/notifyInactive', function(req, res, next) {
 
-    app.post('/app/notifyInactive', function(req, res, next) {
+    console.log("Notify Inactive Apps");
+    if (global.keys.secureKey === body.secureKey) {
+        console.log("Authorized.");
 
-        console.log("Notify Inactive Apps");
         global.projectService.notifyInactiveApps().then(function(inactiveApps) {
-            if (!inactiveApps) {
-                return res.send(500, 'Error:  Fetching inactiveApps');
-            }
 
             console.log("Successfully notified inactiveApps");
             return res.status(200).send(inactiveApps);
@@ -96,394 +98,397 @@ module.exports = function() {
             console.log("Error Fetching inactiveApps.");
             return res.status(500).send(error);
         });
+    } else {
+        console.log("Unauthorized.");
+        return res.status(500).send('Unauthorized');
+    }
+});
 
-    });
+app.get('/app', function(req, res, next) {
 
-    app.get('/app', function(req, res, next) {
+    console.log("Get app List");
 
-        console.log("Get app List");
+    var currentUserId = req.session.passport.user
+        ? req.session.passport.user.id
+        : req.session.passport.user;
 
-        var currentUserId = req.session.passport.user
-            ? req.session.passport.user.id
-            : req.session.passport.user;
-
-        if (currentUserId) {
-            global.projectService.projectList(currentUserId).then(function(list) {
-                if (!list) {
-                    return res.send(500, 'Error: Something Went Wrong');
-                }
-                console.log("Successfull on Get app List");
-                return res.status(200).json(list);
-            }, function(error) {
-                console.log("Error on Get app List");
-                return res.send(500, error);
-            });
-
-        } else {
-            console.log("Unauthorised on Get app List");
-            return res.send(401);
-        }
-
-    });
-
-    app.get('/:appId/status', function(req, res, next) {
-
-        console.log("Get app Status");
-
-        var currentUserId = req.session.passport.user
-            ? req.session.passport.user.id
-            : req.session.passport.user;
-
-        if (currentUserId && req.params.appId) {
-            global.projectService.projectStatus(req.params.appId).then(function(status) {
-                console.log("Successfull on Get app Status");
-                return res.json(200, status);
-            }, function(error) {
-                console.log("Error on Get app Status");
-                return res.send(500, error);
-            });
-
-        } else {
-            console.log("Unauthorised on Get app Status");
-            return res.send(401);
-        }
-
-    });
-
-    app.put('/app/:appId', function(req, res, next) {
-
-        console.log("Updated App");
-
-        var currentUserId = req.session.passport.user
-            ? req.session.passport.user.id
-            : req.session.passport.user;
-        var appId = req.params.appId;
-        var data = req.body || {};
-        var name = data.name;
-
-        if (currentUserId && appId && data) {
-
-            global.projectService.editProject(currentUserId, appId, name).then(function(project) {
-                if (!project) {
-                    return res.status(500).send("Error: Project didn't get edited");
-                }
-
-                console.log("Successfull on  Updated App");
-                return res.status(200).json(project);
-
-            }, function(error) {
-                console.log("Error on  Updated App");
-                return res.status(500).send(error);
-            });
-
-        } else {
-            console.log("Unauthorised Updated App");
-            return res.send(401);
-        }
-
-    });
-
-    app.get('/app/:appId', function(req, res, next) {
-
-        console.log("Get app by appId");
-
-        var currentUserId = req.session.passport.user
-            ? req.session.passport.user.id
-            : req.session.passport.user;
-        var id = req.params.appId;
-        var authUser = {
-            appId: id,
-            developers: {
-                $elemMatch: {
-                    userId: currentUserId
-                }
+    if (currentUserId) {
+        global.projectService.projectList(currentUserId).then(function(list) {
+            if (!list) {
+                return res.send(500, 'Error: Something Went Wrong');
             }
-        };
-        if (id && currentUserId) {
-            global.projectService.getProjectBy(authUser).then(function(project) {
+            console.log("Successfull on Get app List");
+            return res.status(200).json(list);
+        }, function(error) {
+            console.log("Error on Get app List");
+            return res.send(500, error);
+        });
 
-                if (!project || project.length == 0) {
-                    return res.send(500, 'Error: Invalid User or project not found');
-                }
+    } else {
+        console.log("Unauthorised on Get app List");
+        return res.send(401);
+    }
 
-                console.log("Successfull on Get app by appId");
-                return res.status(200).json(project[0]);
+});
 
-            }, function(error) {
-                console.log("Error on Get app by appId");
-                return res.status(500).send(error);
-            });
-        } else {
-            console.log("Unauthorised Get masterkey by appId");
-            return res.send(401);
+app.get('/:appId/status', function(req, res, next) {
+
+    console.log("Get app Status");
+
+    var currentUserId = req.session.passport.user
+        ? req.session.passport.user.id
+        : req.session.passport.user;
+
+    if (currentUserId && req.params.appId) {
+        global.projectService.projectStatus(req.params.appId).then(function(status) {
+            console.log("Successfull on Get app Status");
+            return res.json(200, status);
+        }, function(error) {
+            console.log("Error on Get app Status");
+            return res.send(500, error);
+        });
+
+    } else {
+        console.log("Unauthorised on Get app Status");
+        return res.send(401);
+    }
+
+});
+
+app.put('/app/:appId', function(req, res, next) {
+
+    console.log("Updated App");
+
+    var currentUserId = req.session.passport.user
+        ? req.session.passport.user.id
+        : req.session.passport.user;
+    var appId = req.params.appId;
+    var data = req.body || {};
+    var name = data.name;
+
+    if (currentUserId && appId && data) {
+
+        global.projectService.editProject(currentUserId, appId, name).then(function(project) {
+            if (!project) {
+                return res.status(500).send("Error: Project didn't get edited");
+            }
+
+            console.log("Successfull on  Updated App");
+            return res.status(200).json(project);
+
+        }, function(error) {
+            console.log("Error on  Updated App");
+            return res.status(500).send(error);
+        });
+
+    } else {
+        console.log("Unauthorised Updated App");
+        return res.send(401);
+    }
+
+});
+
+app.get('/app/:appId', function(req, res, next) {
+
+    console.log("Get app by appId");
+
+    var currentUserId = req.session.passport.user
+        ? req.session.passport.user.id
+        : req.session.passport.user;
+    var id = req.params.appId;
+    var authUser = {
+        appId: id,
+        developers: {
+            $elemMatch: {
+                userId: currentUserId
+            }
         }
-    });
+    };
+    if (id && currentUserId) {
+        global.projectService.getProjectBy(authUser).then(function(project) {
+
+            if (!project || project.length == 0) {
+                return res.send(500, 'Error: Invalid User or project not found');
+            }
+
+            console.log("Successfull on Get app by appId");
+            return res.status(200).json(project[0]);
+
+        }, function(error) {
+            console.log("Error on Get app by appId");
+            return res.status(500).send(error);
+        });
+    } else {
+        console.log("Unauthorised Get masterkey by appId");
+        return res.send(401);
+    }
+});
+
+app.get('/app/:appId/masterkey', function(req, res, next) {
+
+    console.log("Get masterkey by appId");
+
+    var currentUserId = req.session.passport.user
+        ? req.session.passport.user.id
+        : req.session.passport.user;
+    var id = req.params.appId;
+    var key = req.body.key;
+    if (key && id && currentUserId) {
+        global.projectService.getProject(id).then(function(project) {
+            if (!project) {
+                return res.send(500, 'Error: Project not found');
+            }
+
+            console.log("Successfull Get masterkey by appId");
+            return res.status(200).send(project.keys.master);
+
+        }, function(error) {
+            console.log("Error Get masterkey by appId");
+            return res.status(500).send(error);
+        });
 
-    app.get('/app/:appId/masterkey', function(req, res, next) {
+    } else {
+        console.log("Unauthorised Get masterkey by appId");
+        return res.send(401);
+    }
+});
 
-        console.log("Get masterkey by appId");
+app.get('/app/:appId/change/masterkey', function(req, res, next) {
 
-        var currentUserId = req.session.passport.user
-            ? req.session.passport.user.id
-            : req.session.passport.user;
-        var id = req.params.appId;
-        var key = req.body.key;
-        if (key && id && currentUserId) {
-            global.projectService.getProject(id).then(function(project) {
-                if (!project) {
-                    return res.send(500, 'Error: Project not found');
-                }
+    console.log("Change masterkey by appId");
 
-                console.log("Successfull Get masterkey by appId");
-                return res.status(200).send(project.keys.master);
+    var currentUserId = req.session.passport.user
+        ? req.session.passport.user.id
+        : req.session.passport.user;
+    var id = req.params.appId;
 
-            }, function(error) {
-                console.log("Error Get masterkey by appId");
-                return res.status(500).send(error);
-            });
+    if (currentUserId && id) {
+        global.projectService.changeAppMasterKey(currentUserId, id).then(function(project) {
+            if (!project) {
+                return res.send(400, 'Error: Project not found');
+            }
 
-        } else {
-            console.log("Unauthorised Get masterkey by appId");
-            return res.send(401);
-        }
-    });
+            console.log("Successfull Change masterkey by appId");
+            return res.status(200).send(project.keys.master);
 
-    app.get('/app/:appId/change/masterkey', function(req, res, next) {
+        }, function(error) {
+            console.log("Error Change masterkey by appId");
+            return res.status(400).send(error);
+        });
 
-        console.log("Change masterkey by appId");
+    } else {
+        console.log("Unauthorised Change masterkey by appId");
+        return res.send(401);
+    }
+});
 
-        var currentUserId = req.session.passport.user
-            ? req.session.passport.user.id
-            : req.session.passport.user;
-        var id = req.params.appId;
+app.get('/app/:appId/change/clientkey', function(req, res, next) {
 
-        if (currentUserId && id) {
-            global.projectService.changeAppMasterKey(currentUserId, id).then(function(project) {
-                if (!project) {
-                    return res.send(400, 'Error: Project not found');
-                }
+    console.log("get clientKey by appId");
 
-                console.log("Successfull Change masterkey by appId");
-                return res.status(200).send(project.keys.master);
+    var currentUserId = req.session.passport.user
+        ? req.session.passport.user.id
+        : req.session.passport.user;
+    var id = req.params.appId;
 
-            }, function(error) {
-                console.log("Error Change masterkey by appId");
-                return res.status(400).send(error);
-            });
+    if (currentUserId && id) {
+        global.projectService.changeAppClientKey(currentUserId, id).then(function(project) {
+            if (!project) {
+                return res.send(400, 'Error: Project not found');
+            }
 
-        } else {
-            console.log("Unauthorised Change masterkey by appId");
-            return res.send(401);
-        }
-    });
+            console.log("Successfull get clientKey by appId");
+            return res.status(200).send(project.keys.js);
 
-    app.get('/app/:appId/change/clientkey', function(req, res, next) {
+        }, function(error) {
+            console.log("Error get clientKey by appId");
+            return res.status(400).send(error);
+        });
 
-        console.log("get clientKey by appId");
+    } else {
+        console.log("Unauthorised get clientKey by appId");
+        return res.send(401);
+    }
+});
 
-        var currentUserId = req.session.passport.user
-            ? req.session.passport.user.id
-            : req.session.passport.user;
-        var id = req.params.appId;
+app.delete('/app/:appId', function(req, res, next) {
 
-        if (currentUserId && id) {
-            global.projectService.changeAppClientKey(currentUserId, id).then(function(project) {
-                if (!project) {
-                    return res.send(400, 'Error: Project not found');
-                }
+    console.log("Delete project by appId");
 
-                console.log("Successfull get clientKey by appId");
-                return res.status(200).send(project.keys.js);
+    var currentUserId = req.session.passport.user
+        ? req.session.passport.user.id
+        : req.body.userId;
 
-            }, function(error) {
-                console.log("Error get clientKey by appId");
-                return res.status(400).send(error);
-            });
+    if (currentUserId) {
 
-        } else {
-            console.log("Unauthorised get clientKey by appId");
-            return res.send(401);
-        }
-    });
+        global.projectService.delete(req.params.appId, currentUserId).then(function() {
 
-    app.delete('/app/:appId', function(req, res, next) {
+            console.log("Successfull Delete project by appId");
+            return res.status(200).json({});
 
-        console.log("Delete project by appId");
+        }, function(error) {
+            console.log("error Delete project by appId");
+            return res.send(500, error);
+        });
 
-        var currentUserId = req.session.passport.user
-            ? req.session.passport.user.id
-            : req.body.userId;
+    } else {
+        console.log("unauthorized Delete project by appId");
+        return res.status(401).send("unauthorized");
+    }
 
-        if (currentUserId) {
+});
 
-            global.projectService.delete(req.params.appId, currentUserId).then(function() {
+app.delete('/app/:appId/removedeveloper/:userId', function(req, res, next) {
 
-                console.log("Successfull Delete project by appId");
-                return res.status(200).json({});
+    console.log("Remove developer by userId");
 
-            }, function(error) {
-                console.log("error Delete project by appId");
-                return res.send(500, error);
-            });
+    var currentUserId = req.session.passport.user
+        ? req.session.passport.user.id
+        : req.body.userId;
 
-        } else {
-            console.log("unauthorized Delete project by appId");
-            return res.status(401).send("unauthorized");
-        }
+    var appId = req.params.appId;
+    var userId = req.params.userId;
 
-    });
+    if (currentUserId && appId && userId) {
 
-    app.delete('/app/:appId/removedeveloper/:userId', function(req, res, next) {
+        global.projectService.removeDeveloper(currentUserId, appId, userId).then(function(project) {
 
-        console.log("Remove developer by userId");
+            console.log("Successfull Remove developer by userId");
+            return res.status(200).json(project);
 
-        var currentUserId = req.session.passport.user
-            ? req.session.passport.user.id
-            : req.body.userId;
+        }, function(error) {
+            console.log("Error Remove developer by userId");
+            return res.status(400).send(error);
+        });
 
-        var appId = req.params.appId;
-        var userId = req.params.userId;
+    } else {
+        console.log("unauthorized Remove developer by userId");
+        return res.status(401).send("unauthorized");
+    }
 
-        if (currentUserId && appId && userId) {
+});
 
-            global.projectService.removeDeveloper(currentUserId, appId, userId).then(function(project) {
+app.post('/app/:appId/removeinvitee', function(req, res, next) {
 
-                console.log("Successfull Remove developer by userId");
-                return res.status(200).json(project);
+    console.log("Remove Invitee by appId");
 
-            }, function(error) {
-                console.log("Error Remove developer by userId");
-                return res.status(400).send(error);
-            });
+    var currentUserId = req.session.passport.user
+        ? req.session.passport.user.id
+        : req.body.userId;
 
-        } else {
-            console.log("unauthorized Remove developer by userId");
-            return res.status(401).send("unauthorized");
-        }
+    var appId = req.params.appId;
+    var data = req.body || {};
 
-    });
+    if (currentUserId && appId && data.email) {
 
-    app.post('/app/:appId/removeinvitee', function(req, res, next) {
+        global.projectService.removeInvitee(currentUserId, appId, data.email).then(function(project) {
 
-        console.log("Remove Invitee by appId");
+            console.log("Successfull Remove Invitee by appId");
+            return res.status(200).json(project);
 
-        var currentUserId = req.session.passport.user
-            ? req.session.passport.user.id
-            : req.body.userId;
+        }, function(error) {
+            console.log("Error Remove Invitee by appId");
+            return res.status(400).send(error);
+        });
 
-        var appId = req.params.appId;
-        var data = req.body || {};
+    } else {
+        console.log("unauthorized Remove Invitee by appId");
+        return res.status(401).send("unauthorized");
+    }
 
-        if (currentUserId && appId && data.email) {
+});
 
-            global.projectService.removeInvitee(currentUserId, appId, data.email).then(function(project) {
+app.post('/app/:appId/invite', function(req, res, next) {
 
-                console.log("Successfull Remove Invitee by appId");
-                return res.status(200).json(project);
+    console.log("Invite user by appId");
 
-            }, function(error) {
-                console.log("Error Remove Invitee by appId");
-                return res.status(400).send(error);
-            });
+    var currentUserId = req.session.passport.user
+        ? req.session.passport.user.id
+        : req.session.passport.user;
+    var appId = req.params.appId;
+    var data = req.body || {};
 
-        } else {
-            console.log("unauthorized Remove Invitee by appId");
-            return res.status(401).send("unauthorized");
-        }
+    if (currentUserId && appId && data.email) {
 
-    });
+        global.projectService.inviteUser(appId, data.email).then(function(response) {
+            if (!response) {
+                return res.send(400, 'Error: Project not found');
+            }
+            console.log("Successfull Invite user by appId");
+            return res.status(200).send(response);
 
-    app.post('/app/:appId/invite', function(req, res, next) {
+        }, function(error) {
+            console.log("error Invite user by appId");
+            return res.status(400).send(error);
+        });
 
-        console.log("Invite user by appId");
+    } else {
+        console.log("unauthorized Invite user by appId");
+        return res.send(401);
+    }
+});
 
-        var currentUserId = req.session.passport.user
-            ? req.session.passport.user.id
-            : req.session.passport.user;
-        var appId = req.params.appId;
-        var data = req.body || {};
+app.get('/app/:appId/adddeveloper/:email', function(req, res, next) {
 
-        if (currentUserId && appId && data.email) {
+    console.log("Add developer with email");
 
-            global.projectService.inviteUser(appId, data.email).then(function(response) {
-                if (!response) {
-                    return res.send(400, 'Error: Project not found');
-                }
-                console.log("Successfull Invite user by appId");
-                return res.status(200).send(response);
+    var currentUserId = req.session.passport.user
+        ? req.session.passport.user.id
+        : req.session.passport.user;
+    var appId = req.params.appId;
+    var email = req.params.email;
 
-            }, function(error) {
-                console.log("error Invite user by appId");
-                return res.status(400).send(error);
-            });
+    if (currentUserId && appId && email) {
+        global.projectService.addDeveloper(currentUserId, appId, email).then(function(project) {
+            if (!project) {
+                return res.send(400, 'Error: Project not found');
+            }
 
-        } else {
-            console.log("unauthorized Invite user by appId");
-            return res.send(401);
-        }
-    });
+            console.log("Successfull Add developer with emai");
+            return res.status(200).json(project);
 
-    app.get('/app/:appId/adddeveloper/:email', function(req, res, next) {
+        }, function(error) {
+            console.log("error Add developer with email");
+            return res.status(400).send(error);
+        });
 
-        console.log("Add developer with email");
+    } else {
+        console.log("unauthorized Add developer with email");
+        return res.send(401);
+    }
+});
 
-        var currentUserId = req.session.passport.user
-            ? req.session.passport.user.id
-            : req.session.passport.user;
-        var appId = req.params.appId;
-        var email = req.params.email;
+app.get('/app/:appId/changerole/:userId/:role', function(req, res, next) {
 
-        if (currentUserId && appId && email) {
-            global.projectService.addDeveloper(currentUserId, appId, email).then(function(project) {
-                if (!project) {
-                    return res.send(400, 'Error: Project not found');
-                }
+    console.log("Change developer role");
 
-                console.log("Successfull Add developer with emai");
-                return res.status(200).json(project);
+    var currentUserId = req.session.passport.user
+        ? req.session.passport.user.id
+        : req.session.passport.user;
+    var appId = req.params.appId;
+    var requestedUserId = req.params.userId;
+    var newRole = req.params.role;
 
-            }, function(error) {
-                console.log("error Add developer with email");
-                return res.status(400).send(error);
-            });
+    if (currentUserId && appId && requestedUserId && newRole) {
+        global.projectService.changeDeveloperRole(currentUserId, appId, requestedUserId, newRole).then(function(project) {
+            if (!project) {
+                return res.send(400, 'Error: Project not found');
+            }
 
-        } else {
-            console.log("unauthorized Add developer with email");
-            return res.send(401);
-        }
-    });
+            console.log("Successfull change developer role");
+            return res.status(200).json(project);
 
-    app.get('/app/:appId/changerole/:userId/:role', function(req, res, next) {
+        }, function(error) {
+            console.log("error change developer role");
+            return res.status(400).send(error);
+        });
 
-        console.log("Change developer role");
+    } else {
+        console.log("unauthorized change developer role");
+        return res.send(401);
+    }
+});
 
-        var currentUserId = req.session.passport.user
-            ? req.session.passport.user.id
-            : req.session.passport.user;
-        var appId = req.params.appId;
-        var requestedUserId = req.params.userId;
-        var newRole = req.params.role;
-
-        if (currentUserId && appId && requestedUserId && newRole) {
-            global.projectService.changeDeveloperRole(currentUserId, appId, requestedUserId, newRole).then(function(project) {
-                if (!project) {
-                    return res.send(400, 'Error: Project not found');
-                }
-
-                console.log("Successfull change developer role");
-                return res.status(200).json(project);
-
-            }, function(error) {
-                console.log("error change developer role");
-                return res.status(400).send(error);
-            });
-
-        } else {
-            console.log("unauthorized change developer role");
-            return res.send(401);
-        }
-    });
-
-    return app;
+return app;
 
 }

@@ -58,7 +58,9 @@ module.exports = function(Project, User) {
                         developers: developers,
                         planId: newAppPlanId,
                         disabled: false,
-                        lastActive: Date.now()
+                        lastActive: Date.now(),
+                        deleted: false,
+                        deleteReason: 'Active'
                     };
 
                     if (cloudProvider && cloudProvider.provider) {
@@ -462,8 +464,11 @@ module.exports = function(Project, User) {
                         deferred.reject(err);
                     } else {
                         var length = projects.length;
+                        if (length == 0)
+                            deferred.resolve(inactiveApps);
                         projects.forEach(function(project, index) {
                             length--;
+                            //60 days
                             if (Date.now() - project._doc.lastActive > 5184000000) {
                                 inactiveApps.push(project._doc.appId);
                                 User.findById(project._doc._userId, function(err, user) {
@@ -497,7 +502,7 @@ module.exports = function(Project, User) {
         },
         deleteInactiveApps: function() {
             console.log("Inside delete Inactive apps api ...");
-
+            console.log('Authorized');
             var deferred = Q.defer();
 
             try {
@@ -509,9 +514,11 @@ module.exports = function(Project, User) {
                         deferred.reject(err);
                     } else {
                         var length = projects.length;
+                        if (length == 0)
+                            deferred.resolve([]);
                         projects.forEach(function(project) {
                             length--;
-                            //7776000000
+                            //90 days
                             if (Date.now() - project._doc.lastActive > 7776000000) {
                                 inactiveApps.push(project._doc.appId);
                                 User.findById(project._doc._userId, function(err, user) {
@@ -533,6 +540,7 @@ module.exports = function(Project, User) {
                                     deferred.resolve(inactiveApps);
                                 }
                             })
+
                     }
                 });
 

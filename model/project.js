@@ -13,7 +13,9 @@ module.exports = function() {
         provider: Object,
         providerProperties: Object,
         disabled: Boolean,
-        lastActive: Number
+        lastActive: Date,
+        deleted: Boolean,
+        deleteReason: String
     }, {collection: 'projects'});
 
     return global.mongoose.model('Project', projectSchema);
