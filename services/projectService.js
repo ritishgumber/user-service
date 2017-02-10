@@ -458,7 +458,9 @@ module.exports = function(Project, User) {
             try {
                 var self = this;
                 var inactiveApps = [];
-                Project.find({}, function(err, projects) {
+                Project.find({
+                    deleted: false
+                }, function(err, projects) {
                     if (err) {
                         console.log("Error in Getting projects...");
                         deferred.reject(err);
@@ -468,8 +470,8 @@ module.exports = function(Project, User) {
                             deferred.resolve(inactiveApps);
                         projects.forEach(function(project, index) {
                             length--;
-                            //60 days
-                            if (Date.now() - project._doc.lastActive > 5184000000) {
+                            //60 days 5184000000
+                            if (Date.now() - project._doc.lastActive > 1) {
                                 inactiveApps.push(project._doc.appId);
                                 User.findById(project._doc._userId, function(err, user) {
                                     global.mailService.sendTextMail(keys.adminEmailAddress, user._doc.email, "Inactive App", "Its been more than 60 days .").then(function(info) {
@@ -521,7 +523,7 @@ module.exports = function(Project, User) {
                         projects.forEach(function(project) {
                             length--;
                             //90 days
-                            if (Date.now() - project._doc.lastActive > 1) {
+                            if (Date.now() - project._doc.lastActive > 7776000000) {
                                 inactiveApps.push(project._doc.appId);
                                 User.findById(project._doc._userId, function(err, user) {
                                     if (err)

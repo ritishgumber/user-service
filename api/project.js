@@ -90,6 +90,8 @@ module.exports = function() {
     app.post('/apps/notifyInactive', function(req, res, next) {
 
         console.log("Notify Inactive Apps");
+        var body = req.body || {};
+
         if (global.keys.secureKey === body.secureKey) {
             console.log("Authorized.");
 
