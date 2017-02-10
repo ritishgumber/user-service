@@ -471,7 +471,7 @@ module.exports = function(Project, User) {
                         projects.forEach(function(project, index) {
                             length--;
                             //60 days 5184000000
-                            if (Date.now() - project._doc.lastActive > 1) {
+                            if (Date.now() - project._doc.lastActive > 5184000000) {
                                 inactiveApps.push(project._doc.appId);
                                 User.findById(project._doc._userId, function(err, user) {
                                     global.mailService.sendTextMail(keys.adminEmailAddress, user._doc.email, "Inactive App", "Its been more than 60 days .").then(function(info) {
