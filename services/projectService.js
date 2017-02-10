@@ -500,7 +500,7 @@ module.exports = function(Project, User) {
 
             return deferred.promise;
         },
-        deleteInactiveApps: function() {
+        deleteInactiveApps: function(deleteReason) {
             console.log("Inside delete Inactive apps api ...");
             console.log('Authorized');
             var deferred = Q.defer();
@@ -508,7 +508,9 @@ module.exports = function(Project, User) {
             try {
                 var self = this;
                 var inactiveApps = [];
-                Project.find({}, function(err, projects) {
+                Project.find({
+                    deleted: false
+                }, function(err, projects) {
                     if (err) {
                         console.log("Error in Getting projects...");
                         deferred.reject(err);
@@ -519,14 +521,17 @@ module.exports = function(Project, User) {
                         projects.forEach(function(project) {
                             length--;
                             //90 days
-                            if (Date.now() - project._doc.lastActive > 7776000000) {
+                            if (Date.now() - project._doc.lastActive > 1) {
                                 inactiveApps.push(project._doc.appId);
                                 User.findById(project._doc._userId, function(err, user) {
                                     if (err)
                                         deferred.reject(err);
                                     else {
                                         global.mailService.sendTextMail(keys.adminEmailAddress, user._doc.email, "Delete App", "Its been more than 90 days,thus deleting your app .").then(function(info) {
-                                            utils._request('delete', global.keys.dataServiceUrl + '/app/' + project._doc.appId, {'secureKey': global.keys.secureKey});
+                                            utils._request('delete', global.keys.dataServiceUrl + '/app/' + project._doc.appId, {
+                                                'secureKey': global.keys.secureKey,
+                                                'deleteReason': deleteReason
+                                            });
                                             if (length == 0)
                                                 deferred.resolve(inactiveApps);
                                             }
