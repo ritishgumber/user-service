@@ -423,6 +423,10 @@ module.exports = function(Project, User) {
                     if (err) {
                         console.log("Error on Getting project...");
                         deferred.reject(err);
+                    }
+                    if (!project) {
+                        console.log("project Not found...");
+                        deferred.reject('project not found');
                     } else {
                         console.log("Successfull on getting project..");
                         project.lastActive = Date.now();
@@ -464,17 +468,40 @@ module.exports = function(Project, User) {
                     if (err) {
                         console.log("Error in Getting projects...");
                         deferred.reject(err);
+                    }
+                    if (!projects) {
+                        console.log("Error in Getting projects...");
+                        deferred.reject('error in getting projects');
+
                     } else {
                         var length = projects.length;
                         if (length == 0)
                             deferred.resolve(inactiveApps);
                         projects.forEach(function(project, index) {
                             length--;
-                            //60 days 5184000000
+                            //60 days
+                            var mailName = "inactiveApp";
+                            var emailTo = user._doc.email;
+                            var subject = "Your app " + project._doc.name + " is Inactive.";
+                            var variableArray = [
+                                {
+                                    "domClass": "username",
+                                    "content": userObj.name,
+                                    "contentType": "text"
+                                }, {
+                                    "domClass": "appname",
+                                    "content": project.name,
+                                    "contentType": "text"
+                                }, {
+                                    "domClass": "planname",
+                                    "content": presentPlan.planName,
+                                    "contentType": "text"
+                                }
+                            ];
                             if (Date.now() - project._doc.lastActive > 5184000000) {
                                 inactiveApps.push(project._doc.appId);
                                 User.findById(project._doc._userId, function(err, user) {
-                                    global.mailService.sendTextMail(keys.adminEmailAddress, user._doc.email, "Inactive App", "Its been more than 60 days .").then(function(info) {
+                                    global.mailService.sendMail(mailName, emailTo, subject, variableArray).then(function(info) {
                                         if (length == 0)
                                             deferred.resolve(inactiveApps);
                                         }
@@ -516,6 +543,11 @@ module.exports = function(Project, User) {
                     if (err) {
                         console.log("Error in Getting projects...");
                         deferred.reject(err);
+                    }
+                    if (!projects) {
+                        console.log("Error in Getting projects...");
+                        deferred.reject('error in getting projects');
+
                     } else {
                         var length = projects.length;
                         if (length == 0)
