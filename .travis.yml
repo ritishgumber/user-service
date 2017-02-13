@@ -23,15 +23,13 @@ install:
 - sleep 30s
 - docker logs user-service
 - docker logs cloudboost
-- curl http://localhost:3000/status
-- curl http://localhost:4730/status
-- docker logs user-service
-- docker logs cloudboost
 after_success:
 - echo "OK"
 after_failure:
 - docker logs user-service
 - docker logs cloudboost
+- curl localhost:4730/status
+- curl localhost:3000/status
 before_deploy:
   - git config --global user.email "builds@travis-ci.com"
   - git config --global user.name "Travis CI"
