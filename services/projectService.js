@@ -436,7 +436,7 @@ module.exports = function(Project, User) {
                             if (!project)
                                 return deferred.reject('Unable to save after setting lastActive');
                             else {
-                                return deferred.resolve(project);
+                                return deferred.resolve(project.name);
                             }
 
                         });
@@ -479,36 +479,45 @@ module.exports = function(Project, User) {
                             deferred.resolve(inactiveApps);
                         projects.forEach(function(project, index) {
                             length--;
-                            //60 days
-                            var mailName = "inactiveApp";
-                            var emailTo = user._doc.email;
-                            var subject = "Your app " + project._doc.name + " is Inactive.";
-                            var variableArray = [
-                                {
-                                    "domClass": "username",
-                                    "content": userObj.name,
-                                    "contentType": "text"
-                                }, {
-                                    "domClass": "appname",
-                                    "content": project.name,
-                                    "contentType": "text"
-                                }, {
-                                    "domClass": "planname",
-                                    "content": presentPlan.planName,
-                                    "contentType": "text"
-                                }
-                            ];
+                            //60 days = 5184000000
+
                             if (Date.now() - project._doc.lastActive > 5184000000) {
                                 inactiveApps.push(project._doc.appId);
                                 User.findById(project._doc._userId, function(err, user) {
-                                    global.mailService.sendMail(mailName, emailTo, subject, variableArray).then(function(info) {
-                                        if (length == 0)
-                                            deferred.resolve(inactiveApps);
-                                        }
-                                    , function(err) {
-                                        deferred.reject(err);
-                                    });
 
+                                    if (err)
+                                        deferred.reject(err);
+                                    else {
+                                        var mailName = "inactiveApp";
+                                        var emailTo = user._doc.email;
+                                        var subject = "Your app " + project._doc.name + " is Inactive.";
+                                        var appname = project._doc.name;
+                                        var accountsURL = process.env["ACCOUNTS_URL"];
+                                        if (!accountsURL)
+                                            accountsURL = "http://localhost:1447";
+                                        var variableArray = [
+                                            {
+                                                "domClass": "username",
+                                                "content": user._doc.name,
+                                                "contentType": "text"
+                                            }, {
+                                                "domClass": "appname",
+                                                "content": appname,
+                                                "contentType": "text"
+                                            }, {
+                                                "domClass": "link",
+                                                "content": "<a href='" + accountsURL + "/reactivate/" + project._doc.appId + "' class='btn-primary'>Activate your account</a>",
+                                                "contentType": "html"
+                                            }
+                                        ];
+                                        global.mailService.sendMail(mailName, emailTo, subject, variableArray).then(function(info) {
+                                            if (length == 0)
+                                                deferred.resolve(inactiveApps);
+                                            }
+                                        , function(err) {
+                                            deferred.reject(err);
+                                        });
+                                    }
                                 })
                             } else {
                                 if (length == 0)
@@ -554,14 +563,29 @@ module.exports = function(Project, User) {
                             deferred.resolve([]);
                         projects.forEach(function(project) {
                             length--;
-                            //90 days
+                            //90 days = 7776000000
                             if (Date.now() - project._doc.lastActive > 7776000000) {
                                 inactiveApps.push(project._doc.appId);
                                 User.findById(project._doc._userId, function(err, user) {
                                     if (err)
                                         deferred.reject(err);
                                     else {
-                                        global.mailService.sendTextMail(keys.adminEmailAddress, user._doc.email, "Delete App", "Its been more than 90 days,thus deleting your app .").then(function(info) {
+                                        var mailName = "deleteApp";
+                                        var emailTo = user._doc.email;
+                                        var subject = "Your app " + project._doc.name + " is Deleted.";
+
+                                        var variableArray = [
+                                            {
+                                                "domClass": "username",
+                                                "content": user._doc.name,
+                                                "contentType": "text"
+                                            }, {
+                                                "domClass": "appname",
+                                                "content": project._doc.name,
+                                                "contentType": "text"
+                                            }
+                                        ];
+                                        global.mailService.sendMail(mailName, emailTo, subject, variableArray).then(function(info) {
                                             utils._request('delete', global.keys.dataServiceUrl + '/app/' + project._doc.appId, {
                                                 'secureKey': global.keys.secureKey,
                                                 'deleteReason': deleteReason
@@ -1837,6 +1861,7 @@ function _createPlanInAnalytics(appId, planId) {
                 'content-length': post_data.length
             },
             body: post_data
+
         }, function(err, response, body) {
 
             if (err || response.statusCode === 500 || response.statusCode === 400 || body === 'Error') {
