@@ -67,8 +67,7 @@ module.exports = function() {
         console.log("Delete Inactive apps API");
         var body = req.body || {};
         var deleteReason = body.deleteReason;
-        console.log(global.keys.secureKey);
-        if (global.keys.secureKey == body.secureKey) {
+        if (global.keys.secureKey === body.secureKey) {
             console.log('Authorized');
             global.projectService.deleteInactiveApps(deleteReason).then(function(inactiveApps) {
 
