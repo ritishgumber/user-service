@@ -12,8 +12,8 @@ before_install:
 - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
 - chmod +x ./kubectl
 - sudo mv ./kubectl /usr/local/bin/kubectl
-- docker run --name mongo -p 27017:27017 -d mongo:3.2 
-- docker run --name redis -p 6379:6379 -d redis:3.0 
+- docker run --name mongo -p 27017:27017 -d mongo:3.2
+- docker run --name redis -p 6379:6379 -d redis:3.0
 - sleep 30s
 - docker exec $(docker ps -aqf "name=mongo") mongo _GLOBAL --eval "db.getCollection('_Settings').insertOne({secureKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',clusterKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',myURL:'http://localhost:4730'});"
 - docker run --name cloudboost -p 4730:4730 -it --link redis:redis --link mongo:mongo -d cloudboost/cloudboost:latest
@@ -28,7 +28,6 @@ after_success:
 - echo "OK"
 after_failure:
 - docker logs user-service
-- docker logs cloudboost
 before_deploy:
   - git config --global user.email "builds@travis-ci.com"
   - git config --global user.name "Travis CI"
