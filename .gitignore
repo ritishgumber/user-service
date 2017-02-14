@@ -11,7 +11,6 @@ config/key.key
 config/cert.pem
 config/key.pem
 credentials.tar
-keys.js
 smtp.json
 gc_cred.json
 .vscode/
