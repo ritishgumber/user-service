@@ -25,7 +25,7 @@ module.exports = function(){
           var user=null;
           var saleDocument;
 
-          _createSaleInAnalytics(appId,{
+          _createThirdPartySaleInAnalytics(appId,{
             planId : planId
           }).then(function(){  
             console.log("Success on create sale from analyticsService");
@@ -210,6 +210,49 @@ function _createSaleInAnalytics(appId,dataObj){
 
 
     var url = global.keys.analyticsServiceUrl + '/'+appId+'/sale';  
+    request.post(url,{
+        headers: {
+            'content-type': 'application/json',
+            'content-length': dataObj.length
+        },
+        body: dataObj
+    },function(err,response,body){
+        if(err || response.statusCode === 500 || response.statusCode === 400 || body === 'Error'){  
+          console.log("Error on Create Sale in Analytics");     
+          deferred.reject(err);
+        }else {   
+          console.log("Success on Create Sale in Analytics"); 
+          try{
+            var respBody=JSON.parse(body);
+            deferred.resolve(respBody);
+          }catch(e){
+            deferred.resolve();
+          }
+          
+        }
+    });
+
+  }catch(err){
+    global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+    deferred.reject(err)         
+  }
+
+  return deferred.promise;
+}
+
+function _createThirdPartySaleInAnalytics(appId,dataObj){
+
+  console.log("Create Third Party Sale in Analytics");
+
+  var deferred = Q.defer(); 
+
+  try{
+  
+    dataObj.secureKey = global.keys.secureKey; 
+    dataObj = JSON.stringify(dataObj);
+
+
+    var url = global.keys.analyticsServiceUrl + '/'+appId+'/thirdPartySale';  
     request.post(url,{
         headers: {
             'content-type': 'application/json',
