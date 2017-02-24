@@ -165,8 +165,12 @@ function _getApiUsageAnalytics(appId){
           deferred.reject(err);
         }else {  
           console.log("Success on Get api Usage from Analytics");   
-          var respBody=JSON.parse(body);
-          deferred.resolve(respBody);
+          try{
+            var respBody = JSON.parse(body);
+            deferred.resolve(respBody);
+          } catch(e){
+            deferred.reject("Data parse error");
+          }
         }
     });
 
@@ -202,11 +206,15 @@ function _getStorageUsageAnalytics(appId){
         if(err || response.statusCode === 500 || response.statusCode === 400 || body === 'Error'){ 
           console.log("Error on Get storage usage from Analytics...");  
           console.log(err);    
-          deferred.reject(err);
+          
         }else {    
           console.log("Success on Get storage usage from Analytics...");
-          var respBody=JSON.parse(body);
-          deferred.resolve(respBody);
+          try{
+            var respBody = JSON.parse(body);
+            deferred.resolve(respBody);
+          } catch(e){
+            deferred.reject("Data parse error");
+          }
         }
     });
 
@@ -245,8 +253,12 @@ function _getApiCountAnalytics(appId){
           deferred.reject(err);
         }else {   
           console.log("Success on Get api by appId from Analytics..."); 
-          var respBody=JSON.parse(body);
-          deferred.resolve(respBody);
+          try{
+            var respBody = JSON.parse(body);
+            deferred.resolve(respBody);
+          } catch(e){
+            deferred.reject("Data parse error");
+          }
         }
     });
 
@@ -284,8 +296,12 @@ function _getStorageLastRecord(appId){
           deferred.reject(err);
         }else { 
           console.log("Success on Get last storage record from Analytics..");     
-          var respBody=JSON.parse(body);
-          deferred.resolve(respBody);
+          try{
+            var respBody = JSON.parse(body);
+            deferred.resolve(respBody);
+          } catch(e){
+            deferred.reject("Data parse error");
+          }
         }
     });
 
@@ -325,8 +341,12 @@ function _getBulkApiStorageDetails(appIdArray){
           deferred.reject(err);
         }else { 
           console.log("Success on get api/storage by appID's from Analytics..");    
-          var respBody=JSON.parse(body);
-          deferred.resolve(respBody);
+          try{
+            var respBody = JSON.parse(body);
+            deferred.resolve(respBody);
+          } catch(e){
+            deferred.reject("Data parse error");
+          }
         }
     });
 
