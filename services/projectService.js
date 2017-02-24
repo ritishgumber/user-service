@@ -205,7 +205,8 @@ module.exports = function(Project, User) {
                         $elemMatch: {
                             userId: userId
                         }
-                    }
+                    },
+                    deleted: false
                 }, function(err, list) {
                     if (err) {
                         console.log("Error on Get project list..");
