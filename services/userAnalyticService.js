@@ -206,7 +206,7 @@ function _getStorageUsageAnalytics(appId){
         if(err || response.statusCode === 500 || response.statusCode === 400 || body === 'Error'){ 
           console.log("Error on Get storage usage from Analytics...");  
           console.log(err);    
-          
+          deferred.reject(err);
         }else {    
           console.log("Success on Get storage usage from Analytics...");
           try{
