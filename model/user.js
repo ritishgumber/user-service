@@ -17,7 +17,12 @@ module.exports = function(){
 		isAdmin:Boolean,
 		isActive:Boolean,
 		azure: Object,
-		lastLogin: Date
+		lastLogin: Date,
+		companyName: String,
+		companySize: String,
+		phoneNumber: Number,
+		reference: String,
+		jobRole: String
 	});
 
 	return global.mongoose.model('User', userSchema);

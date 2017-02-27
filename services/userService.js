@@ -307,6 +307,11 @@ module.exports = function (User) {
         user.isAdmin = data.isAdmin;
         user.isActive = true;
         user.provider = data.provider || 'local';
+        user.companyName = data.companyName || null;
+        user.companySize = data.companySize || null;
+        user.phoneNumber = data.phoneNumber || null;
+        user.reference = data.reference || null;
+        user.jobRole = data.jobRole || null;
         
         if(data.emailVerified){
            user.emailVerified = data.emailVerified; 
