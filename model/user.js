@@ -20,7 +20,7 @@ module.exports = function(){
 		lastLogin: Date,
 		companyName: String,
 		companySize: String,
-		phoneNumber: Number,
+		phoneNumber: String,
 		reference: String,
 		jobRole: String
 	});
