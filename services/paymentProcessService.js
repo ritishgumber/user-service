@@ -8,8 +8,24 @@ var _ = require('underscore');
 var crypto = require('crypto');
 var request = require('request');
 var pricingPlans = require('../config/pricingPlans.js')();
+var crypto = require('crypto'),
+    algorithm = 'aes-256-ctr';
 
-module.exports = function(){
+function encrypt(text,password){
+  var cipher = crypto.createCipher(algorithm,password)
+  var crypted = cipher.update(text,'utf8','hex')
+  crypted += cipher.final('hex');
+  return crypted;
+}
+ 
+function decrypt(text,password){
+  var decipher = crypto.createDecipher(algorithm,password)
+  var dec = decipher.update(text,'hex','utf8')
+  dec += decipher.final('utf8');
+  return dec;
+}
+
+module.exports = function(Card,User){
 
   return {
 
@@ -190,6 +206,115 @@ module.exports = function(){
 
         return deferred.promise;
     },
+
+    addCard : function(userId,cardDetails){
+      
+        console.log("Add card");
+
+        var _self = this;
+
+        var deferred = Q.defer();  
+        cardDetails.cardId = Math.random().toString(36).substring(7)
+
+        try{
+          User.findOne({_id:userId},function(err,userData){
+            if(err) deferred.reject(err)
+            Card.findOne({_userId:userId},function(err,data){
+              if(err) deferred.reject(err)
+              if(data){
+                cardDetails.number_actual = encrypt(cardDetails.number,userData.salt)
+                cardDetails.number = cardDetails.number.slice(0,4) + "-XXXX-XXXX-XXXX"
+                data.cards.push(cardDetails)
+                data.markModified('cards')
+                data.save(function(err){
+                  if(err) deferred.reject(err)
+                  deferred.resolve('Card Created')
+                })
+              } else {
+                var newCard = new Card()
+                newCard._userId = userId
+                newCard.cards = [
+                  cardDetails
+                ]
+                newCard.save(function(err){
+                  if(err) deferred.reject(err)
+                  deferred.resolve('Card Created')
+                })
+              }
+            })
+          })
+        }catch(err){
+          global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+          deferred.reject(err)         
+        }
+
+        return deferred.promise;
+    },
+
+    reomveCard : function(userId,cardId){
+      
+        console.log("Delete card");
+
+        var _self = this;
+
+        var deferred = Q.defer();  
+
+        try{
+          Card.findOne({_userId:userId},function(err,data){
+            if(err) deferred.reject(err)
+            if(data){
+              data.cards = data.cards.filter(function(x){
+                return x.cardId != cardId
+              })
+              data.markModified('cards')
+              data.save(function(err){
+                if(err) deferred.reject(err)
+                deferred.resolve('Card Removed')
+              })
+            } else {
+              deferred.reject('Card Not found')
+            }
+          })
+
+        }catch(err){
+          global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+          deferred.reject(err)         
+        }
+
+        return deferred.promise;
+    },
+
+    getCards : function(userId){
+      
+        console.log("Get card");
+
+        var _self = this;
+
+        var deferred = Q.defer();  
+
+        try{
+          Card.findOne({_userId:userId},function(err,data){
+            if(err) deferred.reject(err)
+            if(data){
+              data.cards = data.cards.map(function(card){
+                delete card.number_actual
+                return card
+              })
+              deferred.resolve(data.cards || [])
+            } else {
+              deferred.resolve([])
+            }
+          })
+
+        }catch(err){
+          global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+          deferred.reject(err)         
+        }
+
+        return deferred.promise;
+    },
+
+
   }   
 
 };

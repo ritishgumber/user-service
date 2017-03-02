@@ -303,6 +303,7 @@ module.exports = function() {
             var Notification = require('./model/notification.js')();
             var Cbpartner = require('./model/cbpartner.js')();
             var dbAccess = require('./model/dbAccess.js')();
+            var Card = require('./model/cards.js')();
 
             //Services
             global.beaconService = require('./services/beaconService.js')(Beacon);
@@ -315,7 +316,7 @@ module.exports = function() {
             global.mailService = require('./services/mailService.js')();
             global.notificationService = require('./services/notificationService.js')(Notification);
             global.cbServerService = require('./services/cbServerService.js')(_Settings);
-            global.paymentProcessService = require('./services/paymentProcessService.js')();
+            global.paymentProcessService = require('./services/paymentProcessService.js')(Card,User);
             global.userAnalyticService = require('./services/userAnalyticService.js')();
             global.analyticsNotificationsService = require('./services/analyticsNotificationsService.js')();
             global.cbPartnerService = require('./services/cbPartnerService.js')(Cbpartner);
