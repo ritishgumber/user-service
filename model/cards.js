@@ -4,7 +4,7 @@ module.exports = function(){
 
 	var cardSchema = new Schema({
         _userId: String,
-		cards: []
+		cards: Array
 	});
 
 	return global.mongoose.model('Card', cardSchema);

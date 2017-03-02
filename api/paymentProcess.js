@@ -84,7 +84,7 @@ module.exports = function() {
        
         if(currentUserId){
         	
-            if(data.name,data.number,data.expMonth,data.expYear){
+            if(data.name && data.number && data.expMonth && data.expYear){
 
                global.paymentProcessService.addCard(currentUserId,{
                    name:data.name,
@@ -148,7 +148,7 @@ module.exports = function() {
 
     });
 
-    app.get('/card', function(req,res,next) {
+    app.get('/cards', function(req,res,next) {
         
         console.log("get a card");
 
