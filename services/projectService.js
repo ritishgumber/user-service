@@ -190,16 +190,14 @@ module.exports = function(Project, User) {
 
         projectList: function(userId) {
 
-            console.log("Get project list..");
+            console.log("Get project list for..", userId);
 
             var _self = this;
-
             var deferred = Q.defer();
 
             try {
 
                 var self = this;
-
                 Project.find({
                     developers: {
                         $elemMatch: {
@@ -1172,7 +1170,7 @@ module.exports = function(Project, User) {
         inviteUser: function(appId, email) {
 
             console.log("Invite user to the app.");
-
+            
             var deferred = Q.defer();
 
             try {

@@ -9,11 +9,12 @@ module.exports = function() {
        console.log("Get notification by skipLimit");
 
         var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+        var email= req.user.email;
         var skip=req.params.skip;
         var limit=req.params.limit;
         
         if(currentUserId){                
-    		global.notificationService.getNotifications(currentUserId,skip,limit).then(function(list) {
+    		global.notificationService.getNotifications(currentUserId, email, skip,limit).then(function(list) {
                 console.log("Successfull Get notification by skipLimit");             
                 return res.status(200).json(list);
             },function(error){ 
@@ -21,7 +22,7 @@ module.exports = function() {
                 return res.status(400).send(error);
             });
         }else{
-            console.log("Unathorized Get notification by skipLimit");
+            console.log("Unauthorized Get notification by skipLimit");
             return res.send(401);
         }    
     });

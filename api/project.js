@@ -112,7 +112,6 @@ module.exports = function() {
     app.get('/app', function(req, res, next) {
 
         console.log("Get app List");
-
         var currentUserId = req.session.passport.user
             ? req.session.passport.user.id
             : req.session.passport.user;
