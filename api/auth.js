@@ -56,6 +56,7 @@ module.exports = function(passport) {
 
             } else {
                 global.mailService.sendSignupMail(user);
+                global.notificationService.linkUserId(user.email, user._id);
                 return res.status(200).json(user);  
             }                
         },function(error){

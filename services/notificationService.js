@@ -56,7 +56,7 @@ module.exports = function(Notification){
 
         return deferred.promise;
     },
-    getNotifications: function (userId, email, skip,limit) {
+    getNotifications: function (userId, skip, limit) {
         console.log("Get Notification..");
 
         var _self = this;
@@ -69,8 +69,12 @@ module.exports = function(Notification){
 
           skip=parseInt(skip);
           limit=parseInt(limit);
-          
-          Notification.find( {user: {$in: [userId, email]}} ).sort({timestamp:-1}).skip(skip).limit(limit).exec(function (err, notificatonList) {      
+          Notification.find(function(err, n) {
+            console.log("===notification")
+            console.log(n)
+            console.log("===notification")
+          })
+          Notification.find( {user: userId} ).sort({timestamp:-1}).skip(skip).limit(limit).exec(function (err, notificatonList) {      
             if (err) {
               console.log("Error on Get Notification..");
               deferred.reject(err);
