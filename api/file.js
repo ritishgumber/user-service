@@ -20,8 +20,7 @@ module.exports = function() {
             global.fileService.getFileById(fileId).then(function(file) {
 
                 res.set('Content-Type', file.contentType);
-                res.set('Content-Disposition', 'inline');
-
+                res.set('Content-Disposition', 'attachment; filename="' + file.filename + '"');
                 var readstream = gfs.createReadStream({_id: file._id});
 
                 readstream.on("error", function(err) {
