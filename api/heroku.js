@@ -9,250 +9,249 @@ var moment = require('moment');
 var auth = require('basic-auth');
 var sha1 = require('sha1');
 
- /*
-  * This API is built from these links : 
-  * https://devcenter.heroku.com/articles/building-a-heroku-add-on
-  */
+/*
+ * This API is built from these links : 
+ * https://devcenter.heroku.com/articles/building-a-heroku-add-on
+ */
 
-module.exports = function () {
+module.exports = function() {
 
-  /*
-  * This is Heroku SSO Login
-  */
+	/*
+	 * This is Heroku SSO Login
+	 */
 
-   app.post('/heroku/sso/login', function(req, res, next) {   
+	app.post('/heroku/sso/login', function(req, res, next) {
 
-        console.log("Heroku Login SSO");
+		console.log("Heroku Login SSO");
 
-        var pre_token = req.body.id + ':' + global.keys.herokuSalt + ':' + req.body.timestamp;
-        var token = sha1(pre_token);
-        var navData = req.body["nav-data"];
+		var pre_token = req.body.id + ':' + global.keys.herokuSalt + ':' + req.body.timestamp;
+		var token = sha1(pre_token);
+		var navData = req.body["nav-data"];
 
-        if(token!==req.body.token){
-          return res.status(403).end("Unauthorized.");
-        }
-         
-        if(parseInt(req.body.timestamp) < (new Date().getTime()/1000) - 5*60){
-          return res.status(403).end("Session Expired.");
-        } 
-         
-        //find an app  and then find the user. 
+		if (token !== req.body.token) {
+			return res.status(403).end("Unauthorized.");
+		}
 
-        var appId = req.body.id;
+		if (parseInt(req.body.timestamp, 10) < (new Date().getTime() / 1000) - 5 * 60) {
+			return res.status(403).end("Session Expired.");
+		}
 
-        global.projectService.getProject(appId).then(function(project){
-          if(!project){
-            return res.status(404).end("App not found.");
-          }
+		//find an app  and then find the user. 
 
-          var userId = project._userId;
+		var appId = req.body.id;
 
-          if(!userId){
-            return res.status(404).end("User not found.");
-          }
+		global.projectService.getProject(appId).then(function(project) {
+			if (!project) {
+				return res.status(404).end("App not found.");
+			}
 
-          global.userService.getAccountById(userId).then(function(user){
-              if(!user){
-                return res.status(404).end("User not found.");
-              }
+			var userId = project._userId;
 
-              //if user is found, then login the user.
+			if (!userId) {
+				return res.status(404).end("User not found.");
+			}
 
-               req.login(user, function(err) {
+			global.userService.getAccountById(userId).then(function(user) {
+				if (!user) {
+					return res.status(404).end("User not found.");
+				}
 
-                  if (err) {
-                       return res.status(500).end(err);
-                  }
-                  
-                  console.log('++++++ User Login Success +++++++++++++');
+				//if user is found, then login the user.
 
-                  delete user.emailVerificationCode; 
-                  delete user.password; //delete this code form response for security
+				req.login(user, function(err) {
 
-                  res.writeHead(302, {
-                      'Set-Cookie': "heroku-nav-data="+navData+";userId="+userId,
-                      'Location': 'https://dashboard.cloudboost.io?provider=heroku&app='+req.body.app+'&userId='+userId
-                  });
+					if (err) {
+						return res.status(500).end(err);
+					}
 
-                  res.end();
-                  return;
-              });
+					console.log('++++++ User Login Success +++++++++++++');
 
-            }, function(err){
-                return res.status(500).end(err);
-            });
+					delete user.emailVerificationCode;
+					delete user.password; //delete this code form response for security
 
-        }, function(err){
-            return res.status(500).end(err);
-        });
-  });
+					res.writeHead(302, {
+						'Set-Cookie': "heroku-nav-data=" + navData + ";userId=" + userId,
+						'Location': 'https://dashboard.cloudboost.io?provider=heroku&app=' + req.body.app + '&userId=' + userId
+					});
 
+					res.end();
+					return;
+				});
 
-  /*
-  * This is Heroku Create Resource Fucntion
-  */
+			}, function(err) {
+				return res.status(500).end(err);
+			});
 
-  app.post('/heroku/resources', function(req, res, next) {   
-
-        console.log("Heroku Create Resource"); 
-
-        var credentials = auth(req);
-
-        if (!credentials || credentials.name !== global.keys.herokuUsername || credentials.pass !== global.keys.herokuPassword) {
-            res.statusCode = 401;
-            return res.end('Access denied');
-        } else {
-            
-            //geenrate the userId, 
-            var user = {};
-            user.email = global.utilService.generateRandomString()+"@heroku.com";
-            user.emailVerified = true; 
-            user.password = global.utilService.generateRandomString();
-            user.name = "Heroku";
-            user.isAdmin = false;
-            user.isActive = true;
-            user.provider = "heroku";
-
-            if(!req.body.plan)
-                return res.status(400).end("Plan ID is null");
+		}, function(err) {
+			return res.status(500).end(err);
+		});
+	});
 
 
-            var planId = 2;
+	/*
+	 * This is Heroku Create Resource Fucntion
+	 */
 
-            if(req.body.plan.toString() === 'launch'){
-            planId =2;
-            }
+	app.post('/heroku/resources', function(req, res, next) {
 
-            if(req.body.plan.toString() === 'bootstrap'){
-            planId =3;
-            }
+		console.log("Heroku Create Resource");
 
-            if(req.body.plan.toString() === 'scale'){
-            planId =4;
-            }
+		var credentials = auth(req);
 
-            if(req.body.plan.toString() === 'unicorn'){
-            planId =5;
-            }
+		if (!credentials || credentials.name !== global.keys.herokuUsername || credentials.pass !== global.keys.herokuPassword) {
+			res.statusCode = 401;
+			return res.end('Access denied');
+		} else {
 
-            
-            if(planId<2&&planId>5){
-                return res.status(400).end("Invalid Plan ID");
-            }
+			//geenrate the userId, 
+			var user = {};
+			user.email = global.utilService.generateRandomString() + "@heroku.com";
+			user.emailVerified = true;
+			user.password = global.utilService.generateRandomString();
+			user.name = "Heroku";
+			user.isAdmin = false;
+			user.isActive = true;
+			user.provider = "heroku";
 
-            global.userService.register(user).then(function(registeredUser){
-               
-                global.projectService.createProject("Heroku App",registeredUser.id, {
-                    provider : "heroku"
-                }).then(function(project) {
-
-                    if (!project) {                               
-                        return res.status(400).send('Error : Project not created'); 
-                    } 
-
-                    global.paymentProcessService.createThirdPartySale(project.appId,planId).then(function(){
-                         console.log("Successfull on App Creation");
-
-                            return res.status(200).json({ 
-                                id: project.appId, 
-                                config: { 
-                                    "CLOUDBOOST_URL" : "https://api.cloudboost.io", 
-                                    "CLOUDBOOST_PORTAL":"https://dashboard.cloudboost.io", 
-                                    "CLOUDBOOST_APP_ID" : project.appId, 
-                                    "CLOUDBOOST_CLIENT_KEY" : project.keys.js, 
-                                    "CLOUDBOOST_MASTER_KEY" :project.keys.master
-                                }
-                            });
-                    }, function(error){
-                        return res.status(500).end(error);
-                    });
-                    
-                },function(error){    
-                    console.log(error);       
-                    return res.status(500).send(error); 
-                });          
-                    
-            
-            },function(error){    
-                console.log(error);       
-                return res.status(500).send(error); 
-            });
-           
-        }
-  });
+			if (!req.body.plan)
+				return res.status(400).end("Plan ID is null");
 
 
-  /*
-  * Delete a resource.
-  */
-  app.delete('/heroku/resources/:id', function(req, res, next) {   
+			var planId = 2;
 
-        console.log("Heroku Delete Resource"); 
+			if (req.body.plan.toString() === 'launch') {
+				planId = 2;
+			}
 
-        var credentials = auth(req);
+			if (req.body.plan.toString() === 'bootstrap') {
+				planId = 3;
+			}
 
-        if (!credentials || credentials.name !== global.keys.herokuUsername || credentials.pass !== global.keys.herokuPassword) {
-            res.statusCode = 401;
-            return res.end('Access denied');
-        } else {
+			if (req.body.plan.toString() === 'scale') {
+				planId = 4;
+			}
 
-            global.projectService.deleteAppAsAdmin(req.params.id).then(function(project){
-                return res.status(200).end();
-            }, function(error){
-                return res.status(500).end(error);
-            });
-        }
-  });
+			if (req.body.plan.toString() === 'unicorn') {
+				planId = 5;
+			}
 
 
- /*
-  * Update a plan.
-  */
-  app.put('/heroku/resources/:id', function(req, res, next) {   
+			if (planId < 2 && planId > 5) {
+				return res.status(400).end("Invalid Plan ID");
+			}
 
-        console.log("Heroku Plan Change"); 
+			global.userService.register(user).then(function(registeredUser) {
 
-        var credentials = auth(req);
+				global.projectService.createProject("Heroku App", registeredUser.id, {
+					provider: "heroku"
+				}).then(function(project) {
 
-        if(!req.body.plan)
-            return res.status(400).end("Plan ID is null");
+					if (!project) {
+						return res.status(400).send('Error : Project not created');
+					}
+
+					global.paymentProcessService.createThirdPartySale(project.appId, planId).then(function() {
+						console.log("Successfull on App Creation");
+
+						return res.status(200).json({
+							id: project.appId,
+							config: {
+								"CLOUDBOOST_URL": "https://api.cloudboost.io",
+								"CLOUDBOOST_PORTAL": "https://dashboard.cloudboost.io",
+								"CLOUDBOOST_APP_ID": project.appId,
+								"CLOUDBOOST_CLIENT_KEY": project.keys.js,
+								"CLOUDBOOST_MASTER_KEY": project.keys.master
+							}
+						});
+					}, function(error) {
+						return res.status(500).end(error);
+					});
+
+				}, function(error) {
+					console.log(error);
+					return res.status(500).send(error);
+				});
 
 
-        var planId = 2;
+			}, function(error) {
+				console.log(error);
+				return res.status(500).send(error);
+			});
 
-        if(req.body.plan.toString() === 'launch'){
-          planId =2;
-        }
+		}
+	});
 
-        if(req.body.plan.toString() === 'bootstrap'){
-          planId =3;
-        }
 
-        if(req.body.plan.toString() === 'scale'){
-          planId =4;
-        }
+	/*
+	 * Delete a resource.
+	 */
+	app.delete('/heroku/resources/:id', function(req, res, next) {
 
-        if(req.body.plan.toString() === 'unicorn'){
-          planId =5;
-        }
+		console.log("Heroku Delete Resource");
 
-        
-        if(planId<2&&planId>5){
-            return res.status(400).end("Invalid Plan ID");
-        }
-        
-        if (!credentials || credentials.name !== global.keys.herokuUsername || credentials.pass !== global.keys.herokuPassword) {
-            res.statusCode = 401;
-            return res.end('Access denied');
-        } else {
-             global.paymentProcessService.createThirdPartySale(req.params.id,planId).then(function(){
-                return res.status(200).end();
-            }, function(error){
-                return res.status(500).end(error);
-            });
-        }
-  });
+		var credentials = auth(req);
 
-  return app;
+		if (!credentials || credentials.name !== global.keys.herokuUsername || credentials.pass !== global.keys.herokuPassword) {
+			res.statusCode = 401;
+			return res.end('Access denied');
+		} else {
+
+			global.projectService.deleteAppAsAdmin(req.params.id).then(function(project) {
+				return res.status(200).end();
+			}, function(error) {
+				return res.status(500).end(error);
+			});
+		}
+	});
+
+
+	/*
+	 * Update a plan.
+	 */
+	app.put('/heroku/resources/:id', function(req, res, next) {
+
+		console.log("Heroku Plan Change");
+
+		var credentials = auth(req);
+
+		if (!req.body.plan)
+			return res.status(400).end("Plan ID is null");
+
+
+		var planId = 2;
+
+		if (req.body.plan.toString() === 'launch') {
+			planId = 2;
+		}
+
+		if (req.body.plan.toString() === 'bootstrap') {
+			planId = 3;
+		}
+
+		if (req.body.plan.toString() === 'scale') {
+			planId = 4;
+		}
+
+		if (req.body.plan.toString() === 'unicorn') {
+			planId = 5;
+		}
+
+
+		if (planId < 2 && planId > 5) {
+			return res.status(400).end("Invalid Plan ID");
+		}
+
+		if (!credentials || credentials.name !== global.keys.herokuUsername || credentials.pass !== global.keys.herokuPassword) {
+			res.statusCode = 401;
+			return res.end('Access denied');
+		} else {
+			global.paymentProcessService.createThirdPartySale(req.params.id, planId).then(function() {
+				return res.status(200).end();
+			}, function(error) {
+				return res.status(500).end(error);
+			});
+		}
+	});
+
+	return app;
 };
-

@@ -3,180 +3,180 @@ var app = express();
 
 module.exports = function() {
 
-    //routes  
-    app.post('/:appId/sale', function(req,res,next) {
+	//routes  
+	app.post('/:appId/sale', function(req, res, next) {
 
-        console.log("Make a sale");
+		console.log("Make a sale");
 
-        var data = req.body || {};
-        var appId=req.params.appId;
-        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
-       
-        if(currentUserId){
-        	
-            if(data && appId && data.token){
+		var data = req.body || {};
+		var appId = req.params.appId;
+		var currentUserId = req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
 
-               global.paymentProcessService.createSale(currentUserId,appId,data).then(function(data) {
-                  if (!data) {
-                    return res.status(400).send('Error : Something went wrong, try again.');
-                  } 
-                  console.log("successfully Make a sale");              
-                  return res.status(200).json(data);
+		if (currentUserId) {
 
-                },function(error){
-                  console.log("error Make a sale");
-                  return res.status(400).send(error);                    
-                }); 
+			if (data && appId && data.token) {
 
-            }else{ 
-                console.log("Unauthorized Make a sale"); 
-                return res.status(400).send("Bad Request");  
-            }    		
-        	
-        }else{  
-            console.log("Unauthorized Make a sale");         
-            return res.status(400).send("Unauthorized");
-        }
+				global.paymentProcessService.createSale(currentUserId, appId, data).then(function(data) {
+					if (!data) {
+						return res.status(400).send('Error : Something went wrong, try again.');
+					}
+					console.log("successfully Make a sale");
+					return res.status(200).json(data);
 
-    });
+				}, function(error) {
+					console.log("error Make a sale");
+					return res.status(400).send(error);
+				});
 
-    app.delete('/:appId/removecard', function(req,res,next) {
-        
-        console.log("Remove card");
+			} else {
+				console.log("Unauthorized Make a sale");
+				return res.status(400).send("Bad Request");
+			}
 
-        var appId=req.params.appId;
-        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
-       
-        if(currentUserId){
-            
-            if(appId){
+		} else {
+			console.log("Unauthorized Make a sale");
+			return res.status(400).send("Unauthorized");
+		}
 
-               global.paymentProcessService.stopRecurring(appId,currentUserId).then(function(data) {
-                  if (!data) {
-                    return res.status(400).send('Error : Something went wrong, try again.');
-                  } 
-                  console.log("successfully Remove card");              
-                  return res.status(200).json(data);
+	});
 
-                },function(error){
-                  console.log("error Remove card");
-                  return res.status(400).send(error);                    
-                }); 
+	app.delete('/:appId/removecard', function(req, res, next) {
 
-            }else{
-                console.log("Bad Requestd Remove card");  
-                return res.status(400).send("Bad Request");  
-            }           
-            
-        }else{ 
-            console.log("Unauthorized Remove card");          
-            return res.status(400).send("Unauthorized");
-        }
+		console.log("Remove card");
 
-    });
+		var appId = req.params.appId;
+		var currentUserId = req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
 
-    app.post('/card', function(req,res,next) {
+		if (currentUserId) {
 
-        console.log("add a card");
+			if (appId) {
 
-        var data = req.body || {};
-        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
-       
-        if(currentUserId){
-        	
-            if(data.name && data.number && data.expMonth && data.expYear){
+				global.paymentProcessService.stopRecurring(appId, currentUserId).then(function(data) {
+					if (!data) {
+						return res.status(400).send('Error : Something went wrong, try again.');
+					}
+					console.log("successfully Remove card");
+					return res.status(200).json(data);
 
-               global.paymentProcessService.addCard(currentUserId,{
-                   name:data.name,
-                   number:data.number,
-                   expMonth:data.expMonth,
-                   expYear:data.expYear
-               }).then(function(data) {
-                  if (!data) {
-                    return res.status(400).send('Error : Something went wrong, try again.');
-                  } 
-                  console.log("successfully adding a card");              
-                  return res.status(200).send('SUCCESS')
+				}, function(error) {
+					console.log("error Remove card");
+					return res.status(400).send(error);
+				});
 
-                },function(error){
-                  console.log("error add a card");
-                  return res.status(400).send(error);                    
-                }); 
+			} else {
+				console.log("Bad Requestd Remove card");
+				return res.status(400).send("Bad Request");
+			}
 
-            }else{ 
-                return res.status(400).send("Bad Request");  
-            }    		
-        	
-        }else{  
-            console.log("Unauthorized Make a sale");         
-            return res.status(400).send("Unauthorized");
-        }
+		} else {
+			console.log("Unauthorized Remove card");
+			return res.status(400).send("Unauthorized");
+		}
 
-    });
+	});
 
-    app.delete('/card/:cardId', function(req,res,next) {
-        
-        console.log("delete a card");
+	app.post('/card', function(req, res, next) {
 
-        var cardId=req.params.cardId;
-        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
-       
-        if(currentUserId){
-        	
-            if(cardId){
+		console.log("add a card");
 
-               global.paymentProcessService.reomveCard(currentUserId,cardId).then(function(data) {
-                  if (!data) {
-                    return res.status(400).send('Error : Something went wrong, try again.');
-                  } 
-                  console.log("successfully deleting a card");              
-                  return res.status(200).send('SUCCESS')
+		var data = req.body || {};
+		var currentUserId = req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
 
-                },function(error){
-                  console.log("error delete a card");
-                  return res.status(400).send(error);                    
-                }); 
+		if (currentUserId) {
 
-            }else{ 
-                return res.status(400).send("Bad Request");  
-            }    		
-        	
-        }else{  
-            console.log("Unauthorized deleting card");         
-            return res.status(400).send("Unauthorized");
-        }
+			if (data.name && data.number && data.expMonth && data.expYear) {
 
-    });
+				global.paymentProcessService.addCard(currentUserId, {
+					name: data.name,
+					number: data.number,
+					expMonth: data.expMonth,
+					expYear: data.expYear
+				}).then(function(data) {
+					if (!data) {
+						return res.status(400).send('Error : Something went wrong, try again.');
+					}
+					console.log("successfully adding a card");
+					return res.status(200).send('SUCCESS')
 
-    app.get('/cards', function(req,res,next) {
-        
-        console.log("get a card");
+				}, function(error) {
+					console.log("error add a card");
+					return res.status(400).send(error);
+				});
 
-        var currentUserId= req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
-       
-        if(currentUserId){
-            global.paymentProcessService.getCards(currentUserId).then(function(data) {
-                if (!data) {
-                return res.status(400).send('Error : Something went wrong, try again.');
-                } 
-                console.log("successfully getting card");              
-                return res.status(200).json(data)
+			} else {
+				return res.status(400).send("Bad Request");
+			}
 
-            },function(error){
-                console.log("error getting a card");
-                return res.status(400).send(error);                    
-            }); 	
-        	
-        }else{  
-            console.log("Unauthorized getting cards");         
-            return res.status(400).send("Unauthorized");
-        }
+		} else {
+			console.log("Unauthorized Make a sale");
+			return res.status(400).send("Unauthorized");
+		}
 
-    });
+	});
 
-    
-    
+	app.delete('/card/:cardId', function(req, res, next) {
 
-    return app;
+		console.log("delete a card");
+
+		var cardId = req.params.cardId;
+		var currentUserId = req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+
+		if (currentUserId) {
+
+			if (cardId) {
+
+				global.paymentProcessService.reomveCard(currentUserId, cardId).then(function(data) {
+					if (!data) {
+						return res.status(400).send('Error : Something went wrong, try again.');
+					}
+					console.log("successfully deleting a card");
+					return res.status(200).send('SUCCESS')
+
+				}, function(error) {
+					console.log("error delete a card");
+					return res.status(400).send(error);
+				});
+
+			} else {
+				return res.status(400).send("Bad Request");
+			}
+
+		} else {
+			console.log("Unauthorized deleting card");
+			return res.status(400).send("Unauthorized");
+		}
+
+	});
+
+	app.get('/cards', function(req, res, next) {
+
+		console.log("get a card");
+
+		var currentUserId = req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
+
+		if (currentUserId) {
+			global.paymentProcessService.getCards(currentUserId).then(function(data) {
+				if (!data) {
+					return res.status(400).send('Error : Something went wrong, try again.');
+				}
+				console.log("successfully getting card");
+				return res.status(200).json(data)
+
+			}, function(error) {
+				console.log("error getting a card");
+				return res.status(400).send(error);
+			});
+
+		} else {
+			console.log("Unauthorized getting cards");
+			return res.status(400).send("Unauthorized");
+		}
+
+	});
+
+
+
+
+	return app;
 
 }

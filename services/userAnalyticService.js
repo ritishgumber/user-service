@@ -8,352 +8,382 @@ var _ = require('underscore');
 var crypto = require('crypto');
 var request = require('request');
 
-module.exports = function(){
+module.exports = function() {
 
-  return {
+	return {
 
-    apiUsage: function (appId) {
+		apiUsage: function(appId) {
 
-        console.log("Get API Usage by appId...");
+			console.log("Get API Usage by appId...");
 
-        var _self = this;
+			var _self = this;
 
-        var deferred = Q.defer(); 
+			var deferred = Q.defer();
 
-        try{ 
+			try {
 
-          _getApiUsageAnalytics(appId).then(function(result) {
-              console.log("Success on Get API Usage by appId...");
-              deferred.resolve(result);
-          },function(error){
-              console.log("Error on  on Get API Usage by appId...");
-              deferred.reject(error);
-          });
+				_getApiUsageAnalytics(appId).then(function(result) {
+					console.log("Success on Get API Usage by appId...");
+					deferred.resolve(result);
+				}, function(error) {
+					console.log("Error on  on Get API Usage by appId...");
+					deferred.reject(error);
+				});
 
-        }catch(err){
-          global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-          deferred.reject(err);         
-        }     
+			} catch (err) {
+				global.winston.log('error', {
+					"error": String(err),
+					"stack": new Error().stack
+				});
+				deferred.reject(err);
+			}
 
-        return deferred.promise;
-    },
- 
-    storageUsage: function (appId) {
+			return deferred.promise;
+		},
 
-      console.log("Get Storage Usage by appId...");
+		storageUsage: function(appId) {
 
-      var _self = this;
+			console.log("Get Storage Usage by appId...");
 
-      var deferred = Q.defer();  
+			var _self = this;
 
-      try{
-        _getStorageUsageAnalytics(appId).then(function(result) {
-            console.log("Success on Get Storage Usage by appId...");
-            deferred.resolve(result);
-        },function(error){
-           console.log("Error on Get Storage Usage by appId...");
-            deferred.reject(error);
-        });
+			var deferred = Q.defer();
 
-      }catch(err){
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-        deferred.reject(err);         
-      }     
+			try {
+				_getStorageUsageAnalytics(appId).then(function(result) {
+					console.log("Success on Get Storage Usage by appId...");
+					deferred.resolve(result);
+				}, function(error) {
+					console.log("Error on Get Storage Usage by appId...");
+					deferred.reject(error);
+				});
 
-      return deferred.promise;
-    },
-    apiCount: function (appId) {
+			} catch (err) {
+				global.winston.log('error', {
+					"error": String(err),
+					"stack": new Error().stack
+				});
+				deferred.reject(err);
+			}
 
-        console.log("Get API Count...");
+			return deferred.promise;
+		},
+		apiCount: function(appId) {
 
-        var _self = this;
+			console.log("Get API Count...");
 
-        var deferred = Q.defer();  
+			var _self = this;
 
-        try{
-          _getApiCountAnalytics(appId).then(function(result) {
-              console.log("Sucess on Get API Count...");
-              deferred.resolve(result);
-          },function(error){
-              console.log("Error on Get API Count...");
-              deferred.reject(error);
-          });     
+			var deferred = Q.defer();
 
-        }catch(err){
-          global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-          deferred.reject(err);         
-        }
-        return deferred.promise;
-    }, 
-    storageLastRecord: function (appId) {
+			try {
+				_getApiCountAnalytics(appId).then(function(result) {
+					console.log("Sucess on Get API Count...");
+					deferred.resolve(result);
+				}, function(error) {
+					console.log("Error on Get API Count...");
+					deferred.reject(error);
+				});
 
-        console.log("Get Last storage record...");
+			} catch (err) {
+				global.winston.log('error', {
+					"error": String(err),
+					"stack": new Error().stack
+				});
+				deferred.reject(err);
+			}
+			return deferred.promise;
+		},
+		storageLastRecord: function(appId) {
 
-        var _self = this;
+			console.log("Get Last storage record...");
 
-        var deferred = Q.defer();  
+			var _self = this;
 
-        try{
-          _getStorageLastRecord(appId).then(function(result) {
-              console.log("Success on Get Last storage record...");
-              deferred.resolve(result);
-          },function(error){
-              console.log("Error on Get Last storage record...");
-              deferred.reject(error);
-          }); 
+			var deferred = Q.defer();
 
-        }catch(err){
-          global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-          deferred.reject(err);         
-        }    
+			try {
+				_getStorageLastRecord(appId).then(function(result) {
+					console.log("Success on Get Last storage record...");
+					deferred.resolve(result);
+				}, function(error) {
+					console.log("Error on Get Last storage record...");
+					deferred.reject(error);
+				});
 
-        return deferred.promise;
-    }, 
-    bulkApiStorageDetails: function (appIdArray) {
+			} catch (err) {
+				global.winston.log('error', {
+					"error": String(err),
+					"stack": new Error().stack
+				});
+				deferred.reject(err);
+			}
 
-        console.log("Get API and Storage by array of appID's");
+			return deferred.promise;
+		},
+		bulkApiStorageDetails: function(appIdArray) {
 
-        var _self = this;
+			console.log("Get API and Storage by array of appID's");
 
-        var deferred = Q.defer();  
+			var _self = this;
 
-        try{
-          _getBulkApiStorageDetails(appIdArray).then(function(result) {
-              console.log("Success on Get API and Storage by array of appID's");
-              deferred.resolve(result);
-          },function(error){
-              console.log("Error on Get API and Storage by array of appID's");
-              deferred.reject(error);
-          }); 
+			var deferred = Q.defer();
 
-        }catch(err){
-          global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-          deferred.reject(err);         
-        }    
+			try {
+				_getBulkApiStorageDetails(appIdArray).then(function(result) {
+					console.log("Success on Get API and Storage by array of appID's");
+					deferred.resolve(result);
+				}, function(error) {
+					console.log("Error on Get API and Storage by array of appID's");
+					deferred.reject(error);
+				});
 
-        return deferred.promise;
-    }
-  }
+			} catch (err) {
+				global.winston.log('error', {
+					"error": String(err),
+					"stack": new Error().stack
+				});
+				deferred.reject(err);
+			}
+
+			return deferred.promise;
+		}
+	}
 };
 
 
 /***********************Pinging Analytics Services*********************************/
 
-function _getApiUsageAnalytics(appId){
+function _getApiUsageAnalytics(appId) {
 
-  console.log("Get api Usage from Analytics");
+	console.log("Get api Usage from Analytics");
 
-  var deferred = Q.defer();
- 
-  try{
-    var post_data = {};
-    post_data.secureKey = global.keys.secureKey; 
-    post_data = JSON.stringify(post_data);
+	var deferred = Q.defer();
+
+	try {
+		var post_data = {};
+		post_data.secureKey = global.keys.secureKey;
+		post_data = JSON.stringify(post_data);
 
 
-    var url = global.keys.analyticsServiceUrl + '/'+appId+'/api/usage';  
-    request.post(url,{
-        headers: {
-            'content-type': 'application/json',
-            'content-length': post_data.length
-        },
-        body: post_data
-    },function(err,response,body){
-        if(err || response.statusCode === 500 || response.statusCode === 400 || body === 'Error'){    
-          console.log("Error on Get api Usage from Analytics"); 
-          console.log(err);  
-          deferred.reject(err);
-        }else {  
-          console.log("Success on Get api Usage from Analytics");   
-          try{
-            var respBody = JSON.parse(body);
-            deferred.resolve(respBody);
-          } catch(e){
-            deferred.reject("Data parse error");
-          }
-        }
-    });
+		var url = global.keys.analyticsServiceUrl + '/' + appId + '/api/usage';
+		request.post(url, {
+			headers: {
+				'content-type': 'application/json',
+				'content-length': post_data.length
+			},
+			body: post_data
+		}, function(err, response, body) {
+			if (err || response.statusCode === 500 || response.statusCode === 400 || body === 'Error') {
+				console.log("Error on Get api Usage from Analytics");
+				console.log(err);
+				deferred.reject(err);
+			} else {
+				console.log("Success on Get api Usage from Analytics");
+				try {
+					var respBody = JSON.parse(body);
+					deferred.resolve(respBody);
+				} catch (e) {
+					deferred.reject("Data parse error");
+				}
+			}
+		});
 
-  }catch(err){
-    global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-    deferred.reject(err);         
-  }
+	} catch (err) {
+		global.winston.log('error', {
+			"error": String(err),
+			"stack": new Error().stack
+		});
+		deferred.reject(err);
+	}
 
-  return deferred.promise;
+	return deferred.promise;
 }
 
 
-function _getStorageUsageAnalytics(appId){
+function _getStorageUsageAnalytics(appId) {
 
-  console.log("Get storage usage from Analytics...");
+	console.log("Get storage usage from Analytics...");
 
-  var deferred = Q.defer();
- 
-  try{
-    var post_data = {};
-    post_data.secureKey = global.keys.secureKey;  
-    post_data = JSON.stringify(post_data);
+	var deferred = Q.defer();
+
+	try {
+		var post_data = {};
+		post_data.secureKey = global.keys.secureKey;
+		post_data = JSON.stringify(post_data);
 
 
-    var url = global.keys.analyticsServiceUrl +'/'+appId+'/storage/usage';  
-    request.post(url,{
-        headers: {
-            'content-type': 'application/json',
-            'content-length': post_data.length
-        },
-        body: post_data
-    },function(err,response,body){
-        if(err || response.statusCode === 500 || response.statusCode === 400 || body === 'Error'){ 
-          console.log("Error on Get storage usage from Analytics...");  
-          console.log(err);    
-          deferred.reject(err);
-        }else {    
-          console.log("Success on Get storage usage from Analytics...");
-          try{
-            var respBody = JSON.parse(body);
-            deferred.resolve(respBody);
-          } catch(e){
-            deferred.reject("Data parse error");
-          }
-        }
-    });
+		var url = global.keys.analyticsServiceUrl + '/' + appId + '/storage/usage';
+		request.post(url, {
+			headers: {
+				'content-type': 'application/json',
+				'content-length': post_data.length
+			},
+			body: post_data
+		}, function(err, response, body) {
+			if (err || response.statusCode === 500 || response.statusCode === 400 || body === 'Error') {
+				console.log("Error on Get storage usage from Analytics...");
+				console.log(err);
+				deferred.reject(err);
+			} else {
+				console.log("Success on Get storage usage from Analytics...");
+				try {
+					var respBody = JSON.parse(body);
+					deferred.resolve(respBody);
+				} catch (e) {
+					deferred.reject("Data parse error");
+				}
+			}
+		});
 
-  }catch(err){
-    global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-    deferred.reject(err);         
-  }
+	} catch (err) {
+		global.winston.log('error', {
+			"error": String(err),
+			"stack": new Error().stack
+		});
+		deferred.reject(err);
+	}
 
-  return deferred.promise;
+	return deferred.promise;
 }
 
 
-function _getApiCountAnalytics(appId){
+function _getApiCountAnalytics(appId) {
 
-  console.log("Get api by appId from Analytics...");
+	console.log("Get api by appId from Analytics...");
 
-  var deferred = Q.defer();
- 
-  try{
-    var post_data = {};
-    post_data.secureKey = global.keys.secureKey; 
-    post_data = JSON.stringify(post_data);
+	var deferred = Q.defer();
+
+	try {
+		var post_data = {};
+		post_data.secureKey = global.keys.secureKey;
+		post_data = JSON.stringify(post_data);
 
 
-    var url = global.keys.analyticsServiceUrl + '/'+appId+'/api/count';  
-    request.post(url,{
-        headers: {
-            'content-type': 'application/json',
-            'content-length': post_data.length
-        },
-        body: post_data
-    },function(err,response,body){
-        if(err || response.statusCode === 500 || response.statusCode === 400 || body === 'Error'){
-          console.log("Error on Get api by appId from Analytics...");  
-          console.log(err);     
-          deferred.reject(err);
-        }else {   
-          console.log("Success on Get api by appId from Analytics..."); 
-          try{
-            var respBody = JSON.parse(body);
-            deferred.resolve(respBody);
-          } catch(e){
-            deferred.reject("Data parse error");
-          }
-        }
-    });
+		var url = global.keys.analyticsServiceUrl + '/' + appId + '/api/count';
+		request.post(url, {
+			headers: {
+				'content-type': 'application/json',
+				'content-length': post_data.length
+			},
+			body: post_data
+		}, function(err, response, body) {
+			if (err || response.statusCode === 500 || response.statusCode === 400 || body === 'Error') {
+				console.log("Error on Get api by appId from Analytics...");
+				console.log(err);
+				deferred.reject(err);
+			} else {
+				console.log("Success on Get api by appId from Analytics...");
+				try {
+					var respBody = JSON.parse(body);
+					deferred.resolve(respBody);
+				} catch (e) {
+					deferred.reject("Data parse error");
+				}
+			}
+		});
 
-  }catch(err){
-    global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-    deferred.reject(err);         
-  }
+	} catch (err) {
+		global.winston.log('error', {
+			"error": String(err),
+			"stack": new Error().stack
+		});
+		deferred.reject(err);
+	}
 
-  return deferred.promise;
+	return deferred.promise;
 }
 
-function _getStorageLastRecord(appId){
+function _getStorageLastRecord(appId) {
 
-  console.log("Get last storage record from Analytics..");
+	console.log("Get last storage record from Analytics..");
 
-  var deferred = Q.defer();
- 
-  try{
-    var post_data = {};
-    post_data.secureKey = global.keys.secureKey;  
-    post_data = JSON.stringify(post_data);
+	var deferred = Q.defer();
+
+	try {
+		var post_data = {};
+		post_data.secureKey = global.keys.secureKey;
+		post_data = JSON.stringify(post_data);
 
 
-    var url = global.keys.analyticsServiceUrl +'/'+appId+'/storage/count';  
-    request.post(url,{
-        headers: {
-            'content-type': 'application/json',
-            'content-length': post_data.length
-        },
-        body: post_data
-    },function(err,response,body){
-        if(err || response.statusCode === 500 || response.statusCode === 400 || body === 'Error'){  
-          console.log("Error on Get last storage record from Analytics..");   
-          console.log(err);  
-          deferred.reject(err);
-        }else { 
-          console.log("Success on Get last storage record from Analytics..");     
-          try{
-            var respBody = JSON.parse(body);
-            deferred.resolve(respBody);
-          } catch(e){
-            deferred.reject("Data parse error");
-          }
-        }
-    });
+		var url = global.keys.analyticsServiceUrl + '/' + appId + '/storage/count';
+		request.post(url, {
+			headers: {
+				'content-type': 'application/json',
+				'content-length': post_data.length
+			},
+			body: post_data
+		}, function(err, response, body) {
+			if (err || response.statusCode === 500 || response.statusCode === 400 || body === 'Error') {
+				console.log("Error on Get last storage record from Analytics..");
+				console.log(err);
+				deferred.reject(err);
+			} else {
+				console.log("Success on Get last storage record from Analytics..");
+				try {
+					var respBody = JSON.parse(body);
+					deferred.resolve(respBody);
+				} catch (e) {
+					deferred.reject("Data parse error");
+				}
+			}
+		});
 
-  }catch(err){
-    global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-    deferred.reject(err);         
-  }
+	} catch (err) {
+		global.winston.log('error', {
+			"error": String(err),
+			"stack": new Error().stack
+		});
+		deferred.reject(err);
+	}
 
-  return deferred.promise;
+	return deferred.promise;
 }
 
 
-function _getBulkApiStorageDetails(appIdArray){
+function _getBulkApiStorageDetails(appIdArray) {
 
-  console.log("get api/storage by appID's from Analytics..");
+	console.log("get api/storage by appID's from Analytics..");
 
-  var deferred = Q.defer();
- 
-  try{
-    var post_data = {};
-    post_data.secureKey = global.keys.secureKey; 
-    post_data.appIdArray = appIdArray;   
-    post_data = JSON.stringify(post_data);
+	var deferred = Q.defer();
+
+	try {
+		var post_data = {};
+		post_data.secureKey = global.keys.secureKey;
+		post_data.appIdArray = appIdArray;
+		post_data = JSON.stringify(post_data);
 
 
-    var url = global.keys.analyticsServiceUrl +'/bulk/api-storage/count';  
-    request.post(url,{
-        headers: {
-            'content-type': 'application/json',
-            'content-length': post_data.length
-        },
-        body: post_data
-    },function(err,response,body){
-        if(err || response.statusCode === 500 || response.statusCode === 400 || body === 'Error'){ 
-          console.log("Error on get api/storage by appID's from Analytics.."); 
-          console.log(err);     
-          deferred.reject(err);
-        }else { 
-          console.log("Success on get api/storage by appID's from Analytics..");    
-          try{
-            var respBody = JSON.parse(body);
-            deferred.resolve(respBody);
-          } catch(e){
-            deferred.reject("Data parse error");
-          }
-        }
-    });
+		var url = global.keys.analyticsServiceUrl + '/bulk/api-storage/count';
+		request.post(url, {
+			headers: {
+				'content-type': 'application/json',
+				'content-length': post_data.length
+			},
+			body: post_data
+		}, function(err, response, body) {
+			if (err || response.statusCode === 500 || response.statusCode === 400 || body === 'Error') {
+				console.log("Error on get api/storage by appID's from Analytics..");
+				console.log(err);
+				deferred.reject(err);
+			} else {
+				console.log("Success on get api/storage by appID's from Analytics..");
+				try {
+					var respBody = JSON.parse(body);
+					deferred.resolve(respBody);
+				} catch (e) {
+					deferred.reject("Data parse error");
+				}
+			}
+		});
 
-  }catch(err){
-    global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-    deferred.reject(err);         
-  }
+	} catch (err) {
+		global.winston.log('error', {
+			"error": String(err),
+			"stack": new Error().stack
+		});
+		deferred.reject(err);
+	}
 
-  return deferred.promise;
+	return deferred.promise;
 }

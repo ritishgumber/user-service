@@ -8,191 +8,209 @@ var _ = require('underscore');
 var crypto = require('crypto');
 var request = require('request');
 
-module.exports = function(Beacon){
+module.exports = function(Beacon) {
 
-  return {
+	return {
 
-    createBeacon: function (userId) {
+		createBeacon: function(userId) {
 
-        console.log("Create Beacon..");
+			console.log("Create Beacon..");
 
-        var _self = this;
+			var _self = this;
 
-        var deferred = Q.defer();
+			var deferred = Q.defer();
 
-        try{
-          var self = this;
+			try {
+				var self = this;
 
-          var beacon = new Beacon();
-          beacon._userId=userId;
+				var beacon = new Beacon();
+				beacon._userId = userId;
 
-          beacon.firstApp=false;   
-          beacon.firstTable=false;
-          beacon.firstColumn=false;
-          beacon.firstRow=false;
-          beacon.tableDesignerLink=false;
-          beacon.documentationLink=false;
-       
-          beacon.save(function (err, beaconObj) {
-              if (err){ 
-                console.log("Error on Create Beacon..");
-                deferred.reject(err);
-              }  
+				beacon.firstApp = false;
+				beacon.firstTable = false;
+				beacon.firstColumn = false;
+				beacon.firstRow = false;
+				beacon.tableDesignerLink = false;
+				beacon.documentationLink = false;
 
-              if(!beaconObj){
-                console.log("Cannot save the beacon right now.");
-                deferred.reject('Cannot save the beacon right now.');
-              }
-              else{
-                console.log("Successfully created the beacon");
-                deferred.resolve(beaconObj);
-              }
-          });
+				beacon.save(function(err, beaconObj) {
+					if (err) {
+						console.log("Error on Create Beacon..");
+						deferred.reject(err);
+					}
 
-        }catch(err){
-          global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-          deferred.reject(err);
-        }
+					if (!beaconObj) {
+						console.log("Cannot save the beacon right now.");
+						deferred.reject('Cannot save the beacon right now.');
+					} else {
+						console.log("Successfully created the beacon");
+						deferred.resolve(beaconObj);
+					}
+				});
 
-        return deferred.promise;
-    },
-    getBeaconByUserId: function (userId) {
+			} catch (err) {
+				global.winston.log('error', {
+					"error": String(err),
+					"stack": new Error().stack
+				});
+				deferred.reject(err);
+			}
 
-        console.log("Get beacon user Id");
+			return deferred.promise;
+		},
+		getBeaconByUserId: function(userId) {
 
-        var _self = this;
+			console.log("Get beacon user Id");
 
-        var deferred = Q.defer();
+			var _self = this;
 
-        try{
-          var self = this;
+			var deferred = Q.defer();
 
-          Beacon.find({ _userId: userId }, function (err, beaconObj) {
-            if (err){ 
-              console.log("Error get beacon user Id");
-              deferred.reject(err);
-            }  
-            if(beaconObj && beaconObj.length>0){
-               console.log("Successfully get beacon user Id");
-              deferred.resolve(beaconObj[0]._doc);
-            }else{
-              console.log("Beacon not found");
-              deferred.resolve(null);
-            }
-                 
-          });
+			try {
+				var self = this;
 
-        }catch(err){
-          global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-          deferred.reject(err);
-        }
+				Beacon.find({
+					_userId: userId
+				}, function(err, beaconObj) {
+					if (err) {
+						console.log("Error get beacon user Id");
+						deferred.reject(err);
+					}
+					if (beaconObj && beaconObj.length > 0) {
+						console.log("Successfully get beacon user Id");
+						deferred.resolve(beaconObj[0]._doc);
+					} else {
+						console.log("Beacon not found");
+						deferred.resolve(null);
+					}
 
-        return deferred.promise;
-    },    
-    updateBeacon: function(userId,beaconObj) {
+				});
 
-      console.log("Update Beacon");
+			} catch (err) {
+				global.winston.log('error', {
+					"error": String(err),
+					"stack": new Error().stack
+				});
+				deferred.reject(err);
+			}
 
-      var deferred = Q.defer();
+			return deferred.promise;
+		},
+		updateBeacon: function(userId, beaconObj) {
 
-      try{
-        var _self = this;
+			console.log("Update Beacon");
 
-        _self.getBeaconByUserIdAndBeaconId(userId,beaconObj._id)
-        .then(function (respBeaconObj) {
-          console.log("Beacon reteieved..");
-          respBeaconObj.firstApp=beaconObj.firstApp;   
-          respBeaconObj.firstTable=beaconObj.firstTable;
-          respBeaconObj.firstColumn=beaconObj.firstColumn;
-          respBeaconObj.firstRow=beaconObj.firstRow;
-          respBeaconObj.tableDesignerLink=beaconObj.tableDesignerLink;
-          respBeaconObj.documentationLink=beaconObj.documentationLink;
+			var deferred = Q.defer();
 
-          return _self.saveBeaconByObj(respBeaconObj);
-        
-        }).then(function (savedBeaconObj) {
-          console.log("Beacon updated Successfully..");
-          deferred.resolve(savedBeaconObj);
-        },function(error){
-          console.log("Error on Beacon update");
-          deferred.reject(error);
-        }); 
+			try {
+				var _self = this;
 
-      }catch(err){
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-        deferred.reject(err);
-      }    
+				_self.getBeaconByUserIdAndBeaconId(userId, beaconObj._id)
+					.then(function(respBeaconObj) {
+						console.log("Beacon reteieved..");
+						respBeaconObj.firstApp = beaconObj.firstApp;
+						respBeaconObj.firstTable = beaconObj.firstTable;
+						respBeaconObj.firstColumn = beaconObj.firstColumn;
+						respBeaconObj.firstRow = beaconObj.firstRow;
+						respBeaconObj.tableDesignerLink = beaconObj.tableDesignerLink;
+						respBeaconObj.documentationLink = beaconObj.documentationLink;
 
-      return deferred.promise;
-    },
-    getBeaconByUserIdAndBeaconId: function (userId,beaconId) {
+						return _self.saveBeaconByObj(respBeaconObj);
 
-        console.log("Get Beacon by UserId and BeaconId");
+					}).then(function(savedBeaconObj) {
+						console.log("Beacon updated Successfully..");
+						deferred.resolve(savedBeaconObj);
+					}, function(error) {
+						console.log("Error on Beacon update");
+						deferred.reject(error);
+					});
 
-        var _self = this;
+			} catch (err) {
+				global.winston.log('error', {
+					"error": String(err),
+					"stack": new Error().stack
+				});
+				deferred.reject(err);
+			}
 
-        var deferred = Q.defer();
+			return deferred.promise;
+		},
+		getBeaconByUserIdAndBeaconId: function(userId, beaconId) {
 
-        try{
+			console.log("Get Beacon by UserId and BeaconId");
 
-          var self = this;
+			var _self = this;
 
-          Beacon.findOne({ _id: beaconId,_userId: userId }, function (err, beaconObj) {
-            if (err){ 
-              console.log("Error Get Beacon by UserId and BeaconId");
-              deferred.reject(err);
-            }  
-            if(beaconObj){
-              console.log("Successfull on  Get Beacon by UserId and BeaconId");
-              deferred.resolve(beaconObj);
-            }else{
-              console.log("Beacon not found");
-              deferred.reject("No beacon found");
-            }
-                 
-          });
+			var deferred = Q.defer();
 
-        }catch(err){
-          global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-          deferred.reject(err);
-        }
+			try {
 
-        return deferred.promise;
-    },
-    saveBeaconByObj: function (beaconObj) {
+				var self = this;
 
-        console.log("Save Beacon by BeaconObj");
+				Beacon.findOne({
+					_id: beaconId,
+					_userId: userId
+				}, function(err, beaconObj) {
+					if (err) {
+						console.log("Error Get Beacon by UserId and BeaconId");
+						deferred.reject(err);
+					}
+					if (beaconObj) {
+						console.log("Successfull on  Get Beacon by UserId and BeaconId");
+						deferred.resolve(beaconObj);
+					} else {
+						console.log("Beacon not found");
+						deferred.reject("No beacon found");
+					}
 
-        var _self = this;
+				});
 
-        var deferred = Q.defer();
+			} catch (err) {
+				global.winston.log('error', {
+					"error": String(err),
+					"stack": new Error().stack
+				});
+				deferred.reject(err);
+			}
 
-        try{
-          var self = this;
+			return deferred.promise;
+		},
+		saveBeaconByObj: function(beaconObj) {
 
-          beaconObj.save(function (err, savedBeaconObj) {
-            if (err){ 
-              console.log("Error on save beaon by beacon obj");
-              deferred.reject(err);
-            }  
-            if(!savedBeaconObj){
-              console.log("Cannot save the beacon right now.");
-              deferred.reject('Cannot save the beacon right now.');
-            }
-            else{
-              console.log("Successfully saved beacon Object");
-              deferred.resolve(savedBeaconObj);
-            }
-          });
+			console.log("Save Beacon by BeaconObj");
 
-        }catch(err){
-          global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-          deferred.reject(err);
-        }
+			var _self = this;
 
-        return deferred.promise;
-    }   
+			var deferred = Q.defer();
 
-  }
+			try {
+				var self = this;
+
+				beaconObj.save(function(err, savedBeaconObj) {
+					if (err) {
+						console.log("Error on save beaon by beacon obj");
+						deferred.reject(err);
+					}
+					if (!savedBeaconObj) {
+						console.log("Cannot save the beacon right now.");
+						deferred.reject('Cannot save the beacon right now.');
+					} else {
+						console.log("Successfully saved beacon Object");
+						deferred.resolve(savedBeaconObj);
+					}
+				});
+
+			} catch (err) {
+				global.winston.log('error', {
+					"error": String(err),
+					"stack": new Error().stack
+				});
+				deferred.reject(err);
+			}
+
+			return deferred.promise;
+		}
+
+	}
 
 };
