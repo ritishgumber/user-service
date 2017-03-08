@@ -69,11 +69,7 @@ module.exports = function(Notification){
 
           skip=parseInt(skip);
           limit=parseInt(limit);
-          Notification.find(function(err, n) {
-            console.log("===notification")
-            console.log(n)
-            console.log("===notification")
-          })
+          
           Notification.find( {user: userId} ).sort({timestamp:-1}).skip(skip).limit(limit).exec(function (err, notificatonList) {      
             if (err) {
               console.log("Error on Get Notification..");
