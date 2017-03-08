@@ -13,7 +13,7 @@ module.exports = function() {
         var limit=req.params.limit;
         
         if(currentUserId){                
-    		global.notificationService.getNotifications(currentUserId,skip,limit).then(function(list) {
+    		global.notificationService.getNotifications(currentUserId, skip,limit).then(function(list) {
                 console.log("Successfull Get notification by skipLimit");             
                 return res.status(200).json(list);
             },function(error){ 
@@ -21,7 +21,7 @@ module.exports = function() {
                 return res.status(400).send(error);
             });
         }else{
-            console.log("Unathorized Get notification by skipLimit");
+            console.log("Unauthorized Get notification by skipLimit");
             return res.send(401);
         }    
     });

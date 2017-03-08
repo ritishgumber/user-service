@@ -27,7 +27,6 @@ module.exports = function() {
         sendTextMail: function(from, to, subject, text) {
 
             console.log("Send Mail Function...");
-
             var deferred = Q.defer();
 
             nodemailerMailgun.sendMail({
@@ -39,7 +38,7 @@ module.exports = function() {
             }, function(err, info) {
                 if (err) {
                     console.log(err);
-                    deferred.reject(error);
+                    deferred.reject(err);
                 } else {
                     console.log(info);
                     deferred.resolve(info);
@@ -78,7 +77,7 @@ module.exports = function() {
                     }, function(err, info) {
                         if (err) {
                             console.log(err);
-                            deferred.reject(error);
+                            deferred.reject(err);
                         } else {
                             console.log(info);
                             deferred.resolve(info);
