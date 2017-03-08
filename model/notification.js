@@ -1,15 +1,18 @@
-module.exports = function(){
+module.exports = function() {
 
 	var Schema = global.mongoose.Schema;
-	
-	var notificationSchema = new Schema({	 
-	           user : String,	
-	            text: String,
-	           appId: String,
-	notificationType: String,
-	            type: String,
-	            seen: Boolean,
-	            date: { type: Date, default: Date.now }
+
+	var notificationSchema = new Schema({
+		user: String,
+		text: String,
+		appId: String,
+		notificationType: String,
+		type: String,
+		seen: Boolean,
+		date: {
+			type: Date,
+			default: Date.now
+		}
 
 	});
 

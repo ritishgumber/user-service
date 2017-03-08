@@ -8,57 +8,64 @@ var _ = require('underscore');
 var crypto = require('crypto');
 var request = require('request');
 
-module.exports = function(Tutorial){
+module.exports = function(Tutorial) {
 
-  return {
+	return {
 
-    getTutorialList: function () {
+		getTutorialList: function() {
 
-        console.log("Get tutorials list...");
+			console.log("Get tutorials list...");
 
-        var _self = this;
+			var _self = this;
 
-        var deferred = Q.defer();
+			var deferred = Q.defer();
 
-        try{
+			try {
 
-          var self = this;
+				var self = this;
 
-          Tutorial.find({},null,{sort: {"order": 1}},function (err, tutorial) {
-            if (err){
-              console.log("Error on Get tutorials list...");
-              deferred.reject(err);
-            }  
-            if(tutorial && tutorial.length>0){
-              console.log("Success on Get tutorials list...");
-              deferred.resolve(tutorial);
-            }else{ 
-              console.log("tutorials list not found...");           
-              deferred.resolve(null);
-            }
-                 
-          });
+				Tutorial.find({}, null, {
+					sort: {
+						"order": 1
+					}
+				}, function(err, tutorial) {
+					if (err) {
+						console.log("Error on Get tutorials list...");
+						deferred.reject(err);
+					}
+					if (tutorial && tutorial.length > 0) {
+						console.log("Success on Get tutorials list...");
+						deferred.resolve(tutorial);
+					} else {
+						console.log("tutorials list not found...");
+						deferred.resolve(null);
+					}
 
-        }catch(err){
-          global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-          deferred.reject(err);         
-        }
+				});
 
-        return deferred.promise;
-    },
-    getTutorialById: function (tutorialDocId) {
+			} catch (err) {
+				global.winston.log('error', {
+					"error": String(err),
+					"stack": new Error().stack
+				});
+				deferred.reject(err);
+			}
 
-        console.log("Get tutorials by Id...");
+			return deferred.promise;
+		},
+		getTutorialById: function(tutorialDocId) {
 
-        var _self = this;
+			console.log("Get tutorials by Id...");
 
-        var deferred = Q.defer();
+			var _self = this;
 
-        try{
+			var deferred = Q.defer();
 
-          var self = this;
+			try {
 
-          /*Tutorial.findOne({tutorials::{"$in":[id:tutorialDocId]}}, function (err, tutorial) {
+				var self = this;
+
+				/*Tutorial.findOne({tutorials::{"$in":[id:tutorialDocId]}}, function (err, tutorial) {
             if (err) deferred.reject(err);
             if(tutorial){
               deferred.resolve(tutorial);
@@ -67,14 +74,17 @@ module.exports = function(Tutorial){
             }               
         });*/
 
-        }catch(err){
-          global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-          deferred.reject(err);         
-        }
+			} catch (err) {
+				global.winston.log('error', {
+					"error": String(err),
+					"stack": new Error().stack
+				});
+				deferred.reject(err);
+			}
 
-        return deferred.promise;
-    }   
+			return deferred.promise;
+		}
 
-  }
+	}
 
 };

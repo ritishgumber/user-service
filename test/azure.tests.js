@@ -1,275 +1,313 @@
-var request   = require('request'),
-    assert   = require('assert'),
-    fs      = require('fs'),
-    async      = require('async'),
-    path    = require('path'),
-    parser = require('xmldom').DOMParser,
-    xpath = require('xpath'),
-    crypto = require('crypto');
+var request = require('request'),
+	assert = require('assert'),
+	fs = require('fs'),
+	async = require('async'),
+	path = require('path'),
+	parser = require('xmldom').DOMParser,
+	xpath = require('xpath'),
+	crypto = require('crypto');
 
 var app = require('../app');
 
 var baseUrl = 'http://localhost:3000';
 
 describe("azure hook", function() {
-  
-  before(function(done){
-    // initialize resources
-    done();
-  });
 
-  after(function(done) {
-    done();
-  });
+	before(function(done) {
+		// initialize resources
+		done();
+	});
 
- it('can register subscription and create resource', function (done) {
+	after(function(done) {
+		done();
+	});
 
-    this.timeout(15000);
+	it('can register subscription and create resource', function(done) {
 
-    async.series([
-      function register(cb) {
-        var body = fs.readFileSync(path.join(__dirname, 'subscription_register.xml'), 'utf8');
-        request.post({url: baseUrl + '/webhooks/azure/subscriptions/12348/Events',
-                  body: body,
-                  headers: { 'Content-Type': 'application/xml' } }, function(err, resp) {
+		this.timeout(15000);
 
-          assert.equal(200, resp.statusCode);
-          cb();
-        });
-      },
-      function create_resource(cb) {
-        var body = fs.readFileSync(path.join(__dirname, 'create.xml'), 'utf8');
-        request.put({
-          url:  baseUrl + '/webhooks/azure/subscriptions/12348/cloudservices/my-cloud-service2/resources/authentication/popey4',
-          body: body,
-          headers: { 'Content-Type': 'application/xml' }
-        }, function (err, resp, body) {
-          assert.equal(200, resp.statusCode);
-          var doc = new parser().parseFromString(body);
+		async.series([
+			function register(cb) {
+				var body = fs.readFileSync(path.join(__dirname, 'subscription_register.xml'), 'utf8');
+				request.post({
+					url: baseUrl + '/webhooks/azure/subscriptions/12348/Events',
+					body: body,
+					headers: {
+						'Content-Type': 'application/xml'
+					}
+				}, function(err, resp) {
 
-          var name = xpath.select("//Name/text()", doc);
-          var outputItemKeys = xpath.select("//OutputItems/OutputItem/Key/text()", doc);
-          var outputItemValues = xpath.select("//OutputItems/OutputItem/Value/text()", doc);
-          var plan = xpath.select("//Plan/text()", doc);
+					assert.equal(200, resp.statusCode);
+					cb();
+				});
+			},
+			function create_resource(cb) {
+				var body = fs.readFileSync(path.join(__dirname, 'create.xml'), 'utf8');
+				request.put({
+					url: baseUrl + '/webhooks/azure/subscriptions/12348/cloudservices/my-cloud-service2/resources/authentication/popey4',
+					body: body,
+					headers: {
+						'Content-Type': 'application/xml'
+					}
+				}, function(err, resp, body) {
+					assert.equal(200, resp.statusCode);
+					var doc = new parser().parseFromString(body);
 
-          // TODO: asserts
+					var name = xpath.select("//Name/text()", doc);
+					var outputItemKeys = xpath.select("//OutputItems/OutputItem/Key/text()", doc);
+					var outputItemValues = xpath.select("//OutputItems/OutputItem/Value/text()", doc);
+					var plan = xpath.select("//Plan/text()", doc);
 
-          cb(); 
-          done();
-        });
-      }
-    ]);
-  });
+					// TODO: asserts
 
-  it('can disable subscription', function (done) {
-    this.timeout(15000);
-    async.series([
-      function disable(cb) {
-        var body = fs.readFileSync(path.join(__dirname, 'subscription_disable.xml'), 'utf8');
-        request.post({url: baseUrl + '/webhooks/azure/subscriptions/12345/Events',
-                      body: body,
-                      headers: { 'Content-Type': 'application/xml' } }, function(err, resp) {
+					cb();
+					done();
+				});
+			}
+		]);
+	});
 
-          assert.equal(200, resp.statusCode);
-          cb();
-        });
-      },
-      function(cb) {
-        // assert db
-        cb(); done();
-      }
-    ]);
-  });
+	it('can disable subscription', function(done) {
+		this.timeout(15000);
+		async.series([
+			function disable(cb) {
+				var body = fs.readFileSync(path.join(__dirname, 'subscription_disable.xml'), 'utf8');
+				request.post({
+					url: baseUrl + '/webhooks/azure/subscriptions/12345/Events',
+					body: body,
+					headers: {
+						'Content-Type': 'application/xml'
+					}
+				}, function(err, resp) {
 
-  it('can enable subscription', function (done) {
-    this.timeout(15000);
-    async.series([
-      function enable(cb) {
-        var body = fs.readFileSync(path.join(__dirname, 'subscription_enable.xml'), 'utf8');
-        request.post({url: baseUrl + '/webhooks/azure/subscriptions/12345/Events',
-                      body: body,
-                      headers: { 'Content-Type': 'application/xml' } }, function(err, resp) {
+					assert.equal(200, resp.statusCode);
+					cb();
+				});
+			},
+			function(cb) {
+				// assert db
+				cb();
+				done();
+			}
+		]);
+	});
 
-          assert.equal(200, resp.statusCode);
-          cb();
-        });
-      },
-      function(cb) {
-        // assert db
-        cb(); done();
-      }
-    ]);
-  });
+	it('can enable subscription', function(done) {
+		this.timeout(15000);
+		async.series([
+			function enable(cb) {
+				var body = fs.readFileSync(path.join(__dirname, 'subscription_enable.xml'), 'utf8');
+				request.post({
+					url: baseUrl + '/webhooks/azure/subscriptions/12345/Events',
+					body: body,
+					headers: {
+						'Content-Type': 'application/xml'
+					}
+				}, function(err, resp) {
 
-  it('create resource with same name under different subscriptions appends counter', function (done) {
-    this.timeout(15000);
-    async.series([
-      function register_ABCD_subscription(cb) {
-        var body = fs.readFileSync(path.join(__dirname, 'subscription_register.xml'), 'utf8');
-        request.post({url: baseUrl + '/webhooks/azure/subscriptions/ABCD/Events',
-                  body: body,
-                  headers: { 'Content-Type': 'application/xml' } }, function(err, resp) {
+					assert.equal(200, resp.statusCode);
+					cb();
+				});
+			},
+			function(cb) {
+				// assert db
+				cb();
+				done();
+			}
+		]);
+	});
 
-          // assert.equal(200, resp.statusCode);
-          cb();
-        });
-      },
-      function create_resource_with_same_name_for_ABCD_subscription(cb) {
-        var body = fs.readFileSync(path.join(__dirname, 'create.xml'), 'utf8');
-        request.put({
-          url:  baseUrl + '/webhooks/azure/subscriptions/ABCD/cloudservices/my-cloud-service/resources/authentication/popey',
-          body: body,
-          headers: { 'Content-Type': 'application/xml' }
-        }, function (err, resp, body) {
-          // assert.equal(200, resp.statusCode);
+	it('create resource with same name under different subscriptions appends counter', function(done) {
+		this.timeout(15000);
+		async.series([
+			function register_ABCD_subscription(cb) {
+				var body = fs.readFileSync(path.join(__dirname, 'subscription_register.xml'), 'utf8');
+				request.post({
+					url: baseUrl + '/webhooks/azure/subscriptions/ABCD/Events',
+					body: body,
+					headers: {
+						'Content-Type': 'application/xml'
+					}
+				}, function(err, resp) {
 
-          // var doc = new parser().parseFromString(body);
-          // var name = xpath.select("//Name/text()", doc);
-          // var outputItemValues = xpath.select("//OutputItems/OutputItem/Value/text()", doc);
+					// assert.equal(200, resp.statusCode);
+					cb();
+				});
+			},
+			function create_resource_with_same_name_for_ABCD_subscription(cb) {
+				var body = fs.readFileSync(path.join(__dirname, 'create.xml'), 'utf8');
+				request.put({
+					url: baseUrl + '/webhooks/azure/subscriptions/ABCD/cloudservices/my-cloud-service/resources/authentication/popey',
+					body: body,
+					headers: {
+						'Content-Type': 'application/xml'
+					}
+				}, function(err, resp, body) {
+					// assert.equal(200, resp.statusCode);
 
-          // TODO: asserts
+					// var doc = new parser().parseFromString(body);
+					// var name = xpath.select("//Name/text()", doc);
+					// var outputItemValues = xpath.select("//OutputItems/OutputItem/Value/text()", doc);
 
-          cb();
-        });
-      },
-      function(cb) {
-        // assert db
-        cb(); done();
-      }
-    ]);
-  });
+					// TODO: asserts
 
-  it('can show resource', function (done) {
-    this.timeout(15000);
-    request.get({url: baseUrl + '/webhooks/azure/subscriptions/12345/cloudservices/my-cloud-service/resources/authentication/popey'},
-      function(err, resp, body) {
+					cb();
+				});
+			},
+			function(cb) {
+				// assert db
+				cb();
+				done();
+			}
+		]);
+	});
 
-      // var doc = new parser().parseFromString(body);
-      // var name = xpath.select("//Resources/Resource/Name/text()", doc);
+	it('can show resource', function(done) {
+		this.timeout(15000);
+		request.get({
+				url: baseUrl + '/webhooks/azure/subscriptions/12345/cloudservices/my-cloud-service/resources/authentication/popey'
+			},
+			function(err, resp, body) {
 
-      // TODO: asserts
+				// var doc = new parser().parseFromString(body);
+				// var name = xpath.select("//Resources/Resource/Name/text()", doc);
 
-      assert.equal(200, resp.statusCode);
-      done();
-    });
-  });
+				// TODO: asserts
 
-  it('create another resource under same subscription (ABCD)', function (done) {
-    this.timeout(15000);
-    async.series([
-      function create_resource_under_ABCD_subscription(cb) {
-        var body = fs.readFileSync(path.join(__dirname, 'create.xml'), 'utf8');
-        request.put({
-          url:  baseUrl + '/webhooks/azure/subscriptions/ABCD/cloudservices/my-cloud-service/resources/authentication/olivia',
-          body: body,
-          headers: { 'Content-Type': 'application/xml' }
-        }, function (err, resp, body) {
-          // assert.equal(200, resp.statusCode);
-          cb();
-        });
-      },
-      function(cb) {
-        // TODO: asserts db
-        cb(); done();
-      }
-    ]);
-  });
+				assert.equal(200, resp.statusCode);
+				done();
+			});
+	});
 
- /*it('can show multiple resources for subscription (ABCD)', function (done) {
-    this.timeout(15000);
-    request.get({url: baseUrl + '/webhooks/azure/subscriptions/ABCD/cloudservices/my-cloud-service'},
-      function(err, resp, body) {
-      assert.equal(200, resp.statusCode);
+	it('create another resource under same subscription (ABCD)', function(done) {
+		this.timeout(15000);
+		async.series([
+			function create_resource_under_ABCD_subscription(cb) {
+				var body = fs.readFileSync(path.join(__dirname, 'create.xml'), 'utf8');
+				request.put({
+					url: baseUrl + '/webhooks/azure/subscriptions/ABCD/cloudservices/my-cloud-service/resources/authentication/olivia',
+					body: body,
+					headers: {
+						'Content-Type': 'application/xml'
+					}
+				}, function(err, resp, body) {
+					// assert.equal(200, resp.statusCode);
+					cb();
+				});
+			},
+			function(cb) {
+				// TODO: asserts db
+				cb();
+				done();
+			}
+		]);
+	});
 
-      var doc = new parser().parseFromString(body);
-      var names = xpath.select("//Resources/Resource/Name/text()", doc);
+	/*it('can show multiple resources for subscription (ABCD)', function (done) {
+	   this.timeout(15000);
+	   request.get({url: baseUrl + '/webhooks/azure/subscriptions/ABCD/cloudservices/my-cloud-service'},
+	     function(err, resp, body) {
+	     assert.equal(200, resp.statusCode);
 
-      // TODO: asserts db
+	     var doc = new parser().parseFromString(body);
+	     var names = xpath.select("//Resources/Resource/Name/text()", doc);
 
-      done();
-    });
-  });*/
+	     // TODO: asserts db
 
-  it('can updgrade resource', function (done) {
-    this.timeout(15000);
-    async.series([
-      function upgrade_resource(cb) {
-        var body = fs.readFileSync(path.join(__dirname, 'upgrade.xml'), 'utf8');
-        request.put({
-          url:  baseUrl + '/webhooks/azure/subscriptions/12345/cloudservices/my-cloud-service/resources/authentication/popey',
-          body: body,
-          headers: { 'Content-Type': 'application/xml' }
-        }, function (err, resp, body) {
-          // assert.equal(200, resp.statusCode);
-          // var doc = new parser().parseFromString(body);
+	     done();
+	   });
+	 });*/
 
-          // var name = xpath.select("//Name/text()", doc);
-          // var plan = xpath.select("//Plan/text()", doc);
+	it('can updgrade resource', function(done) {
+		this.timeout(15000);
+		async.series([
+			function upgrade_resource(cb) {
+				var body = fs.readFileSync(path.join(__dirname, 'upgrade.xml'), 'utf8');
+				request.put({
+					url: baseUrl + '/webhooks/azure/subscriptions/12345/cloudservices/my-cloud-service/resources/authentication/popey',
+					body: body,
+					headers: {
+						'Content-Type': 'application/xml'
+					}
+				}, function(err, resp, body) {
+					// assert.equal(200, resp.statusCode);
+					// var doc = new parser().parseFromString(body);
 
-          // TODO: asserts plan upgrade
-          cb();
-        });
-      },
-      function(cb) {
-        // TODO: check that the plan was actually committed to db
-        cb(); done();
-      }
-    ]);
-  });
+					// var name = xpath.select("//Name/text()", doc);
+					// var plan = xpath.select("//Plan/text()", doc);
 
-  it('can delete resource', function (done) {
-    this.timeout(15000);
-    async.series([
-      function delete_resource(cb) {
-        request.del({url: baseUrl + '/webhooks/azure/subscriptions/12345/cloudservices/my-cloud-service/resources/authentication/popey'},
-          function(err, resp, body) {
+					// TODO: asserts plan upgrade
+					cb();
+				});
+			},
+			function(cb) {
+				// TODO: check that the plan was actually committed to db
+				cb();
+				done();
+			}
+		]);
+	});
 
-          assert.equal(200, resp.statusCode);
-          cb();
-        });
-      },
-      function(cb) {
-        // TODO: asserts db
-        cb(); done();
-      }
-    ]);
-  });
+	it('can delete resource', function(done) {
+		this.timeout(15000);
+		async.series([
+			function delete_resource(cb) {
+				request.del({
+						url: baseUrl + '/webhooks/azure/subscriptions/12345/cloudservices/my-cloud-service/resources/authentication/popey'
+					},
+					function(err, resp, body) {
 
-  it('returns 404 if deleting an unexisting resource', function (done) {
-    this.timeout(15000);
-      request.del({url: baseUrl + '/webhooks/azure/subscriptions/ABCD/cloudservices/my-cloud-service/resources/authentication/non-existing'},
-        function(err, resp, body) {
+						assert.equal(200, resp.statusCode);
+						cb();
+					});
+			},
+			function(cb) {
+				// TODO: asserts db
+				cb();
+				done();
+			}
+		]);
+	});
 
-        // assert.equal(404, resp.statusCode);
-        done();
-      });
-  });
+	it('returns 404 if deleting an unexisting resource', function(done) {
+		this.timeout(15000);
+		request.del({
+				url: baseUrl + '/webhooks/azure/subscriptions/ABCD/cloudservices/my-cloud-service/resources/authentication/non-existing'
+			},
+			function(err, resp, body) {
 
-  it('can create SSO token for subscription (ABCD)', function (done) {
-    this.timeout(15000);
-    var secret = "azure-cloudboost";
-    //process.env.AZURE_SSO_SECRET = secret; // this should match with the secret on your file, usually this would go to process.env or nconf
-    request.post({url: baseUrl + '/webhooks/azure/subscriptions/12345/cloudservices/my-cloud-service/resources/authentication/popey/SsoToken'},
-      function(err, resp, body) {
-      assert.equal(200, resp.statusCode);
+				// assert.equal(404, resp.statusCode);
+				done();
+			});
+	});
+
+	it('can create SSO token for subscription (ABCD)', function(done) {
+		this.timeout(15000);
+		var secret = "azure-cloudboost";
+		//process.env.AZURE_SSO_SECRET = secret; // this should match with the secret on your file, usually this would go to process.env or nconf
+		request.post({
+				url: baseUrl + '/webhooks/azure/subscriptions/12345/cloudservices/my-cloud-service/resources/authentication/popey/SsoToken'
+			},
+			function(err, resp, body) {
+				assert.equal(200, resp.statusCode);
 
 
-      //var doc = new parser().parseFromString(body);     
-      
-      //var token = xpath.select("//Token/text()", doc);     
-      //assert.ok(token[0].data);
+				//var doc = new parser().parseFromString(body);     
 
-      //var toSign = '12345'+ ':' +
-        //      'my-cloud-service' + ':' +
-          //    'authentication' + ':' +
-            //  'popey' + ':' +
-              //secret;
+				//var token = xpath.select("//Token/text()", doc);     
+				//assert.ok(token[0].data);
 
-      //var calculated = crypto.createHash("sha256").update(toSign).digest("hex");
+				//var toSign = '12345'+ ':' +
+				//      'my-cloud-service' + ':' +
+				//    'authentication' + ':' +
+				//  'popey' + ':' +
+				//secret;
 
-      //assert.equal(calculated, token);
-      done();
-    });
-  });
+				//var calculated = crypto.createHash("sha256").update(toSign).digest("hex");
+
+				//assert.equal(calculated, token);
+				done();
+			});
+	});
 
 });

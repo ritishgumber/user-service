@@ -1,21 +1,21 @@
 var Hash = require('password-hash');
 
-module.exports = function(){
+module.exports = function() {
 
 	var Schema = global.mongoose.Schema;
 
 	var userSchema = new Schema({
 		email: String,
 		password: String,
-		name : String,
-		emailVerified : Boolean,
-		emailVerificationCode : String,
+		name: String,
+		emailVerified: Boolean,
+		emailVerificationCode: String,
 		provider: String,
-		salt : String,
-		createdAt : Date,
-		fileId:String,
-		isAdmin:Boolean,
-		isActive:Boolean,
+		salt: String,
+		createdAt: Date,
+		fileId: String,
+		isAdmin: Boolean,
+		isActive: Boolean,
 		azure: Object,
 		lastLogin: Date,
 		companyName: String,
