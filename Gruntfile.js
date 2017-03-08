@@ -19,8 +19,10 @@ module.exports = function(grunt) {
         },
         src: ['test/**/*.js']
       }
+    },
+    eslint : {
+      all:["*.js","**/*.js","api/**/*.js","!node_modules/**/*.js"]
     }
-
 
   });
 
@@ -31,7 +33,8 @@ module.exports = function(grunt) {
   ///////////////////////////////////////////////////////////
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-mocha-test');
+  grunt.loadNpmTasks("grunt-eslint");
 
-  grunt.registerTask('default', ['mochaTest']);
+  grunt.registerTask('default', ['mochaTest', 'eslint:all']);
 
 };
