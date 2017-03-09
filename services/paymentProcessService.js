@@ -11,15 +11,15 @@ var crypto = require('crypto'),
 	algorithm = 'aes-256-ctr';
 
 function encrypt(text, password) {
-	var cipher = crypto.createCipher(algorithm, password)
-	var crypted = cipher.update(text, 'utf8', 'hex')
+	var cipher = crypto.createCipher(algorithm, password);
+	var crypted = cipher.update(text, 'utf8', 'hex');
 	crypted += cipher.final('hex');
 	return crypted;
 }
 
 function decrypt(text, password) {
-	var decipher = crypto.createDecipher(algorithm, password)
-	var dec = decipher.update(text, 'hex', 'utf8')
+	var decipher = crypto.createDecipher(algorithm, password);
+	var dec = decipher.update(text, 'hex', 'utf8');
 	dec += decipher.final('utf8');
 	return dec;
 }
@@ -58,7 +58,7 @@ module.exports = function(Card, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -129,7 +129,7 @@ module.exports = function(Card, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -213,7 +213,7 @@ module.exports = function(Card, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -226,45 +226,45 @@ module.exports = function(Card, User) {
 			var _self = this;
 
 			var deferred = Q.defer();
-			cardDetails.cardId = Math.random().toString(36).substring(7)
+			cardDetails.cardId = Math.random().toString(36).substring(7);
 
 			try {
 				User.findOne({
 					_id: userId
 				}, function(err, userData) {
-					if (err) deferred.reject(err)
+					if (err) deferred.reject(err);
 					Card.findOne({
 						_userId: userId
 					}, function(err, data) {
-						if (err) deferred.reject(err)
+						if (err) deferred.reject(err);
 						if (data) {
-							cardDetails.number_actual = encrypt(cardDetails.number, userData.salt)
-							cardDetails.number = cardDetails.number.slice(0, 4) + "-XXXX-XXXX-XXXX"
-							data.cards.push(cardDetails)
-							data.markModified('cards')
+							cardDetails.number_actual = encrypt(cardDetails.number, userData.salt);
+							cardDetails.number = cardDetails.number.slice(0, 4) + "-XXXX-XXXX-XXXX";
+							data.cards.push(cardDetails);
+							data.markModified('cards');
 							data.save(function(err) {
-								if (err) deferred.reject(err)
-								deferred.resolve('Card Created')
-							})
+								if (err) deferred.reject(err);
+								deferred.resolve('Card Created');
+							});
 						} else {
-							var newCard = new Card()
-							newCard._userId = userId
+							var newCard = new Card();
+							newCard._userId = userId;
 							newCard.cards = [
 								cardDetails
-							]
+							];
 							newCard.save(function(err) {
-								if (err) deferred.reject(err)
-								deferred.resolve('Card Created')
-							})
+								if (err) deferred.reject(err);
+								deferred.resolve('Card Created');
+							});
 						}
-					})
-				})
+					});
+				});
 			} catch (err) {
 				global.winston.log('error', {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -282,27 +282,27 @@ module.exports = function(Card, User) {
 				Card.findOne({
 					_userId: userId
 				}, function(err, data) {
-					if (err) deferred.reject(err)
+					if (err) deferred.reject(err);
 					if (data) {
 						data.cards = data.cards.filter(function(x) {
-							return x.cardId != cardId
-						})
-						data.markModified('cards')
+							return x.cardId != cardId;
+						});
+						data.markModified('cards');
 						data.save(function(err) {
-							if (err) deferred.reject(err)
-							deferred.resolve('Card Removed')
-						})
+							if (err) deferred.reject(err);
+							deferred.resolve('Card Removed');
+						});
 					} else {
-						deferred.reject('Card Not found')
+						deferred.reject('Card Not found');
 					}
-				})
+				});
 
 			} catch (err) {
 				global.winston.log('error', {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -320,30 +320,30 @@ module.exports = function(Card, User) {
 				Card.findOne({
 					_userId: userId
 				}, function(err, data) {
-					if (err) deferred.reject(err)
+					if (err) deferred.reject(err);
 					if (data) {
 						data.cards = data.cards.map(function(card) {
-							delete card.number_actual
-							return card
-						})
-						deferred.resolve(data.cards || [])
+							delete card.number_actual;
+							return card;
+						});
+						deferred.resolve(data.cards || []);
 					} else {
-						deferred.resolve([])
+						deferred.resolve([]);
 					}
-				})
+				});
 
 			} catch (err) {
 				global.winston.log('error', {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
 		}
 
-	}
+	};
 
 };
 
@@ -390,7 +390,7 @@ function _createSaleInAnalytics(appId, dataObj) {
 			"error": String(err),
 			"stack": new Error().stack
 		});
-		deferred.reject(err)
+		deferred.reject(err);
 	}
 
 	return deferred.promise;
@@ -436,7 +436,7 @@ function _createThirdPartySaleInAnalytics(appId, dataObj) {
 			"error": String(err),
 			"stack": new Error().stack
 		});
-		deferred.reject(err)
+		deferred.reject(err);
 	}
 
 	return deferred.promise;
@@ -482,7 +482,7 @@ function _stopRecurringInAnalytics(appId, userId) {
 			"error": String(err),
 			"stack": new Error().stack
 		});
-		deferred.reject(err)
+		deferred.reject(err);
 	}
 
 	return deferred.promise;

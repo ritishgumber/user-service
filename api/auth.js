@@ -191,7 +191,6 @@ module.exports = function(passport) {
 
 		var serverUrl = fullUrl(req);
 		var currentUserId = req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
-		console.log(req.session)
 		var respJson = {};
 
 		if (currentUserId) {
@@ -519,7 +518,7 @@ module.exports = function(passport) {
 
 	return app;
 
-}
+};
 
 function fullUrl(req) {
 	var protocol = req.protocol;

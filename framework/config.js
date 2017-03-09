@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 var LocalStrategy = require('passport-local').Strategy;
 var AzureStoreStrategy = require('passport-azure-store').Strategy;
 

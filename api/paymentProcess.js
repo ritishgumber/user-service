@@ -96,7 +96,7 @@ module.exports = function() {
 						return res.status(400).send('Error : Something went wrong, try again.');
 					}
 					console.log("successfully adding a card");
-					return res.status(200).send('SUCCESS')
+					return res.status(200).send('SUCCESS');
 
 				}, function(error) {
 					console.log("error add a card");
@@ -130,7 +130,7 @@ module.exports = function() {
 						return res.status(400).send('Error : Something went wrong, try again.');
 					}
 					console.log("successfully deleting a card");
-					return res.status(200).send('SUCCESS')
+					return res.status(200).send('SUCCESS');
 
 				}, function(error) {
 					console.log("error delete a card");
@@ -160,7 +160,7 @@ module.exports = function() {
 					return res.status(400).send('Error : Something went wrong, try again.');
 				}
 				console.log("successfully getting card");
-				return res.status(200).json(data)
+				return res.status(200).json(data);
 
 			}, function(error) {
 				console.log("error getting a card");
@@ -179,4 +179,4 @@ module.exports = function() {
 
 	return app;
 
-}
+};

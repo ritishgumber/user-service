@@ -53,7 +53,7 @@ module.exports = function(Notification) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -96,7 +96,7 @@ module.exports = function(Notification) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 
@@ -142,7 +142,7 @@ module.exports = function(Notification) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -188,7 +188,7 @@ module.exports = function(Notification) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -220,12 +220,12 @@ module.exports = function(Notification) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
 		}
 
-	}
+	};
 
 };

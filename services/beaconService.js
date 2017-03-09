@@ -211,6 +211,6 @@ module.exports = function(Beacon) {
 			return deferred.promise;
 		}
 
-	}
+	};
 
 };

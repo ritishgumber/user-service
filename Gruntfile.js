@@ -24,7 +24,7 @@ module.exports = function(grunt) {
 			all: ["*.js", "**/*.js", "api/**/*.js", "!node_modules/**/*.js"]
 		},
 		jsbeautifier: {
-			src: ["!node_modules/**/*.js", "*.js", "./**/*.js"],
+			src: ["*.js", "**/*.js", "!node_modules/**/*.js"],
 			options: {
 				js: {
 					indentSize: 1,

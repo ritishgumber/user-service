@@ -148,7 +148,7 @@ module.exports = function() {
 
 			return deferred.promise;
 		}
-	}
+	};
 };
 
 

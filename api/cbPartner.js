@@ -38,7 +38,7 @@ module.exports = function() {
 	app.get('/partner/item/:id', function(req, res, next) {
 		console.log("Get CoudBoost Partner Form By ID");
 
-		var partnerId = req.params.id
+		var partnerId = req.params.id;
 
 		global.cbPartnerService.getById(partnerId).then(function(result) {
 			return res.status(200).json(result);
@@ -58,7 +58,7 @@ module.exports = function() {
 		global.cbPartnerService.getList(skip, limit).then(function(result) {
 
 			var jsonString = JSON.stringify(result);
-			var sanitizedJSON = JSON.parse(jsonString)
+			var sanitizedJSON = JSON.parse(jsonString);
 
 			res.xls('partners.xlsx', sanitizedJSON);
 
@@ -72,7 +72,7 @@ module.exports = function() {
 
 	return app;
 
-}
+};
 
 function sanitizeJSON(unsanitized) {
 	return unsanitized.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\t/g, "\\t").replace(/\f/g, "\\f").replace(/"/g, "\\\"").replace(/'/g, "\\\'").replace(/\&/g, "\\&");

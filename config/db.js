@@ -7,4 +7,4 @@ module.exports = function(isDevelopment) {
 		//done!
 	});
 	return mongoose;
-}
+};

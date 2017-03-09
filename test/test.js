@@ -1,5 +1,5 @@
 var request = require('request'),
-	assert = require('assert')
+	assert = require('assert');
 
 var baseUrl = 'http://localhost:3000';
 
@@ -20,11 +20,11 @@ describe("USER SERVICE STATUS CHECK", function() {
 			url: baseUrl + '/status'
 		}, function(err, resp, body) {
 			if (err) {
-				console.log(err)
-				done(err)
+				console.log(err);
+				done(err);
 			}
 			assert.equal(200, resp.statusCode);
-			done()
+			done();
 		});
 	});
 
