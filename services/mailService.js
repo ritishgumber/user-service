@@ -70,7 +70,7 @@ module.exports = function() {
 
 					nodemailerMailgun.sendMail({
 						from: "CloudBoost.io <" + keys.adminEmailAddress + ">",
-						'h:Reply-To': keys.adminEmailAddress,
+						'h:Reply-To': constants.supportEmail,
 						to: emailTo,
 						subject: subject,
 						html: mergedTemplate
