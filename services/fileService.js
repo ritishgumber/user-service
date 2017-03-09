@@ -30,7 +30,7 @@ module.exports = function() {
 
 				writestream.on('close', function(file) {
 					//console.log(file.filename + ' is written To DB'); 
-					console.log("Success on Upload user image")
+					console.log("Success on Upload user image");
 					deferred.resolve(file);
 				});
 
@@ -111,5 +111,5 @@ module.exports = function() {
 
 			return deferred.promise;
 		}
-	}
-}
+	};
+};

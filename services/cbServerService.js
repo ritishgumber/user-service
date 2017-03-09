@@ -110,7 +110,7 @@ module.exports = function(_Settings) {
 
 						} else {
 							console.log("Unauthorised user(not a admin)");
-							deferred.reject("Unauthorised")
+							deferred.reject("Unauthorised");
 						}
 
 					}, function(error) {
@@ -155,7 +155,7 @@ module.exports = function(_Settings) {
 									settingsFound.save(function(err, savedSettings) {
 										if (err) {
 											console.log("Error on saving API URL");
-											deferred.reject(err)
+											deferred.reject(err);
 										} else {
 											if (savedSettings.clusterKey) {
 												delete savedSettings._doc.clusterKey;
@@ -176,7 +176,7 @@ module.exports = function(_Settings) {
 
 						} else {
 							console.log("Unauthorised User(not a admin) for Upsert API URL..");
-							deferred.reject("Unauthorised")
+							deferred.reject("Unauthorised");
 						}
 					}, function(error) {
 						deferred.reject(error);
@@ -282,7 +282,7 @@ module.exports = function(_Settings) {
 
 			return deferred.promise;
 		}
-	}
+	};
 };
 
 

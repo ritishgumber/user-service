@@ -53,7 +53,7 @@ module.exports = function() {
 			req.text = '';
 			req.setEncoding('utf8');
 			req.on('data', function(chunk) {
-				req.text += chunk
+				req.text += chunk;
 			});
 			req.on('end', next);
 		} else {
@@ -279,11 +279,11 @@ module.exports = function() {
 
 				}
 			}
-			var m = 1
-			global.keys.mongoPublicUrls = []
+			var m = 1;
+			global.keys.mongoPublicUrls = [];
 			while (process.env["CB_MONGO_" + m + "_SERVER"]) {
-				global.keys.mongoPublicUrls.push(process.env["CB_MONGO_" + m + "_SERVER"])
-				m++
+				global.keys.mongoPublicUrls.push(process.env["CB_MONGO_" + m + "_SERVER"]);
+				m++;
 			}
 
 			mongoConnectionString = mongoConnectionString.substring(0, mongoConnectionString.length - 1);
@@ -382,7 +382,7 @@ module.exports = function() {
 			global.winston.log('error', {
 				"error": String(err),
 				"stack": new Error().stack
-			})
+			});
 		}
 	}
 
@@ -413,7 +413,7 @@ module.exports = function() {
 			global.winston.log('error', {
 				"error": String(err),
 				"stack": new Error().stack
-			})
+			});
 		}
 	}
 
@@ -428,7 +428,7 @@ module.exports = function() {
 			global.winston.log('error', {
 				"error": String(err),
 				"stack": new Error().stack
-			})
+			});
 		}
 	}
 
@@ -439,8 +439,8 @@ module.exports = function() {
 			global.winston.log('error', {
 				"error": String(err),
 				"stack": new Error().stack
-			})
+			});
 		}
 	}
 
-}
+};

@@ -79,7 +79,7 @@ module.exports = function(User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deffered.reject(err)
+				deffered.reject(err);
 			}
 			return deffered.promise;
 		},
@@ -126,7 +126,7 @@ module.exports = function(User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deffered.reject(err)
+				deffered.reject(err);
 			}
 
 			return deffered.promise;
@@ -171,7 +171,7 @@ module.exports = function(User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deffered.reject(err)
+				deffered.reject(err);
 			}
 
 			return deffered.promise;
@@ -220,7 +220,7 @@ module.exports = function(User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deffered.reject(err)
+				deffered.reject(err);
 			}
 
 			return deffered.promise;
@@ -998,7 +998,7 @@ module.exports = function(User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deffered.reject(err)
+				deffered.reject(err);
 			}
 
 			return deffered.promise;
@@ -1035,7 +1035,7 @@ module.exports = function(User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deffered.reject(err)
+				deffered.reject(err);
 			}
 			return deffered.promise;
 		},
@@ -1071,7 +1071,7 @@ module.exports = function(User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deffered.reject(err)
+				deffered.reject(err);
 			}
 			return deffered.promise;
 		},
@@ -1102,12 +1102,12 @@ module.exports = function(User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deffered.reject(err)
+				deffered.reject(err);
 			}
 			return deffered.promise;
 		}
 
 
-	}
+	};
 
 };

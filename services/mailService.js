@@ -164,7 +164,7 @@ module.exports = function() {
 			this.sendMail(mailName, emailTo, subject, variableArray);
 		}
 
-	}
+	};
 
 };
 

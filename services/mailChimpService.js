@@ -24,7 +24,7 @@ module.exports = function() {
 				post_data.email_address = email;
 				post_data.status = 'subscribed';
 
-				var url = "https://us10.api.mailchimp.com/3.0/lists/" + listId + "/members"
+				var url = "https://us10.api.mailchimp.com/3.0/lists/" + listId + "/members";
 
 				request({
 					url: url,
@@ -58,6 +58,6 @@ module.exports = function() {
 			return deferred.promise;
 		}
 
-	}
+	};
 
 };

@@ -85,6 +85,6 @@ module.exports = function(Tutorial) {
 			return deferred.promise;
 		}
 
-	}
+	};
 
 };

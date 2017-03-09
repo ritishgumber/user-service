@@ -92,7 +92,7 @@ module.exports = function(Project, User) {
 					"stack": new Error().stack
 				});
 				console.log(err);
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -219,7 +219,7 @@ module.exports = function(Project, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -261,7 +261,7 @@ module.exports = function(Project, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -303,7 +303,7 @@ module.exports = function(Project, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -373,7 +373,7 @@ module.exports = function(Project, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -405,7 +405,7 @@ module.exports = function(Project, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -451,7 +451,7 @@ module.exports = function(Project, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -518,13 +518,13 @@ module.exports = function(Project, User) {
 											deferred.reject(err);
 										});
 									}
-								})
+								});
 							} else {
 								if (length == 0)
 									deferred.resolve(inactiveApps);
 
 							}
-						})
+						});
 					}
 				});
 
@@ -533,7 +533,7 @@ module.exports = function(Project, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -594,12 +594,12 @@ module.exports = function(Project, User) {
 											deferred.reject(err);
 										});
 									}
-								})
+								});
 							} else {
 								if (length === 0)
 									deferred.resolve(inactiveApps);
 							}
-						})
+						});
 
 					}
 				});
@@ -609,7 +609,7 @@ module.exports = function(Project, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -651,7 +651,7 @@ module.exports = function(Project, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deffered.reject(err)
+				deffered.reject(err);
 			}
 
 			return deffered.promise;
@@ -689,7 +689,7 @@ module.exports = function(Project, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deffered.reject(err)
+				deffered.reject(err);
 			}
 
 			return deffered.promise;
@@ -730,7 +730,7 @@ module.exports = function(Project, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deffered.reject(err)
+				deffered.reject(err);
 			}
 
 			return deffered.promise;
@@ -773,7 +773,7 @@ module.exports = function(Project, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -824,7 +824,7 @@ module.exports = function(Project, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -875,7 +875,7 @@ module.exports = function(Project, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -908,7 +908,7 @@ module.exports = function(Project, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -944,7 +944,7 @@ module.exports = function(Project, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -1095,7 +1095,7 @@ module.exports = function(Project, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -1156,7 +1156,7 @@ module.exports = function(Project, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -1225,7 +1225,7 @@ module.exports = function(Project, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -1303,7 +1303,7 @@ module.exports = function(Project, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
@@ -1385,13 +1385,13 @@ module.exports = function(Project, User) {
 					"error": String(err),
 					"stack": new Error().stack
 				});
-				deferred.reject(err)
+				deferred.reject(err);
 			}
 
 			return deferred.promise;
 
 		}
-	}
+	};
 
 };
 
@@ -1429,7 +1429,7 @@ function generateNonExistingAppId() {
 			"error": String(err),
 			"stack": new Error().stack
 		});
-		deferred.reject(err)
+		deferred.reject(err);
 	}
 
 	return deferred.promise;
@@ -1488,7 +1488,7 @@ function processRemoveDeveloper(foundProj, userId, currentUserId, self) {
 			"error": String(err),
 			"stack": new Error().stack
 		});
-		deferred.reject(err)
+		deferred.reject(err);
 	}
 
 	return deferred.promise;
@@ -1536,7 +1536,7 @@ function processRemoveInvitee(foundProj, email) {
 			"error": String(err),
 			"stack": new Error().stack
 		});
-		deferred.reject(err)
+		deferred.reject(err);
 	}
 
 	return deferred.promise;
@@ -1617,7 +1617,7 @@ function processInviteUser(project, email, foundUser) {
 			"error": String(err),
 			"stack": new Error().stack
 		});
-		deferred.reject(err)
+		deferred.reject(err);
 	}
 
 	return deferred.promise;
@@ -1743,7 +1743,7 @@ function _deleteAppFromDS(appId) {
 			"error": String(err),
 			"stack": new Error().stack
 		});
-		deferred.reject(err)
+		deferred.reject(err);
 	}
 
 	return deferred.promise;

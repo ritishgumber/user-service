@@ -32,7 +32,7 @@ module.exports = function() {
 
 				readstream.pipe(res);
 
-				console.log("Successfull Get user Image by id")
+				console.log("Successfull Get user Image by id");
 			}, function(error) {
 				console.log("error Get user Image by id");
 				return res.send(500, error);
@@ -125,7 +125,7 @@ module.exports = function() {
 
 	return app;
 
-}
+};
 
 function fullUrl(req) {
 	return url.format({

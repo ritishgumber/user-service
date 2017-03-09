@@ -167,6 +167,6 @@ module.exports = function(CbPartner) {
 
 			return deferred.promise;
 		}
-	}
+	};
 
 };
