@@ -62,15 +62,7 @@ module.exports = function() {
 	//know server isHosted?
 	app.get('/server/isHosted', function(req, res) {
 		console.log("isHosted server check");
-
-		global.cbServerService.isHosted().then(function(settings) {
-			console.log("Successfull isHosted server check");
-			return res.status(200).send(settings);
-		}, function(error) {
-			console.log("Error isHosted server check");
-			return res.status(500).send(error);
-		});
-
+	  return res.status(200).send(process.env.CLOUDBOOST_HOSTED || false);
 	});
 
 	app.get('/status', function(req, res, next) {
