@@ -1,10 +1,11 @@
-engines:
-  eslint:
+--- 
+engines: 
+  duplication: 
+    config: 
+      languages: 
+        - javascript
     enabled: true
-  duplication:
+  eslint: 
     enabled: true
-    config:
-      languages:
-      - javascript
-exclude_paths:
-- "node_modules/"
+exclude_paths: 
+  - node_modules/
