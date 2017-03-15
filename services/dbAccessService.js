@@ -2,7 +2,6 @@
 
 var Q = require('q');
 var request = require('request');
-// var keys = require('../config/keys');
 
 module.exports = function(dbaccessModel) {
 

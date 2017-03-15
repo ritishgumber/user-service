@@ -1,5 +1,3 @@
-// var Hash = require('password-hash');
-
 module.exports = function() {
 
 	var Schema = global.mongoose.Schema;

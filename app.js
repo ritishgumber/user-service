@@ -10,8 +10,6 @@ module.exports = function() {
 	var passport = require('passport');
 	var session = require('express-session');
 	var RedisStore = require('connect-redis')(session);
-	// var CronJob = require('cron').CronJob;
-	// var Q = require('q');
 	var json2xls = require('json2xls');
 
 	global.winston = require('winston');

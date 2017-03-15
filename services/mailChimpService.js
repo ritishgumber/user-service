@@ -3,11 +3,6 @@
 var Q = require('q');
 var keys = require('../config/keys');
 var request = require('request');
-// var async = require('async');
-// var http = require('http');
-// var crypto = require('crypto');
-// var _ = require('underscore');
-
 
 module.exports = function() {
 

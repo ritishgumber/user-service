@@ -1,12 +1,8 @@
 'use strict';
 
-// var async = require('async');
 var crypto = require('crypto');
 var Q = require('q');
 var util = require('./utilService')();
-
-// var LocalStrategy = require('passport-local').Strategy;
-
 
 module.exports = function(User) {
 
@@ -801,8 +797,6 @@ module.exports = function(User) {
 			var deffered = Q.defer();
 
 			try {
-				// var self = this;
-
 				User.findOne({
 					_id: currentUserId
 				}, function(err, user) {
@@ -973,7 +967,6 @@ module.exports = function(User) {
 			var deffered = Q.defer();
 
 			try {
-				// var self = this;
 
 				User.findOneAndUpdate(query, {
 					$set: newJson

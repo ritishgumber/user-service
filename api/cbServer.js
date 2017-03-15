@@ -1,6 +1,5 @@
 var express = require('express');
 var app = express();
-// var Q = require('q');
 
 module.exports = function() {
 

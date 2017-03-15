@@ -2,11 +2,6 @@
 
 var Q = require('q');
 var request = require('request');
-// var async = require('async');
-// var http = require('http');
-// var keys = require('../config/keys');
-// var _ = require('underscore');
-// var crypto = require('crypto');
 
 module.exports = function(_Settings) {
 
@@ -16,13 +11,9 @@ module.exports = function(_Settings) {
 
 			console.log("Get server settings..");
 
-			// var _self = this;
-
 			var deferred = Q.defer();
 
 			try {
-				// var self = this;
-
 				_Settings.findOne({}, function(err, cbServerSettings) {
 					if (err) {
 						console.log("Error on Get server settings..");
@@ -61,13 +52,9 @@ module.exports = function(_Settings) {
 
 			console.log("Upsert server settings..");
 
-			// var _self = this;
-
 			var deferred = Q.defer();
 
 			try {
-
-				// var self = this;
 
 				//Check User is Admin
 				global.userService.getAccountById(currentUserId)
@@ -132,13 +119,9 @@ module.exports = function(_Settings) {
 
 			console.log("Upsert API URL..");
 
-			// var _self = this;
-
 			var deferred = Q.defer();
 
 			try {
-				// var self = this;
-
 				//Check User is Admin
 				global.userService.getAccountById(currentUserId)
 					.then(function(user) {
@@ -198,8 +181,6 @@ module.exports = function(_Settings) {
 
 			console.log("Register server...");
 
-			// var _self = this;
-
 			var deferred = Q.defer();
 
 			try {
@@ -226,8 +207,6 @@ module.exports = function(_Settings) {
 		isHosted: function() {
 
 			console.log("Check is hosted..");
-			// var _self = this;
-
 			var deferred = Q.defer();
 
 			try {
@@ -251,8 +230,6 @@ module.exports = function(_Settings) {
 			return deferred.promise;
 		},
 		getDBStatuses: function() {
-
-			// var _self = this;
 
 			var deferred = Q.defer();
 

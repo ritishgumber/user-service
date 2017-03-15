@@ -1,18 +1,9 @@
-// var winston = require('winston');
 var express = require('express');
 var app = express();
 var Q = require('q');
 var xmlBodyParser = require('express-xml-bodyparser');
 var request = require('request');
-var azureCertificate = null; //this is where certificate details will be stored.
-
-// var utils = require('../helpers/utils');
-// var async = require('async');
-// var crypto = require('crypto');
-// var moment = require('moment');
-// var passport = require('passport');
-// var AzureStoreStrategy = require('passport-azure-store').Strategy;
-// var pricingPlans = require('../config/pricingPlans.js')();
+var azureCertificate; //this is where certificate details will be stored.
 
 getAzureCertificate(); //init with azure certificate.
 
@@ -452,7 +443,6 @@ function createOrUpdateResource(req, res) {
 				} else {
 					//update the project
 					var projectId = project.id;
-					// var appId = project.appId;
 
 					//In case of update
 					var updateData = {
@@ -870,16 +860,6 @@ function getToken(req, res) {
 }
 
 /********Private Functions*************/
-/*function getPropertyFromSubscription(reqJSON, propName) {
-	if (propName === "OptIn") {
-		var OptIn = reqJSON.Properties.propName;
-		return OptIn;
-	} else {
-		var email = reqJSON.Properties.propName;
-		return email;
-	}
-}
-*/
 function getProjectListBySubscription(subscriptionId) {
 
 	var deferred = Q.defer();
@@ -1009,31 +989,6 @@ function validateRequest(req, res) {
 		return false;
 	}
 }
-
-
-
-// function validateRequest(req,res){
-//   if(!req.secure){
-//     res.status(404).send();
-//     return false;
-//   }
-//   var certificate = req.connection.getPeerCertificate();
-//   if(certificate && certificate.subject && certificate.subject.CN){
-//     if(certificate.subject.CN === "aspa-invalidcert.publishingapi.azure.com"){
-//       res.status(404).send();
-//       return false;
-//     }
-//     else if(certificate.subject.CN.endsWith("azure.com") || certificate.subject.CN.endsWith("azurewebsites.net")){
-//       return true;
-//     }else{
-//       res.status(404).send();
-//       return false;
-//     }
-//   }else{
-//     res.status(404).send();
-//     return false;
-//   }
-// }
 
 function getAzureCertificate() {
 	request('https://management.azure.com:24582/metadata/authentication?api-version=2015-01-01', function(error, response, body) {

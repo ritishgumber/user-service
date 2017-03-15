@@ -1,10 +1,8 @@
 'use strict';
 
-// var async = require('async');
 var Q = require('q');
 
 module.exports = function(Subscriber) {
-
 
 	return {
 
@@ -55,7 +53,6 @@ module.exports = function(Subscriber) {
 			var deferred = Q.defer();
 
 			try {
-				// var self = this;
 
 				Subscriber.findOne({
 					email: email
@@ -88,7 +85,6 @@ module.exports = function(Subscriber) {
 			var deferred = Q.defer();
 
 			try {
-				// var self = this;
 
 				Subscriber.findOneAndRemove({
 					email: email

@@ -5,11 +5,6 @@ var keys = require('../config/keys');
 var constants = require('../config/constants.json');
 var jsdom = require("jsdom");
 var fs = require("fs");
-// var http = require('http');
-// var _ = require('underscore');
-// var request = require('request');
-// var async = require('async');
-// var crypto = require('crypto');
 
 var nodemailer = require('nodemailer');
 var mailgun = require('nodemailer-mailgun-transport');
