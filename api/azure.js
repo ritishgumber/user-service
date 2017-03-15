@@ -3,12 +3,8 @@ var app = express();
 var Q = require('q');
 var xmlBodyParser = require('express-xml-bodyparser');
 var request = require('request');
-var azureCertificate; //this is where certificate details will be stored.
-
-getAzureCertificate(); //init with azure certificate.
 
 app.use(xmlBodyParser());
-
 
 /**
 
@@ -990,10 +986,3 @@ function validateRequest(req, res) {
 	}
 }
 
-function getAzureCertificate() {
-	request('https://management.azure.com:24582/metadata/authentication?api-version=2015-01-01', function(error, response, body) {
-		if (!error && response.statusCode == 200) {
-			azureCertificate = JSON.parse(body);
-		}
-	});
-}
