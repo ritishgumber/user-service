@@ -114,7 +114,7 @@ module.exports = function() {
 				console.log("Analytics URL:" + global.keys.analyticsServiceUrl);
 
 			} else {
-				global.keys.analyticsServiceUrl = "https://analytics.cloudboost.io";
+				global.keys.analyticsServiceUrl = "https://cluster-analytics.cloudboost.io";
 				console.log("Analytics URL:" + global.keys.analyticsServiceUrl);
 			}
 
