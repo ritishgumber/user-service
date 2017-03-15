@@ -20,6 +20,7 @@ before_install:
 - sleep 30s
 install:
 - npm install
+- grunt --force
 - docker build -t cloudboost/user-service:2.0.$TRAVIS_BUILD_NUMBER .
 - docker build -t cloudboost/user-service:latest .
 - docker run --name user-service -e LOG_TOKEN='c064fc7e-4fc6-41e6-b51f-32c30deafdcc' -p 3000:3000 -it --link cloudboost:api --link redis:redis --link mongo:mongo -d cloudboost/user-service:2.0.$TRAVIS_BUILD_NUMBER 
