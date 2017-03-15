@@ -1,6 +1,6 @@
 module.exports = {
 	dataServiceUrl : 'http://localhost:4730',
-	analyticsServiceUrl : 'https://analytics.cloudboost.io',
+	analyticsServiceUrl : 'https://cluster-analytics.cloudboost.io',
 	cacheAppPrefix : 'app',
     cacheSchemaPrefix : 'schema',
     globalDb : "_GLOBAL",
@@ -15,5 +15,6 @@ module.exports = {
 	adminEmailAddress: process.env['ADMIN_EMAIL'],
 	herokuUsername : process.env['HEROKU_USERNAME'],
 	herokuPassword : process.env['HEROKU_PASSWORD'],
-	herokuSalt : process.env['HEROKU_SALT']
+	herokuSalt : process.env['HEROKU_SALT'],
+    sendgridApiKey : process.env['SENDGRID_API_KEY']
 };

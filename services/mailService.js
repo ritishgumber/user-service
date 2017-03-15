@@ -5,21 +5,14 @@ var keys = require('../config/keys');
 var constants = require('../config/constants.json');
 var jsdom = require("jsdom");
 var fs = require("fs");
+var sendgrid = require('sendgrid')(global.keys.sendgridApiKey);
 
-var nodemailer = require('nodemailer');
-var mailgun = require('nodemailer-mailgun-transport');
-var nodemailerMailgun = nodemailer.createTransport(mailgun({
-	auth: {
-		api_key: keys.mailGunApiKey,
-		domain: keys.mailGunDomain
-	}
-}));
 
-module.exports = function() {
+module.exports = function () {
 
 	return {
 
-		sendTextMail: function(from, to, subject, text) {
+		sendTextMail: function (from, to, subject, text) {
 
 			console.log("Send Mail Function...");
 			var deferred = Q.defer();
@@ -30,7 +23,7 @@ module.exports = function() {
 				to: to,
 				subject: subject,
 				text: text
-			}, function(err, info) {
+			}, function (err, info) {
 				if (err) {
 					console.log(err);
 					deferred.reject(err);
@@ -43,7 +36,7 @@ module.exports = function() {
 			return deferred.promise;
 		},
 
-		sendMail: function(mailName, emailTo, subject, variableArray) {
+		sendMail: function (mailName, emailTo, subject, variableArray) {
 
 			console.log("Send Mail Function...");
 
@@ -51,7 +44,7 @@ module.exports = function() {
 
 			try {
 
-				_getEmailTemplate(mailName).then(function(template) {
+				_getEmailTemplate(mailName).then(function (template) {
 
 					if (template) {
 						return _mergeVariablesInTemplate(template, variableArray);
@@ -61,15 +54,9 @@ module.exports = function() {
 						return noTempDef.promise;
 					}
 
-				}).then(function(mergedTemplate) {
-
-					nodemailerMailgun.sendMail({
-						from: "CloudBoost.io <" + keys.adminEmailAddress + ">",
-						'h:Reply-To': constants.supportEmail,
-						to: emailTo,
-						subject: subject,
-						html: mergedTemplate
-					}, function(err, info) {
+				}).then(function (mergedTemplate) {
+					var emailRequest = _buildSendGridMailRequest(emailTo, subject, mergedTemplate)
+					sendgrid.API(emailRequest, function (err, info) {
 						if (err) {
 							console.log(err);
 							deferred.reject(err);
@@ -79,7 +66,7 @@ module.exports = function() {
 						}
 					});
 
-				}, function(error) {
+				}, function (error) {
 					console.log(error);
 					deferred.reject(error);
 				});
@@ -95,7 +82,7 @@ module.exports = function() {
 			return deferred.promise;
 		},
 
-		sendSignupMail: function(user) {
+		sendSignupMail: function (user) {
 			var mailName = "signupwelcome";
 			var emailTo = user.email;
 			var subject = "Welcome to CloudBoost";
@@ -113,7 +100,7 @@ module.exports = function() {
 			this.sendMail(mailName, emailTo, subject, variableArray);
 		},
 
-		sendActivationMail: function(user) {
+		sendActivationMail: function (user) {
 			var mailName = "accountactivated";
 			var emailTo = user.email;
 			var subject = "Your account is now activated";
@@ -127,7 +114,7 @@ module.exports = function() {
 			this.sendMail(mailName, emailTo, subject, variableArray);
 		},
 
-		sendResetPasswordMail: function(user) {
+		sendResetPasswordMail: function (user) {
 			var mailName = "forgotpassword";
 			var emailTo = user.email;
 			var subject = "Reset your password";
@@ -145,7 +132,7 @@ module.exports = function() {
 			this.sendMail(mailName, emailTo, subject, variableArray);
 		},
 
-		sendUpdatePasswordMail: function(user) {
+		sendUpdatePasswordMail: function (user) {
 			var mailName = "passwordchanged";
 			var emailTo = user.email;
 			var subject = "You've changed your password";
@@ -172,7 +159,7 @@ function _mergeVariablesInTemplate(template, variableArray) {
 	try {
 
 		//Parse Template
-		jsdom.env(template, [], function(error, window) {
+		jsdom.env(template, [], function (error, window) {
 			if (error) {
 				deferred.reject("Cannot parse mail template.");
 			} else {
@@ -210,7 +197,7 @@ function _getEmailTemplate(templateName) {
 	var templatePath = './mail-templates/' + templateName + '.html';
 
 	try {
-		fs.readFile(templatePath, 'utf8', function(error, data) {
+		fs.readFile(templatePath, 'utf8', function (error, data) {
 			if (error) {
 				deferred.reject(error);
 			} else if (data) {
@@ -227,4 +214,37 @@ function _getEmailTemplate(templateName) {
 	}
 
 	return deferred.promise;
+}
+
+function _buildSendGridMailRequest(emailTo, subject, mergedTemplate) {
+	return sendgrid.emptyRequest({
+		method: 'POST',
+		path: '/v3/mail/send',
+		body: {
+			personalizations: [
+				{
+					to: [
+						{
+							email: emailTo
+						}
+					],
+					subject: subject
+				}
+			],
+			from: {
+				email: keys.adminEmailAddress,
+				name: "CloudBoost.io"
+			},
+			"reply_to": {
+				email: constants.supportEmail,
+				name: "CloudBoost.io"
+			},
+			content: [
+				{
+					type: 'text/html',
+					value: mergedTemplate
+				}
+			]
+		}
+	});
 }
