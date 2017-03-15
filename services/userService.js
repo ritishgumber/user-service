@@ -1,11 +1,11 @@
 'use strict';
 
-var async = require('async');
+// var async = require('async');
 var crypto = require('crypto');
 var Q = require('q');
 var util = require('./utilService')();
 
-var LocalStrategy = require('passport-local').Strategy;
+// var LocalStrategy = require('passport-local').Strategy;
 
 
 module.exports = function(User) {
@@ -292,7 +292,7 @@ module.exports = function(User) {
 						}, function(err) {
 							console.log("Error on setting up a new server..");
 							deffered.reject(err);
-						})
+						});
 					} else {
 						//create a new user
 						self.createUser(data).then(function(user) {
@@ -500,7 +500,7 @@ module.exports = function(User) {
 			console.log("Update user last login...");
 
 			var deffered = Q.defer();
-			var newDate = new Date()
+			var newDate = new Date();
 
 			User.update({
 				_id: userId
@@ -801,7 +801,7 @@ module.exports = function(User) {
 			var deffered = Q.defer();
 
 			try {
-				var self = this;
+				// var self = this;
 
 				User.findOne({
 					_id: currentUserId
@@ -973,7 +973,7 @@ module.exports = function(User) {
 			var deffered = Q.defer();
 
 			try {
-				var self = this;
+				// var self = this;
 
 				User.findOneAndUpdate(query, {
 					$set: newJson

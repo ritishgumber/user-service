@@ -1,22 +1,21 @@
-var LocalStrategy = require('passport-local').Strategy;
 var express = require('express');
 var app = express();
-var keys = require('../config/keys.js');
-var _ = require('underscore');
 var url = require('url');
-
+// var LocalStrategy = require('passport-local').Strategy;
+// var keys = require('../config/keys.js');
+// var _ = require('underscore');
 
 //setup passport
 module.exports = function(passport) {
 
-	var authCallback = function(req, res) {
-		var user = req.user;
-		return res.json(200, user);
-	};
+	// var authCallback = function(req, res) {
+	// 	var user = req.user;
+	// 	return res.json(200, user);
+	// };
 
-	var session = function(req, res) {
-		res.redirect('/');
-	};
+	// var session = function(req, res) {
+	// 	res.redirect('/');
+	// };
 
 	// routes
 	app.post('/user/signup', function(req, res, next) {

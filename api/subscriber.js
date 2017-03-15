@@ -1,8 +1,8 @@
 var express = require('express');
 var app = express();
-var keys = require('../config/keys');
-var request = require('request');
-var Q = require('q');
+// var Q = require('q');
+// var keys = require('../config/keys');
+// var request = require('request');
 
 module.exports = function() {
 

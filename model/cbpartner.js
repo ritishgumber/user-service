@@ -1,4 +1,4 @@
-var Hash = require('password-hash');
+// var Hash = require('password-hash');
 
 module.exports = function() {
 

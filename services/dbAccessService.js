@@ -1,8 +1,8 @@
 'use strict';
 
 var Q = require('q');
-var keys = require('../config/keys');
 var request = require('request');
+// var keys = require('../config/keys');
 
 module.exports = function(dbaccessModel) {
 

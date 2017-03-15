@@ -1,12 +1,12 @@
 'use strict';
 
-var async = require('async');
 var Q = require('q');
-var http = require('http');
 var keys = require('../config/keys');
-var _ = require('underscore');
-var crypto = require('crypto');
 var request = require('request');
+// var async = require('async');
+// var http = require('http');
+// var crypto = require('crypto');
+// var _ = require('underscore');
 
 
 module.exports = function() {

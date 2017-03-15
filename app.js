@@ -10,12 +10,12 @@ module.exports = function() {
 	var passport = require('passport');
 	var session = require('express-session');
 	var RedisStore = require('connect-redis')(session);
-	var CronJob = require('cron').CronJob;
-	var Q = require('q');
+	// var CronJob = require('cron').CronJob;
+	// var Q = require('q');
 	var json2xls = require('json2xls');
 
 	global.winston = require('winston');
-	expressWinston = require('express-winston');
+	var expressWinston = require('express-winston');
 	require('winston-loggly');
 
 	global.winston.add(global.winston.transports.Loggly, {
@@ -248,7 +248,7 @@ module.exports = function() {
 				if (process.env["MONGO1_SERVICE_HOST"]) {
 					console.log("MongoDB is running on Kubernetes.");
 
-					var i = 1;
+					i = 1;
 					while (process.env["MONGO" + i + "_SERVICE_HOST"]) {
 
 						mongoConnectionString += process.env["MONGO" + i + "_SERVICE_HOST"] + ":" + process.env["MONGO" + i + "_SERVICE_PORT"];
@@ -258,7 +258,7 @@ module.exports = function() {
 
 					isReplicaSet = true;
 				} else {
-					var i = 1;
+					i = 1;
 
 					if (process.env["MONGO_PORT_27017_TCP_ADDR"] && process.env["MONGO_PORT_27017_TCP_PORT"]) {
 
@@ -352,7 +352,7 @@ module.exports = function() {
 
 			global.app.use(expressWinston.errorLogger({
 				transports: [
-					new winston.transports.Console({
+					new global.winston.transports.Console({
 						json: true,
 						colorize: true
 					}),

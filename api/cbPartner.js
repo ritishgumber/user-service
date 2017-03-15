@@ -1,7 +1,7 @@
 var express = require('express');
 var app = express();
-var json2xls = require('json2xls');
 var request = require('request');
+// var json2xls = require('json2xls');
 
 module.exports = function() {
 
@@ -74,6 +74,6 @@ module.exports = function() {
 
 };
 
-function sanitizeJSON(unsanitized) {
+/*function sanitizeJSON(unsanitized) {
 	return unsanitized.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\t/g, "\\t").replace(/\f/g, "\\f").replace(/"/g, "\\\"").replace(/'/g, "\\\'").replace(/\&/g, "\\&");
-}
+}*/

@@ -1,15 +1,15 @@
 'use strict';
 
-var async = require('async');
 var Q = require('q');
-var http = require('http');
 var keys = require('../config/keys');
 var constants = require('../config/constants.json');
-var _ = require('underscore');
-var crypto = require('crypto');
-var request = require('request');
 var jsdom = require("jsdom");
 var fs = require("fs");
+// var http = require('http');
+// var _ = require('underscore');
+// var request = require('request');
+// var async = require('async');
+// var crypto = require('crypto');
 
 var nodemailer = require('nodemailer');
 var mailgun = require('nodemailer-mailgun-transport');

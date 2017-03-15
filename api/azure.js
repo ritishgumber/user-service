@@ -1,17 +1,18 @@
-var winston = require('winston');
+// var winston = require('winston');
 var express = require('express');
 var app = express();
 var Q = require('q');
-var utils = require('../helpers/utils');
-var async = require('async');
-var crypto = require('crypto');
-var moment = require('moment');
-var passport = require('passport');
-var AzureStoreStrategy = require('passport-azure-store').Strategy;
 var xmlBodyParser = require('express-xml-bodyparser');
-var pricingPlans = require('../config/pricingPlans.js')();
 var request = require('request');
 var azureCertificate = null; //this is where certificate details will be stored.
+
+// var utils = require('../helpers/utils');
+// var async = require('async');
+// var crypto = require('crypto');
+// var moment = require('moment');
+// var passport = require('passport');
+// var AzureStoreStrategy = require('passport-azure-store').Strategy;
+// var pricingPlans = require('../config/pricingPlans.js')();
 
 getAzureCertificate(); //init with azure certificate.
 
@@ -412,8 +413,8 @@ function createOrUpdateResource(req, res) {
 						}
 					};
 
-					if (req.body.location) {
-						projObj.providerProperties.geoRegion = req.body.location.toString();
+					if (georegion) {
+						projObj.providerProperties.geoRegion = georegion.toString();
 					}
 
 					global.projectService.createProject(resource_name, user.id, projObj).then(function(project) {
@@ -451,7 +452,7 @@ function createOrUpdateResource(req, res) {
 				} else {
 					//update the project
 					var projectId = project.id;
-					var appId = project.appId;
+					// var appId = project.appId;
 
 					//In case of update
 					var updateData = {
@@ -470,8 +471,8 @@ function createOrUpdateResource(req, res) {
 						planId: plan
 					};
 
-					if (req.body.location) {
-						updateData.providerProperties.geoRegion = req.body.location.toString();
+					if (georegion) {
+						updateData.providerProperties.geoRegion = georegion.toString();
 					}
 
 					global.projectService.findOneAndUpdateProject(projectId, updateData).then(function(project) {
@@ -743,7 +744,7 @@ function getCommunicationPreference(req, res) {
 				"optInForCommunication": user.azure.optInForCommunication || true
 			});
 		} else {
-			return res.status(404).send(error);
+			return res.status(404).send("Azure Subscription not found.");
 		}
 	}, function(error) {
 		return res.status(500).send(error);
@@ -869,7 +870,7 @@ function getToken(req, res) {
 }
 
 /********Private Functions*************/
-function getPropertyFromSubscription(reqJSON, propName) {
+/*function getPropertyFromSubscription(reqJSON, propName) {
 	if (propName === "OptIn") {
 		var OptIn = reqJSON.Properties.propName;
 		return OptIn;
@@ -878,7 +879,7 @@ function getPropertyFromSubscription(reqJSON, propName) {
 		return email;
 	}
 }
-
+*/
 function getProjectListBySubscription(subscriptionId) {
 
 	var deferred = Q.defer();

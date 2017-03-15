@@ -18,7 +18,6 @@ module.exports = function() {
 
 		connect: function() {
 
-			var _self = obj;
 			var deferred = q.defer();
 			try {
 				var mongoClient = require('mongodb').MongoClient;
