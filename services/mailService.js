@@ -7,6 +7,14 @@ var jsdom = require("jsdom");
 var fs = require("fs");
 var sendgrid = require('sendgrid')(global.keys.sendgridApiKey);
 
+var nodemailer = require('nodemailer');
+var mailgun = require('nodemailer-mailgun-transport');
+var nodemailerMailgun = nodemailer.createTransport(mailgun({
+	auth: {
+		api_key: keys.mailGunApiKey,
+		domain: keys.mailGunDomain
+	}
+}));
 
 module.exports = function () {
 
@@ -55,7 +63,7 @@ module.exports = function () {
 					}
 
 				}).then(function (mergedTemplate) {
-					var emailRequest = _buildSendGridMailRequest(emailTo, subject, mergedTemplate)
+					var emailRequest = _buildSendGridMailRequest(emailTo, subject, mergedTemplate);
 					sendgrid.API(emailRequest, function (err, info) {
 						if (err) {
 							console.log(err);
