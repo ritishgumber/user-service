@@ -15,5 +15,6 @@ module.exports = {
 	adminEmailAddress: process.env['ADMIN_EMAIL'],
 	herokuUsername : process.env['HEROKU_USERNAME'],
 	herokuPassword : process.env['HEROKU_PASSWORD'],
-	herokuSalt : process.env['HEROKU_SALT']
+	herokuSalt : process.env['HEROKU_SALT'],
+    sendgridApiKey : process.env['SENDGRID_API_KEY']
 };
