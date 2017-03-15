@@ -20,9 +20,11 @@ module.exports = function(grunt) {
 				src: ['test/**/*.js']
 			}
 		},
+
 		eslint: {
 			all: ["*.js", "**/*.js", "api/**/*.js", "!node_modules/**/*.js"]
 		},
+		
 		jsbeautifier: {
 			src: ["*.js", "**/*.js", "!node_modules/**/*.js"],
 			options: {
@@ -42,10 +44,10 @@ module.exports = function(grunt) {
 	///as the default task
 	///////////////////////////////////////////////////////////
 	grunt.loadNpmTasks('grunt-contrib-uglify');
-	grunt.loadNpmTasks('grunt-mocha-test');
+	// grunt.loadNpmTasks('grunt-mocha-test');
 	grunt.loadNpmTasks("grunt-eslint");
 	grunt.loadNpmTasks("grunt-jsbeautifier");
 
-	grunt.registerTask('default', ['mochaTest', 'eslint:all']);
+	grunt.registerTask('default', ['eslint:all']);
 	grunt.registerTask('beautify_js', ['jsbeautifier']);
 };

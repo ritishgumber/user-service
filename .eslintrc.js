@@ -1,7 +1,8 @@
 module.exports = {
     "env": {
       "node": true,
-      "browser": true
+      "browser": true,
+      "mocha": true
     },
     "extends": "eslint:recommended",
     "rules": {
