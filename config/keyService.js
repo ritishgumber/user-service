@@ -180,7 +180,7 @@ module.exports = function() {
 				} else {
 					console.log("Retrieving Cluster URL...");
 					//get it from mongodb, If does not exist, create a new random key and return; 
-					
+
 					var collection = global.mongoClient.db(global.keys.globalDb).collection(global.keys.globalSettings);
 
 					collection.find({}).toArray(function(err, docs) {

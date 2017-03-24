@@ -5,7 +5,7 @@ var _ = require('underscore');
 var request = require('request');
 var pricingPlans = require('../config/pricingPlans.js')();
 var crypto = require('crypto');
-var	algorithm = 'aes-256-ctr';
+var algorithm = 'aes-256-ctr';
 
 function encrypt(text, password) {
 	var cipher = crypto.createCipher(algorithm, password);

@@ -12,7 +12,7 @@ module.exports = function(Beacon) {
 			var deferred = Q.defer();
 
 			try {
-				
+
 				var beacon = new Beacon();
 				beacon._userId = userId;
 
@@ -52,11 +52,11 @@ module.exports = function(Beacon) {
 
 			console.log("Get beacon user Id");
 
-			
+
 			var deferred = Q.defer();
 
 			try {
-				
+
 				Beacon.find({
 					_userId: userId
 				}, function(err, beaconObj) {
@@ -127,7 +127,7 @@ module.exports = function(Beacon) {
 
 			console.log("Get Beacon by UserId and BeaconId");
 
-			
+
 			var deferred = Q.defer();
 
 			try {
@@ -167,7 +167,7 @@ module.exports = function(Beacon) {
 			var deferred = Q.defer();
 
 			try {
-				
+
 				beaconObj.save(function(err, savedBeaconObj) {
 					if (err) {
 						console.log("Error on save beaon by beacon obj");

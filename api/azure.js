@@ -984,4 +984,3 @@ function validateRequest(req, res) {
 		return false;
 	}
 }
-
