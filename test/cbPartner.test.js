@@ -6,7 +6,7 @@ var chaiHttp = require('chai-http');
 
 chai.use(chaiHttp);
 
-describe('CloudBoost Partne', function() {
+describe('CloudBoost Partner', function() {
 
   describe('POST /PARTNER', function() {
     // /partner
