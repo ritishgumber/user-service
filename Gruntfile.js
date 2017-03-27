@@ -15,14 +15,37 @@ module.exports = function(grunt) {
 		mochaTest: {
 			test: {
 				options: {
-					reporter: 'spec'
+					reporter: 'spec',
+					require: [
+						function() {
+							chai = require('chai');
+							expect = chai.expect;
+							chaiHttp = require('chai-http');
+							chai.use(chaiHttp);
+							URL = "http://localhost:3000";
+							util = {
+									makeString: function() {
+									var text = "";
+									var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+									for (var i = 0; i < 5; i++)
+										text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+									return text;
+								},
+								makeEmail: function() {
+									return this.makeString() + '@sample.com';
+								}
+							};
+						}
+					]
 				},
 				src: ['test/**/*.js']
 			}
 		},
 
 		eslint: {
-			all: ["*.js", "**/*.js", "api/**/*.js", "!node_modules/**/*.js"]
+			all: ["*.js", "**/*.js", "api/**/*.js", "!node_modules/**/*.js", "!test/**/*.js", "!Gruntfile.js"]
 		},
 
 		jsbeautifier: {
