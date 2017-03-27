@@ -10,4 +10,4 @@ describe('Analytics Notifications', function() {
 		done();
 	});
 
-});`
+});
