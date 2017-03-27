@@ -1,4 +1,4 @@
-#CloudBoost 
+# CloudBoost 
 
 [![Build Status](https://travis-ci.org/CloudBoost/user-service.svg?branch=master)](https://travis-ci.org/CloudBoost/user-service)
 
@@ -12,22 +12,22 @@ CloudBoost is the Complete NoSQL Database Service for your app. **Think of Cloud
  - More - ACL's, User Authentication, Server-less apps and more. 
 
 
-#CloudBoost User Service
+# CloudBoost User Service
 
 This is a CloudBoost User Microservice that powers [CloudBoost Dashboard](https://www.github.com/CloudBoost/dashboard) and [CloudBoost Engine](https://www.github.com/CloudBoost/cloudboost).
 
-#Running CloudBoost
+# Running CloudBoost
 
 You can run CloudBoost with Docker (recommended). Check out the docker project [here](https://github.com/cloudboost/docker)
 
-#Contributing
+# Contributing
 
 Pull requests are very welcome! Your pull request will be deployed immediately after its been accepted. 
 
 We'd love to hear your feedback and suggestions in the issue tracker.
 
 
-#LICENSE
+# LICENSE
 
 Copyright 2016 HackerBay, Inc.
 
