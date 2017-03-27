@@ -1,4 +1,4 @@
-module.exports = {
+var util = {
 
   makeString: function() {
     var text = "";

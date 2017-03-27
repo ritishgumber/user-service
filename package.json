@@ -10,7 +10,8 @@
   "version": "0.1.1",
   "scripts": {
     "start": "node server.js",
-    "test": "mocha test/test.js"
+    "test": "npm run test-browser",
+    "test-browser": "mocha-phantomjs -p node_modules/phantomjs/lib/phantom/bin/phantomjs -s webSecurityEnabled=false --ssl-protocol=any test/index.html"
   },
   "dependencies": {
     "2checkout-node": "0.0.1",
@@ -88,6 +89,8 @@
     "grunt-eslint": "^19.0.0",
     "grunt-jsbeautifier": "^0.2.13",
     "grunt-mocha-test": "^0.12.4",
-    "mocha": "^2.1.0"
+    "mocha": "^2.1.0",
+    "mocha-phantomjs": "^4.1.0",
+    "phantomjs": "^2.1.7"
   }
 }
