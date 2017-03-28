@@ -12,44 +12,49 @@ module.exports = function(passport) {
 
 		var data = req.body || {};
 
-		global.userService.register(data).then(function(user) {
-			if (!user) {
-				console.log('++++++ User Registration Failed +++++++++++++');
-				return res.send(500, "Error: Something went wrong");
-			}
+		if(data.email && data.password) {
+			global.userService.register(data).then(function(user) {
+				if (!user) {
+					console.log('++++++ User Registration Failed +++++++++++++');
+					return res.send(500, "Error: Something went wrong");
+				}
 
-			console.log('++++++ User Registration Success +++++++++++++');
+				console.log('++++++ User Registration Success +++++++++++++');
 
-			var newsListId = "b0419808f9";
-			global.mailChimpService.addSubscriber(newsListId, user.email);
+				var newsListId = "b0419808f9";
+				global.mailChimpService.addSubscriber(newsListId, user.email);
 
-			if (data.isAdmin) {
-				req.login(user, function(err) {
+				if (data.isAdmin) {
+					req.login(user, function(err) {
 
-					if (err) {
-						console.log('++++++ User Login Error +++++++++++++');
-						console.log(err);
-						return next(err);
-					}
+						if (err) {
+							console.log('++++++ User Login Error +++++++++++++');
+							console.log(err);
+							return next(err);
+						}
 
-					console.log('++++++ User Login Success +++++++++++++');
+						console.log('++++++ User Login Success +++++++++++++');
 
-					delete user.emailVerificationCode;
-					delete user.password; //delete this code form response for security
+						delete user.emailVerificationCode;
+						delete user.password; //delete this code form response for security
 
+						return res.status(200).json(user);
+					});
+
+				} else {
+					global.mailService.sendSignupMail(user);
+					global.notificationService.linkUserId(user.email, user._id);
 					return res.status(200).json(user);
-				});
+				}
+			}, function(error) {
+				console.log('++++++ User Registration Failed +++++++++++++');
+				console.log(error);
+				return res.send(500, error);
+			});
+		} else {
+			return res.send(400, 'Bad Request');
+		}
 
-			} else {
-				global.mailService.sendSignupMail(user);
-				global.notificationService.linkUserId(user.email, user._id);
-				return res.status(200).json(user);
-			}
-		}, function(error) {
-			console.log('++++++ User Registration Failed +++++++++++++');
-			console.log(error);
-			return res.send(500, error);
-		});
 	});
 
 	app.post('/user/activate', function(req, res, next) {
