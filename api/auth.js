@@ -35,7 +35,7 @@ module.exports = function(passport) {
 
 						console.log('++++++ User Login Success +++++++++++++');
 
-						delete user.emailVerificationCode;
+						// delete user.emailVerificationCode;
 						delete user.password; //delete this code form response for security
 
 						return res.status(200).json(user);
@@ -77,7 +77,7 @@ module.exports = function(passport) {
 
 				console.log('++++++ User Login Success +++++++++++++');
 
-				delete user.emailVerificationCode;
+				// delete user.emailVerificationCode;
 				delete user.password; //delete this code form response for security
 
 				return res.status(200).json(user);
@@ -113,7 +113,8 @@ module.exports = function(passport) {
 			console.log('++++++ Request Reset Password Successful +++++++++++++');
 			//send activated email. 
 			global.mailService.sendResetPasswordMail(user);
-			return res.send(200);
+			console.log(user);
+			return res.status(200).json(user);
 		}, function(error) {
 			console.log('++++++ Request Reset Password Failed +++++++++++++');
 			console.log(error);

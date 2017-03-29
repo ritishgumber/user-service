@@ -147,7 +147,7 @@ module.exports = function(User) {
 							return deffered.reject(err);
 						}
 						if (!user) {
-							console.log("Email doesnot belong to any user.");
+							console.log("Email does not belong to any user.");
 							return deffered.reject('Email doesnot belong to any user.');
 						}
 
@@ -198,7 +198,7 @@ module.exports = function(User) {
 					}
 					if (!user) {
 						console.log("User not found to Reset Password...");
-						return deffered.reject('Email doesnot belong to any user.');
+						return deffered.reject('Email does not belong to any user.');
 					}
 
 					if (password) {

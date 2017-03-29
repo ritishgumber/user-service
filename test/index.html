@@ -9,16 +9,16 @@
   <script src="https://cdn.rawgit.com/chaijs/chai-http/1ea9265b/dist/chai-http.min.js"></script>
   <script type="text/javascript">
     mocha.setup('bdd');
-    expect = chai.expect;
+    var expect = chai.expect;
     chai.use(chaiHttp);
   </script>
   <script src="http://cdnjs.cloudflare.com/ajax/libs/es6-shim/0.22.1/es6-shim.min.js"></script>
   
   <!-- Utils -->
   <script src="util/util.js"></script>
+  <script src="config.js"></script>
 
   <!-- Tests -->
-  <script src="config.js"></script>
   <script src="auth.test.js"></script>
   <script src="analyticsNotifications.test.js"></script>
   <script src="azure.test.js"></script>
