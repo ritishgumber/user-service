@@ -45,7 +45,9 @@
     window.onerror = function() {
        alert("Error caught");
     };
-    mocha.setup({ignoreLeaks: true});
+    mocha.setup({
+      ignoreLeaks: trues
+    });
     if (window.mochaPhantomJS) {
       mochaPhantomJS.run();
     }
