@@ -547,7 +547,7 @@ module.exports = function(User) {
 						return deffered.reject(err);
 					}
 					if (!user) {
-						console.log("Unauthorized ->Account  not found for Update user role...");
+						console.log("Unauthorized ->Account not found for Update user role...");
 						return deffered.reject("Unauthorized");
 					}
 					if (user && user.isAdmin) {

@@ -240,7 +240,8 @@ module.exports = function(passport) {
 				}
 				if (data.oldPassword, data.newPassword) {
 					//send activated email.
-					global.mandrillService.sendPasswordResetSuccessful(user);
+					// global.mandrillService.sendPasswordResetSuccessful(user);
+					global.mailService.sendUpdatePasswordMail(user);
 				}
 				req.logout();
 				return res.status(200).json(user);
