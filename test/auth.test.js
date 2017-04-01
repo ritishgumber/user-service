@@ -1,7 +1,6 @@
 var request = chai.request(URL);
 describe('Authentication', function() {
-
-	describe('Sign up', function() {
+	describe('Sign Up', function() {
 		// 'post /user/signup'
 		it('should register with name, email, password', function(done) {
 			var email = util.makeEmail();
