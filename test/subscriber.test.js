@@ -1,4 +1,3 @@
-var request = chai.request(URL);
 describe('Subscriber', function() {
 	var email = '(' + util.makeEmail() + ')';
 	// post '/subscribe'
