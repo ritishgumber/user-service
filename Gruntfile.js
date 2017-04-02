@@ -23,6 +23,7 @@ module.exports = function(grunt) {
 							chaiHttp = require('chai-http');
 							chai.use(chaiHttp);
 							URL = "http://localhost:3000";
+							request = chai.request(URL);
 							util = {
 								makeString: function() {
 									var text = "";

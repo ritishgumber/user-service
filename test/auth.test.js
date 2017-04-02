@@ -1,4 +1,3 @@
-var request = chai.request(URL);
 describe('Authentication', function() {
 	describe('Sign Up', function() {
 		// 'post /user/signup'
