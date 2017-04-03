@@ -10,7 +10,7 @@
   "version": "0.1.1",
   "scripts": {
     "start": "node server.js",
-    "test": "npm run test-browser",
+    "test": "grunt",
     "test-browser": "mocha-phantomjs -p node_modules/phantomjs/lib/phantom/bin/phantomjs -s webSecurityEnabled=false --ssl-protocol=any test/index.html"
   },
   "dependencies": {
