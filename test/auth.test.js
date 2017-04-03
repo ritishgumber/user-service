@@ -404,7 +404,7 @@ describe('Authentication', function() {
 				.send({skipUserIds: []})
 				.end(function(err, res) {
 					expect(res).to.have.status(200);
-					expect(res.body).to.have.lengthOf(limit);
+					expect(res.body).to.have.length.within(0, limit);
 					done();
 				});
 		});
