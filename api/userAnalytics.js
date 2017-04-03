@@ -106,7 +106,6 @@ module.exports = function() {
 
 		console.log("Bulk Api/Storage count");
 
-		var appId = req.params.appId;
 		var currentUserId = req.session.passport.user ? req.session.passport.user.id : req.session.passport.user;
 		var data = req.body || {};
 

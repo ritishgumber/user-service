@@ -1,22 +1,9 @@
-var winston = require('winston');
 var express = require('express');
 var app = express();
 var Q = require('q');
-var utils = require('../helpers/utils');
-var async = require('async');
-var crypto = require('crypto');
-var moment = require('moment');
-var passport = require('passport');
-var AzureStoreStrategy = require('passport-azure-store').Strategy;
 var xmlBodyParser = require('express-xml-bodyparser');
-var pricingPlans = require('../config/pricingPlans.js')();
-var request = require('request');
-var azureCertificate = null; //this is where certificate details will be stored.
-
-getAzureCertificate(); //init with azure certificate.
 
 app.use(xmlBodyParser());
-
 
 /**
 
@@ -412,8 +399,8 @@ function createOrUpdateResource(req, res) {
 						}
 					};
 
-					if (req.body.location) {
-						projObj.providerProperties.geoRegion = req.body.location.toString();
+					if (georegion) {
+						projObj.providerProperties.geoRegion = georegion.toString();
 					}
 
 					global.projectService.createProject(resource_name, user.id, projObj).then(function(project) {
@@ -451,7 +438,6 @@ function createOrUpdateResource(req, res) {
 				} else {
 					//update the project
 					var projectId = project.id;
-					var appId = project.appId;
 
 					//In case of update
 					var updateData = {
@@ -470,8 +456,8 @@ function createOrUpdateResource(req, res) {
 						planId: plan
 					};
 
-					if (req.body.location) {
-						updateData.providerProperties.geoRegion = req.body.location.toString();
+					if (georegion) {
+						updateData.providerProperties.geoRegion = georegion.toString();
 					}
 
 					global.projectService.findOneAndUpdateProject(projectId, updateData).then(function(project) {
@@ -743,7 +729,7 @@ function getCommunicationPreference(req, res) {
 				"optInForCommunication": user.azure.optInForCommunication || true
 			});
 		} else {
-			return res.status(404).send(error);
+			return res.status(404).send("Azure Subscription not found.");
 		}
 	}, function(error) {
 		return res.status(500).send(error);
@@ -869,16 +855,6 @@ function getToken(req, res) {
 }
 
 /********Private Functions*************/
-function getPropertyFromSubscription(reqJSON, propName) {
-	if (propName === "OptIn") {
-		var OptIn = reqJSON.Properties.propName;
-		return OptIn;
-	} else {
-		var email = reqJSON.Properties.propName;
-		return email;
-	}
-}
-
 function getProjectListBySubscription(subscriptionId) {
 
 	var deferred = Q.defer();
@@ -1007,37 +983,4 @@ function validateRequest(req, res) {
 		res.status(404).send();
 		return false;
 	}
-}
-
-
-
-// function validateRequest(req,res){
-//   if(!req.secure){
-//     res.status(404).send();
-//     return false;
-//   }
-//   var certificate = req.connection.getPeerCertificate();
-//   if(certificate && certificate.subject && certificate.subject.CN){
-//     if(certificate.subject.CN === "aspa-invalidcert.publishingapi.azure.com"){
-//       res.status(404).send();
-//       return false;
-//     }
-//     else if(certificate.subject.CN.endsWith("azure.com") || certificate.subject.CN.endsWith("azurewebsites.net")){
-//       return true;
-//     }else{
-//       res.status(404).send();
-//       return false;
-//     }
-//   }else{
-//     res.status(404).send();
-//     return false;
-//   }
-// }
-
-function getAzureCertificate() {
-	request('https://management.azure.com:24582/metadata/authentication?api-version=2015-01-01', function(error, response, body) {
-		if (!error && response.statusCode == 200) {
-			azureCertificate = JSON.parse(body);
-		}
-	});
 }

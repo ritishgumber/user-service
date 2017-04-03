@@ -1,27 +1,17 @@
 'use strict';
 
-var async = require('async');
 var Q = require('q');
-var http = require('http');
-var keys = require('../config/keys');
 var _ = require('underscore');
 var request = require('request');
 var pricingPlans = require('../config/pricingPlans.js')();
-var crypto = require('crypto'),
-	algorithm = 'aes-256-ctr';
+var crypto = require('crypto');
+var algorithm = 'aes-256-ctr';
 
 function encrypt(text, password) {
 	var cipher = crypto.createCipher(algorithm, password);
 	var crypted = cipher.update(text, 'utf8', 'hex');
 	crypted += cipher.final('hex');
 	return crypted;
-}
-
-function decrypt(text, password) {
-	var decipher = crypto.createDecipher(algorithm, password);
-	var dec = decipher.update(text, 'hex', 'utf8');
-	dec += decipher.final('utf8');
-	return dec;
 }
 
 module.exports = function(Card, User) {
@@ -32,13 +22,9 @@ module.exports = function(Card, User) {
 
 			console.log("Create sale/charge card..");
 
-			var _self = this;
-
 			var deferred = Q.defer();
 
 			try {
-				var user = null;
-				var saleDocument;
 
 				_createThirdPartySaleInAnalytics(appId, {
 					planId: planId
@@ -67,8 +53,6 @@ module.exports = function(Card, User) {
 		createSale: function(userId, appId, dataObj) {
 
 			console.log("Create sale/charge card..");
-
-			var _self = this;
 
 			var deferred = Q.defer();
 
@@ -139,8 +123,6 @@ module.exports = function(Card, User) {
 		stopRecurring: function(appId, userId) {
 
 			console.log("Stop recurring...");
-
-			var _self = this;
 
 			var deferred = Q.defer();
 
@@ -223,8 +205,6 @@ module.exports = function(Card, User) {
 
 			console.log("Add card");
 
-			var _self = this;
-
 			var deferred = Q.defer();
 			cardDetails.cardId = Math.random().toString(36).substring(7);
 
@@ -274,8 +254,6 @@ module.exports = function(Card, User) {
 
 			console.log("Delete card");
 
-			var _self = this;
-
 			var deferred = Q.defer();
 
 			try {
@@ -311,8 +289,6 @@ module.exports = function(Card, User) {
 		getCards: function(userId) {
 
 			console.log("Get card");
-
-			var _self = this;
 
 			var deferred = Q.defer();
 

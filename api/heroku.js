@@ -1,11 +1,5 @@
-var winston = require('winston');
 var express = require('express');
 var app = express();
-var Q = require('q');
-var utils = require('../helpers/utils');
-var async = require('async');
-var crypto = require('crypto');
-var moment = require('moment');
 var auth = require('basic-auth');
 var sha1 = require('sha1');
 

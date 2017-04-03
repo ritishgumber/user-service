@@ -1,10 +1,6 @@
 'use strict';
 
-var async = require('async');
 var Q = require('q');
-var _ = require('underscore');
-var request = require('request');
-var keys = require('../config/keys');
 var Grid = require('gridfs-stream');
 
 module.exports = function() {

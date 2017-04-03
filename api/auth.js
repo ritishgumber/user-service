@@ -1,22 +1,9 @@
-var LocalStrategy = require('passport-local').Strategy;
 var express = require('express');
 var app = express();
-var keys = require('../config/keys.js');
-var _ = require('underscore');
 var url = require('url');
-
 
 //setup passport
 module.exports = function(passport) {
-
-	var authCallback = function(req, res) {
-		var user = req.user;
-		return res.json(200, user);
-	};
-
-	var session = function(req, res) {
-		res.redirect('/');
-	};
 
 	// routes
 	app.post('/user/signup', function(req, res, next) {
@@ -25,44 +12,49 @@ module.exports = function(passport) {
 
 		var data = req.body || {};
 
-		global.userService.register(data).then(function(user) {
-			if (!user) {
-				console.log('++++++ User Registration Failed +++++++++++++');
-				return res.send(500, "Error: Something went wrong");
-			}
+		if(data.email && data.password) {
+			global.userService.register(data).then(function(user) {
+				if (!user) {
+					console.log('++++++ User Registration Failed +++++++++++++');
+					return res.send(500, "Error: Something went wrong");
+				}
 
-			console.log('++++++ User Registration Success +++++++++++++');
+				console.log('++++++ User Registration Success +++++++++++++');
 
-			var newsListId = "b0419808f9";
-			global.mailChimpService.addSubscriber(newsListId, user.email);
+				var newsListId = "b0419808f9";
+				global.mailChimpService.addSubscriber(newsListId, user.email);
 
-			if (data.isAdmin) {
-				req.login(user, function(err) {
+				if (data.isAdmin) {
+					req.login(user, function(err) {
 
-					if (err) {
-						console.log('++++++ User Login Error +++++++++++++');
-						console.log(err);
-						return next(err);
-					}
+						if (err) {
+							console.log('++++++ User Login Error +++++++++++++');
+							console.log(err);
+							return next(err);
+						}
 
-					console.log('++++++ User Login Success +++++++++++++');
+						console.log('++++++ User Login Success +++++++++++++');
 
-					delete user.emailVerificationCode;
-					delete user.password; //delete this code form response for security
+						// delete user.emailVerificationCode;
+						delete user.password; //delete this code form response for security
 
+						return res.status(200).json(user);
+					});
+
+				} else {
+					global.mailService.sendSignupMail(user);
+					global.notificationService.linkUserId(user.email, user._id);
 					return res.status(200).json(user);
-				});
+				}
+			}, function(error) {
+				console.log('++++++ User Registration Failed +++++++++++++');
+				console.log(error);
+				return res.send(500, error);
+			});
+		} else {
+			return res.send(400, 'Bad Request');
+		}
 
-			} else {
-				global.mailService.sendSignupMail(user);
-				global.notificationService.linkUserId(user.email, user._id);
-				return res.status(200).json(user);
-			}
-		}, function(error) {
-			console.log('++++++ User Registration Failed +++++++++++++');
-			console.log(error);
-			return res.send(500, error);
-		});
 	});
 
 	app.post('/user/activate', function(req, res, next) {
@@ -85,7 +77,7 @@ module.exports = function(passport) {
 
 				console.log('++++++ User Login Success +++++++++++++');
 
-				delete user.emailVerificationCode;
+				// delete user.emailVerificationCode;
 				delete user.password; //delete this code form response for security
 
 				return res.status(200).json(user);
@@ -121,7 +113,8 @@ module.exports = function(passport) {
 			console.log('++++++ Request Reset Password Successful +++++++++++++');
 			//send activated email. 
 			global.mailService.sendResetPasswordMail(user);
-			return res.send(200);
+			console.log(user);
+			return res.status(200).json(user);
 		}, function(error) {
 			console.log('++++++ Request Reset Password Failed +++++++++++++');
 			console.log(error);
@@ -247,7 +240,8 @@ module.exports = function(passport) {
 				}
 				if (data.oldPassword, data.newPassword) {
 					//send activated email.
-					global.mandrillService.sendPasswordResetSuccessful(user);
+					// global.mandrillService.sendPasswordResetSuccessful(user);
+					global.mailService.sendUpdatePasswordMail(user);
 				}
 				req.logout();
 				return res.status(200).json(user);

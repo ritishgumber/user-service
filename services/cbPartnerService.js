@@ -1,13 +1,7 @@
 'use strict';
 
-var async = require('async');
 var Q = require('q');
-var http = require('http');
-var _ = require('underscore');
-var crypto = require('crypto');
-var request = require('request');
 var keys = require('../config/keys');
-
 
 module.exports = function(CbPartner) {
 
@@ -16,8 +10,6 @@ module.exports = function(CbPartner) {
 		save: function(data) {
 
 			console.log("CloudBoost Form Save");
-
-			var _self = this;
 
 			var deferred = Q.defer();
 
@@ -88,8 +80,6 @@ module.exports = function(CbPartner) {
 
 			console.log("Get CloudBoost Partner By Id Service");
 
-			var _self = this;
-
 			var deferred = Q.defer();
 
 			try {
@@ -122,8 +112,6 @@ module.exports = function(CbPartner) {
 		getList: function(skip, limit) {
 
 			console.log("Get CloudBoost Partner List Service");
-
-			var _self = this;
 
 			var deferred = Q.defer();
 

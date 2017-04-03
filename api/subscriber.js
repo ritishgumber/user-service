@@ -1,8 +1,5 @@
 var express = require('express');
 var app = express();
-var keys = require('../config/keys');
-var request = require('request');
-var Q = require('q');
 
 module.exports = function() {
 
@@ -29,9 +26,8 @@ module.exports = function() {
 			}
 		}, function(error) {
 			console.log("error on subscribe");
-			if (error === 'Already Subscribed') {
-				return res.status(400).send('Already subscribed');
-			}
+			console.log(error);
+			return res.status(400).send(error);
 		});
 
 	});

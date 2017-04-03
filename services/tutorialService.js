@@ -1,12 +1,6 @@
 'use strict';
 
-var async = require('async');
 var Q = require('q');
-var http = require('http');
-var keys = require('../config/keys');
-var _ = require('underscore');
-var crypto = require('crypto');
-var request = require('request');
 
 module.exports = function(Tutorial) {
 
@@ -16,13 +10,9 @@ module.exports = function(Tutorial) {
 
 			console.log("Get tutorials list...");
 
-			var _self = this;
-
 			var deferred = Q.defer();
 
 			try {
-
-				var self = this;
 
 				Tutorial.find({}, null, {
 					sort: {
@@ -57,13 +47,9 @@ module.exports = function(Tutorial) {
 
 			console.log("Get tutorials by Id...");
 
-			var _self = this;
-
 			var deferred = Q.defer();
 
 			try {
-
-				var self = this;
 
 				/*Tutorial.findOne({tutorials::{"$in":[id:tutorialDocId]}}, function (err, tutorial) {
             if (err) deferred.reject(err);

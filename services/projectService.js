@@ -1,11 +1,8 @@
 'use strict';
 
-var async = require('async');
 var Q = require('q');
-var http = require('http');
 var keys = require('../config/keys');
 var _ = require('underscore');
-var crypto = require('crypto');
 var request = require('request');
 var randomString = require('random-string');
 
@@ -25,9 +22,6 @@ module.exports = function(Project, User) {
 
 			try {
 
-				var self = this;
-
-				var savedProject;
 				var appId;
 				var newAppPlanId = 1;
 
@@ -192,12 +186,10 @@ module.exports = function(Project, User) {
 
 			console.log("Get project list for..", userId);
 
-			var _self = this;
 			var deferred = Q.defer();
 
 			try {
 
-				var self = this;
 				Project.find({
 					developers: {
 						$elemMatch: {
@@ -229,8 +221,6 @@ module.exports = function(Project, User) {
 
 			console.log("Get project list..");
 
-			var _self = this;
-
 			var deferred = Q.defer();
 
 			if (!query) {
@@ -244,8 +234,6 @@ module.exports = function(Project, User) {
 			};
 
 			try {
-
-				var self = this;
 
 				Project.findOne(query, function(err, project) {
 					if (err) {
@@ -271,8 +259,6 @@ module.exports = function(Project, User) {
 
 			console.log("Get project list..");
 
-			var _self = this;
-
 			var deferred = Q.defer();
 
 			if (!query) {
@@ -286,8 +272,6 @@ module.exports = function(Project, User) {
 			};
 
 			try {
-
-				var self = this;
 
 				Project.find(query, function(err, projects) {
 					if (err) {
@@ -386,7 +370,6 @@ module.exports = function(Project, User) {
 			var deferred = Q.defer();
 
 			try {
-				var self = this;
 
 				Project.findOne({
 					appId: appId
@@ -418,7 +401,6 @@ module.exports = function(Project, User) {
 			var deferred = Q.defer();
 
 			try {
-				var self = this;
 
 				Project.findOne({
 					appId: appId
@@ -463,7 +445,6 @@ module.exports = function(Project, User) {
 			var deferred = Q.defer();
 
 			try {
-				var self = this;
 				var inactiveApps = [];
 				Project.find({
 					deleted: false
@@ -544,7 +525,6 @@ module.exports = function(Project, User) {
 			var deferred = Q.defer();
 
 			try {
-				var self = this;
 				var inactiveApps = [];
 				Project.find({
 					deleted: false
@@ -622,7 +602,6 @@ module.exports = function(Project, User) {
 			var deffered = Q.defer();
 
 			try {
-				var self = this;
 
 				Project.findOneAndUpdate({
 					_id: projectId
@@ -664,7 +643,6 @@ module.exports = function(Project, User) {
 			var deffered = Q.defer();
 
 			try {
-				var self = this;
 
 				Project.findOneAndUpdate(query, {
 					$set: newJson
@@ -702,7 +680,6 @@ module.exports = function(Project, User) {
 			var deffered = Q.defer();
 
 			try {
-				var self = this;
 
 				Project.findOneAndUpdate({
 					appId: appId
@@ -744,7 +721,6 @@ module.exports = function(Project, User) {
 			var deferred = Q.defer();
 
 			try {
-				var self = this;
 
 				console.log(' ++++++++ App Delete request +++++++++');
 
@@ -787,7 +763,6 @@ module.exports = function(Project, User) {
 			var deferred = Q.defer();
 
 			try {
-				var self = this;
 
 				console.log(' ++++++++ App Delete request +++++++++');
 
@@ -844,7 +819,6 @@ module.exports = function(Project, User) {
 			var deferred = Q.defer();
 
 			try {
-				var self = this;
 
 				console.log(' ++++++++ App Delete request +++++++++');
 
@@ -886,12 +860,9 @@ module.exports = function(Project, User) {
 
 			console.log("get all project list....");
 
-			var _self = this;
-
 			var deferred = Q.defer();
 
 			try {
-				var self = this;
 
 				Project.find({}, function(err, list) {
 					if (err) {
@@ -917,17 +888,14 @@ module.exports = function(Project, User) {
 
 			console.log("get all project list....");
 
-			var _self = this;
-
 			var deferred = Q.defer();
 
 			try {
-				var self = this;
 
 				Project.find(query, function(err, list) {
 					if (err) {
 						console.log("Error on get  project by query....");
-						return deffered.reject(err);
+						return deferred.reject(err);
 					}
 					if (!list || list.length == 0) {
 						console.log("project not found to get project by Query..");
@@ -986,7 +954,7 @@ module.exports = function(Project, User) {
 				}).then(function(resp) {
 					deferred.resolve(resp);
 				}, function(error) {
-					deferred.reject(err);
+					deferred.reject(error);
 				});
 
 			} catch (err) {
@@ -1037,7 +1005,7 @@ module.exports = function(Project, User) {
 				}).then(function(resp) {
 					deferred.resolve(resp);
 				}, function(error) {
-					deferred.reject(err);
+					deferred.reject(error);
 				});
 
 			} catch (err) {
@@ -1108,7 +1076,6 @@ module.exports = function(Project, User) {
 			var deferred = Q.defer();
 
 			try {
-				var self = this;
 
 				Project.findOne({
 					appId: appId,
@@ -1170,7 +1137,6 @@ module.exports = function(Project, User) {
 			var deferred = Q.defer();
 
 			try {
-				var self = this;
 
 				Project.findOne({
 					appId: appId
@@ -1238,7 +1204,6 @@ module.exports = function(Project, User) {
 			var deferred = Q.defer();
 
 			try {
-				var self = this;
 
 				Project.findOne({
 					appId: appId
@@ -1317,7 +1282,6 @@ module.exports = function(Project, User) {
 			var deferred = Q.defer();
 
 			try {
-				var self = this;
 
 				Project.findOne({
 					appId: appId

@@ -1,10 +1,9 @@
 'use strict';
 
-var async = require('async');
 var Q = require('q');
+var util = require('./utilService')();
 
 module.exports = function(Subscriber) {
-
 
 	return {
 
@@ -17,25 +16,30 @@ module.exports = function(Subscriber) {
 			try {
 				var self = this;
 
-				self.get(email).then(function(subscriber) {
-					if (subscriber) {
-						console.log("Already Subscribed");
-						deferred.reject('Already Subscribed');
-					} else {
-						subscriber = new Subscriber();
-						subscriber.email = email;
+				if(util.isEmailValid(email)){
+					self.get(email).then(function(subscriber) {
+						if (subscriber) {
+							console.log("Already Subscribed");
+							deferred.reject('Already Subscribed');
+						} else {
+							subscriber = new Subscriber();
+							subscriber.email = email;
 
-						subscriber.save(function(err) {
-							if (err) {
-								console.log("Error saving subscriber email...");
-								deferred.reject(err);
-							} else {
-								console.log("Success on saving subscriber email...");
-								deferred.resolve(email);
-							}
-						});
-					}
-				});
+							subscriber.save(function(err) {
+								if (err) {
+									console.log("Error saving subscriber email...");
+									deferred.reject(err);
+								} else {
+									console.log("Success on saving subscriber email...");
+									deferred.resolve(email);
+								}
+							});
+						}
+					});
+				} else {
+					console.log("Emailid invalid..");
+					deferred.reject("Emailid invalid..");
+				}
 
 			} catch (err) {
 				global.winston.log('error', {
@@ -55,7 +59,6 @@ module.exports = function(Subscriber) {
 			var deferred = Q.defer();
 
 			try {
-				var self = this;
 
 				Subscriber.findOne({
 					email: email
@@ -88,7 +91,6 @@ module.exports = function(Subscriber) {
 			var deferred = Q.defer();
 
 			try {
-				var self = this;
 
 				Subscriber.findOneAndRemove({
 					email: email

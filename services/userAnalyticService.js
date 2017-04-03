@@ -1,11 +1,6 @@
 'use strict';
 
-var async = require('async');
 var Q = require('q');
-var http = require('http');
-var keys = require('../config/keys');
-var _ = require('underscore');
-var crypto = require('crypto');
 var request = require('request');
 
 module.exports = function() {
@@ -15,8 +10,6 @@ module.exports = function() {
 		apiUsage: function(appId) {
 
 			console.log("Get API Usage by appId...");
-
-			var _self = this;
 
 			var deferred = Q.defer();
 
@@ -45,8 +38,6 @@ module.exports = function() {
 
 			console.log("Get Storage Usage by appId...");
 
-			var _self = this;
-
 			var deferred = Q.defer();
 
 			try {
@@ -72,8 +63,6 @@ module.exports = function() {
 
 			console.log("Get API Count...");
 
-			var _self = this;
-
 			var deferred = Q.defer();
 
 			try {
@@ -97,8 +86,6 @@ module.exports = function() {
 		storageLastRecord: function(appId) {
 
 			console.log("Get Last storage record...");
-
-			var _self = this;
 
 			var deferred = Q.defer();
 
@@ -124,8 +111,6 @@ module.exports = function() {
 		bulkApiStorageDetails: function(appIdArray) {
 
 			console.log("Get API and Storage by array of appID's");
-
-			var _self = this;
 
 			var deferred = Q.defer();
 

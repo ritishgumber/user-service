@@ -1,12 +1,6 @@
 'use strict';
 
-var async = require('async');
 var Q = require('q');
-var http = require('http');
-var keys = require('../config/keys');
-var _ = require('underscore');
-var crypto = require('crypto');
-var request = require('request');
 
 module.exports = function(Beacon) {
 
@@ -15,13 +9,9 @@ module.exports = function(Beacon) {
 		createBeacon: function(userId) {
 
 			console.log("Create Beacon..");
-
-			var _self = this;
-
 			var deferred = Q.defer();
 
 			try {
-				var self = this;
 
 				var beacon = new Beacon();
 				beacon._userId = userId;
@@ -62,12 +52,10 @@ module.exports = function(Beacon) {
 
 			console.log("Get beacon user Id");
 
-			var _self = this;
 
 			var deferred = Q.defer();
 
 			try {
-				var self = this;
 
 				Beacon.find({
 					_userId: userId
@@ -139,13 +127,10 @@ module.exports = function(Beacon) {
 
 			console.log("Get Beacon by UserId and BeaconId");
 
-			var _self = this;
 
 			var deferred = Q.defer();
 
 			try {
-
-				var self = this;
 
 				Beacon.findOne({
 					_id: beaconId,
@@ -179,12 +164,9 @@ module.exports = function(Beacon) {
 
 			console.log("Save Beacon by BeaconObj");
 
-			var _self = this;
-
 			var deferred = Q.defer();
 
 			try {
-				var self = this;
 
 				beaconObj.save(function(err, savedBeaconObj) {
 					if (err) {

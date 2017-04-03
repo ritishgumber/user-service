@@ -1,12 +1,7 @@
 'use strict';
 
-var async = require('async');
 var Q = require('q');
-var http = require('http');
-var keys = require('../config/keys');
 var _ = require('underscore');
-var crypto = require('crypto');
-var request = require('request');
 var pricingPlans = require('../config/pricingPlans.js')();
 
 module.exports = function() {
@@ -16,8 +11,6 @@ module.exports = function() {
 		updateUserOver80: function(appId, exceededArray) {
 
 			console.log("Update User Over 80...");
-
-			var _self = this;
 
 			var deferred = Q.defer();
 
@@ -101,8 +94,6 @@ module.exports = function() {
 		updateUserOver100: function(appId, details) {
 
 			console.log("Update over 100% usage..");
-
-			var _self = this;
 
 			var deferred = Q.defer();
 

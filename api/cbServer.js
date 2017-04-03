@@ -1,6 +1,5 @@
 var express = require('express');
 var app = express();
-var Q = require('q');
 
 module.exports = function() {
 
@@ -62,7 +61,7 @@ module.exports = function() {
 	//know server isHosted?
 	app.get('/server/isHosted', function(req, res) {
 		console.log("isHosted server check");
-	  return res.status(200).send(process.env.CLOUDBOOST_HOSTED || false);
+		return res.status(200).send(process.env.CLOUDBOOST_HOSTED || false);
 	});
 
 	app.get('/status', function(req, res, next) {

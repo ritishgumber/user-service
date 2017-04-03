@@ -1,12 +1,8 @@
 'use strict';
 
-var async = require('async');
 var crypto = require('crypto');
 var Q = require('q');
 var util = require('./utilService')();
-
-var LocalStrategy = require('passport-local').Strategy;
-
 
 module.exports = function(User) {
 
@@ -57,23 +53,26 @@ module.exports = function(User) {
 			var deffered = Q.defer();
 
 			try {
+				if(util.isEmailValid(email)) {
+					User.findOne({
+						email: email
+					}, function(err, user) {
+						if (err) {
+							console.log("Error on Get account by email..");
+							return deffered.reject(err);
+						}
+						if (!user) {
+							console.log("user not found to get account by email..");
+							return deffered.resolve(null);
+						}
 
-				User.findOne({
-					email: email
-				}, function(err, user) {
-					if (err) {
-						console.log("Error on Get account by email..");
-						return deffered.reject(err);
-					}
-					if (!user) {
-						console.log("user not found to get account by email..");
-						return deffered.resolve(null);
-					}
-
-					console.log("Success on Get account by email..");
-					return deffered.resolve(user);
-				});
-
+						console.log("Success on Get account by email..");
+						return deffered.resolve(user);
+					});	
+				} else {
+					return deffered.reject("Emailid invalid..");
+				}
+				
 			} catch (err) {
 				global.winston.log('error', {
 					"error": String(err),
@@ -139,32 +138,36 @@ module.exports = function(User) {
 			var deffered = Q.defer();
 
 			try {
-
-				User.findOne({
-					email: email
-				}, function(err, user) {
-					if (err) {
-						console.log("Error on find user for Request reset password..");
-						return deffered.reject(err);
-					}
-					if (!user) {
-						console.log("Email doesnot belong to any user.");
-						return deffered.reject('Email doesnot belong to any user.');
-					}
-
-					user.emailVerificationCode = util.generateRandomString();
-
-					user.save(function(err, user) {
+				if(util.isEmailValid(email)) {
+					User.findOne({
+						email: email
+					}, function(err, user) {
 						if (err) {
-							console.log("Error on Request reset password..");
-							deffered.reject(err);
-						} else {
-							console.log("Success on Request reset password..");
-							deffered.resolve(user);
+							console.log("Error on find user for Request reset password..");
+							return deffered.reject(err);
 						}
-					});
+						if (!user) {
+							console.log("Email does not belong to any user.");
+							return deffered.reject('Email doesnot belong to any user.');
+						}
 
-				});
+						user.emailVerificationCode = util.generateRandomString();
+
+						user.save(function(err, user) {
+							if (err) {
+								console.log("Error on Request reset password..");
+								deffered.reject(err);
+							} else {
+								console.log("Success on Request reset password..");
+								deffered.resolve(user);
+							}
+						});
+
+					});
+				} else {
+					console.log("Email invalid..");
+					deffered.reject("Email invalid..");
+				}
 
 			} catch (err) {
 				global.winston.log('error', {
@@ -195,7 +198,7 @@ module.exports = function(User) {
 					}
 					if (!user) {
 						console.log("User not found to Reset Password...");
-						return deffered.reject('Email doesnot belong to any user.');
+						return deffered.reject('Email does not belong to any user.');
 					}
 
 					if (password) {
@@ -265,17 +268,37 @@ module.exports = function(User) {
 
 			var deffered = Q.defer();
 			try {
-				var self = this;
 
-				self.getAccountByEmail(data.email).then(function(user) {
+				if(util.isEmailValid(data.email)) {
+					var self = this;
 
-					if (user) {
-						console.log("A user with this email already exists to Register");
-						return deffered.reject('A user with this email already exists.');
-					}
+					self.getAccountByEmail(data.email).then(function(user) {
 
-					if (data.isAdmin) {
-						self.isNewServer().then(function(res) {
+						if (user) {
+							console.log("A user with this email already exists to Register");
+							return deffered.reject('A user with this email already exists.');
+						}
+
+						if (data.isAdmin) {
+							self.isNewServer().then(function(res) {
+								//create a new user
+								self.createUser(data).then(function(user) {
+									console.log("Success on Register User..");
+									deffered.resolve(user);
+
+									//Create Beacons For New Users
+									if (user) {
+										global.beaconService.createBeacon(user._doc._id.toString());
+									}
+								}, function(error) {
+									console.log("Error on Register User..");
+									deffered.reject(error);
+								});
+							}, function(err) {
+								console.log("Error on setting up a new server..");
+								deffered.reject(err);
+							});
+						} else {
 							//create a new user
 							self.createUser(data).then(function(user) {
 								console.log("Success on Register User..");
@@ -289,29 +312,15 @@ module.exports = function(User) {
 								console.log("Error on Register User..");
 								deffered.reject(error);
 							});
-						}, function(err) {
-							console.log("Error on setting up a new server..");
-							deffered.reject(err);
-						})
-					} else {
-						//create a new user
-						self.createUser(data).then(function(user) {
-							console.log("Success on Register User..");
-							deffered.resolve(user);
-
-							//Create Beacons For New Users
-							if (user) {
-								global.beaconService.createBeacon(user._doc._id.toString());
-							}
-						}, function(error) {
-							console.log("Error on Register User..");
-							deffered.reject(error);
-						});
-					}
-				}, function(error) {
-					console.log("Error on get account by email in Register User..");
-					deffered.reject(error);
-				});
+						}
+					}, function(error) {
+						console.log("Error on get account by email in Register User..");
+						deffered.reject(error);
+					});
+				} else {
+					console.log("Emailid invalid..");
+					deffered.reject("Emailid invalid..");
+				}
 
 			} catch (err) {
 				global.winston.log('error', {
@@ -500,7 +509,7 @@ module.exports = function(User) {
 			console.log("Update user last login...");
 
 			var deffered = Q.defer();
-			var newDate = new Date()
+			var newDate = new Date();
 
 			User.update({
 				_id: userId
@@ -538,7 +547,7 @@ module.exports = function(User) {
 						return deffered.reject(err);
 					}
 					if (!user) {
-						console.log("Unauthorized ->Account  not found for Update user role...");
+						console.log("Unauthorized ->Account not found for Update user role...");
 						return deffered.reject("Unauthorized");
 					}
 					if (user && user.isAdmin) {
@@ -801,8 +810,6 @@ module.exports = function(User) {
 			var deffered = Q.defer();
 
 			try {
-				var self = this;
-
 				User.findOne({
 					_id: currentUserId
 				}, function(err, user) {
@@ -973,7 +980,6 @@ module.exports = function(User) {
 			var deffered = Q.defer();
 
 			try {
-				var self = this;
 
 				User.findOneAndUpdate(query, {
 					$set: newJson
