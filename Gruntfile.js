@@ -18,6 +18,7 @@ module.exports = function(grunt) {
 					reporter: 'spec',
 					require: [
 						function() {
+							mocha = require('mocha');
 							chai = require('chai');
 							expect = chai.expect;
 							chaiHttp = require('chai-http');
