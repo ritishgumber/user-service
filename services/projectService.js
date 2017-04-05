@@ -394,6 +394,38 @@ module.exports = function(Project, User) {
 			return deferred.promise;
 
 		},
+
+		projectStatus: function(appId) {
+
+			console.log("Get project status...");
+
+			var deferred = Q.defer();
+
+			try {
+
+				Project.findOne({
+					appId: appId
+				}, function(err, project) {
+					if (err) {
+						console.log("Error on Get project status...");
+						deferred.reject(err);
+					} else {
+						console.log("Successfull on get project status..");
+						deferred.resolve(project);
+					}
+				});
+
+			} catch (err) {
+				global.winston.log('error', {
+					"error": String(err),
+					"stack": new Error().stack
+				});
+				deferred.reject(err);
+			}
+
+			return deferred.promise;
+
+		},
 		activeApp: function(appId) {
 
 			console.log("Getting project...");
@@ -1179,7 +1211,7 @@ module.exports = function(Project, User) {
 							}
 						}, function(usererror) {
 							console.log("Error on getting user details to Invite user to the app.");
-							deferred.reject('Cannot perform this task right now.');
+							deferred.reject(usererror);
 						});
 
 					}

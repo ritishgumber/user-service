@@ -85,18 +85,29 @@ module.exports = function() {
 			var deferred = Q.defer();
 
 			try {
-				gfs.remove({
+				gfs.exist({
 					_id: fileId
-				}, function(err) {
+				}, function(err, file) {
 					if (err) {
 						console.log("Error on Delete image by id..");
 						return deferred.reject(err);
 					}
-
-					console.log("Success on delete image by id..");
-					return deferred.resolve("Success");
+					if(!file) {
+						console.log("File not found..");
+						return deferred.reject(null);
+					}
+					gfs.remove({
+						_id: fileId
+					}, function(err) {
+						if (err) {
+							console.log("Error on Delete image by id..");
+							return deferred.reject(err);
+						}
+						
+						console.log("Success on delete image by id..");
+						return deferred.resolve("Success");
+					});
 				});
-
 			} catch (err) {
 				global.winston.log('error', {
 					"error": String(err),

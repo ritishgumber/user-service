@@ -448,7 +448,7 @@ module.exports = function() {
 					return res.send(400, 'Error: Project not found');
 				}
 
-				console.log("Successfull Add developer with emai");
+				console.log("Successfull Add developer with email");
 				return res.status(200).json(project);
 
 			}, function(error) {
