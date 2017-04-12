@@ -6,7 +6,7 @@ describe('User Analytics', function() {
 		name: util.makeString()
 	};
 	var app_name = util.makeString();
-	var Cookie, id, appId, db_username, db_password;
+	var Cookie, id, appId;
 
 	before(function (done) {
 		this.timeout(0);
