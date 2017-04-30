@@ -29,7 +29,7 @@ We'd love to hear your feedback and suggestions in the issue tracker.
 
 # LICENSE
 
-Copyright 2016 HackerBay, Inc.
+Copyright 2017, HackerBay Software Private Limited.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
