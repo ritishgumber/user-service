@@ -216,19 +216,27 @@ module.exports = function(Card, User) {
                             deferred.reject(err);
                         if (data) {
                             cardDetails.number_actual = encrypt(cardDetails.number, userData.salt);
-                            cardDetails.number = "XXXX-XXXX-XXXX-" + cardDetails.number.slice(-4);
-                            data.cards.push(cardDetails);
-                            data.markModified('cards');
-                            data.save(function(err) {
-                                if (err)
-                                    deferred.reject(err);
-                                deferred.resolve('Card Created');
-                            });
+
+                            var sameCard = data.cards.filter(function(obj) {
+                                return obj.number_actual === cardDetails.number_actual;
+                            })[0];
+                            if (sameCard)
+                                deferred.reject('Card already exists.');
+                            else {
+                                cardDetails.number = cardDetails.number.slice(0, 4) + "-****" + cardDetails.number.slice(-4);
+                                data.cards.push(cardDetails);
+                                data.markModified('cards');
+                                data.save(function(err) {
+                                    if (err)
+                                        deferred.reject(err);
+                                    deferred.resolve('Card Created');
+                                });
+                            }
                         } else {
                             var newCard = new Card();
                             newCard._userId = userId;
                             cardDetails.number_actual = encrypt(cardDetails.number, userData.salt);
-                            cardDetails.number = "XXXX-XXXX-XXXX-" + cardDetails.number.slice(-4);
+                            cardDetails.number = cardDetails.number.slice(0, 4) + "-****" + cardDetails.number.slice(-4);
                             newCard.cards = [cardDetails];
                             newCard.save(function(err) {
                                 if (err)
