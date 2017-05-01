@@ -89,8 +89,15 @@ module.exports = function() {
 			if (process.env["API_PORT_4730_TCP_ADDR"] || process.env["API_" + 1 + "_PORT_4730_TCP_ADDR"]) {
 				global.keys.dataServiceUrl = "http://" + (process.env["API_PORT_4730_TCP_ADDR"] || process.env["API_" + 1 + "_PORT_4730_TCP_ADDR"]) + ":4730";
 			}
-			if (process.env["CLOUDBOOST_ENGINE_SERVICE_HOST"]) {
-				global.keys.dataServiceUrl = "http://" + process.env["CLOUDBOOST_ENGINE_SERVICE_HOST"] + ":" + process.env["CLOUDBOOST_ENGINE_SERVICE_PORT"];
+
+			if(process.env["IS_STAGING"]){
+				if (process.env["CLOUDBOOST_ENGINE_STAGING_SERVICE_HOST"]) {
+					global.keys.dataServiceUrl = "http://" + process.env["CLOUDBOOST_ENGINE_STAGING_SERVICE_HOST"] + ":" + process.env["CLOUDBOOST_ENGINE_STAGING_SERVICE_PORT"];
+				}
+			} else {
+				if (process.env["CLOUDBOOST_ENGINE_SERVICE_HOST"]) {
+					global.keys.dataServiceUrl = "http://" + process.env["CLOUDBOOST_ENGINE_SERVICE_HOST"] + ":" + process.env["CLOUDBOOST_ENGINE_SERVICE_PORT"];
+				}
 			}
 
 			console.log("Data Services URL : " + global.keys.dataServiceUrl);
@@ -105,10 +112,19 @@ module.exports = function() {
 
 	function setUpAnalyticsServer() {
 		try {
+
 			if (process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"]) {
+
 				console.log("Analytics is running on Kubernetes");
 
-				global.keys.analyticsServiceUrl = "http://" + process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"] + ":" + process.env["CLOUDBOOST_ANALYTICS_SERVICE_PORT"];
+				if(process.env["IS_STAGING"]){
+					if (process.env["CLOUDBOOST_ANALYTICS_STAGING_SERVICE_HOST"]) {
+						global.keys.dataServiceUrl = "http://" + process.env["CLOUDBOOST_ANALYTICS_STAGING_SERVICE_HOST"] + ":" + process.env["CLOUDBOOST_ANALYTICS_STAGING_SERVICE_PORT"];
+					}
+				} else {
+					global.keys.analyticsServiceUrl = "http://" + process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"] + ":" + process.env["CLOUDBOOST_ANALYTICS_SERVICE_PORT"];
+				}
+
 				console.log("Analytics URL:" + global.keys.analyticsServiceUrl);
 
 			} else {
