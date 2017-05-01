@@ -6,7 +6,7 @@ describe('Payment Process', function() {
 	};
 	var test_card = {
 		name: 'Joe Flagster',
-		number: 4000000000000002,
+		number: '4000000000000002',
 		expMonth: 03,
 		expYear: 22
 	};
@@ -78,7 +78,7 @@ describe('Payment Process', function() {
 				var cards = res.body;
 				expect(res).to.have.status(200);
 				expect(cards[0].name).to.equal(test_card.name);
-				expect(cards[0].number).to.equal(test_card.number);
+				expect(cards[0].number).to.equal('XXXX-XXXX-XXXX-' + test_card.number.slice(-4));
 				expect(cards[0].expMonth).to.equal(test_card.expMonth);
 				expect(cards[0].expYear).to.equal(test_card.expYear);
 				cardId = cards[0].cardId;

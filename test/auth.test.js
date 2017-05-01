@@ -394,23 +394,18 @@ describe('Authentication', function() {
 	});
 
 	describe('User details update', function() {
-		afterEach(function (done) {
-			this.timeout(0);
-			request
-				.post('/user/logout')
-				.end(function(err, res) {
-					done();
-				});
-		});
+		var test_user = {
+			email: util.makeEmail(),	
+			password: util.makeString(),
+			name: util.makeString()
+		};
+		var newPassword = util.makeString();
+		var newName = util.makeString();
+		var Cookie, id;
 
-		// post '/user/update'
-		it('should change user password', function(done) {
+		before(function (done) {
+			this.timeout(0);
 			var emailVerificationCode;
-			var test_user = {
-				email: util.makeEmail(),
-				password: util.makeString(),
-				name: util.makeString()
-			};
 			request
 				.post('/user/signup')
 				.send(test_user)
@@ -424,68 +419,72 @@ describe('Authentication', function() {
 								.post('/user/signin')
 								.send({email: test_user.email, password: test_user.password})
 								.end(function(err, res2) {
-									var Cookie = res2.headers['set-cookie'].pop().split(';')[0];
-									var id = res2.body._id;
-									var newPassword = util.makeString();
-									var data = {
-										name: null,
-										oldPassword: test_user.password,
-										newPassword: util.makeString()
-									};
-									request
-										.post('/user/update')
-										.set('Cookie', Cookie)
-										.send(data)
-										.end(function(err, res3) {
-											expect(res3).to.have.status(200);
-											expect(res3.body.email).to.equal(test_user.email);
-											expect(res3.body.name).to.equal(test_user.name);
-											done();
-										});
+									Cookie = res2.headers['set-cookie'].pop().split(';')[0];
+									id = res2.body._id;
+									done();
 								});
 						});
 				});
-			
+		});
+
+		after(function(done) {
+			request
+				.post('/user/logout')
+				.end(function(err, res){
+					done();
+				});
+		});
+
+		// post '/user/update'
+		it('should change user password', function(done) {
+			var data = {
+				name: null,
+				oldPassword: test_user.password,
+				newPassword: newPassword
+			};
+			request
+				.post('/user/update')
+				.set('Cookie', Cookie)
+				.send(data)
+				.end(function(err, res) {
+					expect(res).to.have.status(200);
+					expect(res.body.email).to.equal(test_user.email);
+					expect(res.body.name).to.equal(test_user.name);
+					done();
+				});
 		});
 
 		it('should change user\'s name', function(done) {
-			var test_user = {
-				email: util.makeEmail(),
-				password: util.makeString(),
-				name: util.makeString()
-			};
+			var data = {
+				name: newName,
+				oldPassword: null,
+				newPassword: null
+			}
 			request
-				.post('/user/signup')
-				.send(test_user)
+				.post('/user/update')
+				.set('Cookie', Cookie)
+				.send(data)
 				.end(function(err, res) {
-					var emailVerificationCode = res.body.emailVerificationCode;
-					request
-						.post('/user/activate')
-						.send({code: emailVerificationCode})
-						.end(function(err, res1) {
-							request
-								.post('/user/signin')
-								.send({email: test_user.email, password: test_user.password})
-								.end(function(err, res2) {
-									var Cookie = res2.headers['set-cookie'].pop().split(';')[0];
-									var id = res2.body._id;
-									var newName = util.makeString();
-									var data = {
-										name: newName,
-										oldPassword: null,
-										newPassword: null
-									}
-									request
-										.post('/user/update')
-										.set('Cookie', Cookie)
-										.send(data)
-										.end(function(err, res3) {
-											expect(res3).to.have.status(200);
-											expect(res3.body.name).to.equal(newName);
-											done();
-										});
-								});
-						});
+					expect(res).to.have.status(200);
+					expect(res.body.name).to.equal(newName);
+					done();
+				});
+		});
+
+		it('should change both user\'s name and password', function(done) {
+			var data = {
+				name: util.makeString(),
+				oldPassword: newPassword,
+				newPassword: util.makeString()
+			}
+			request
+				.post('/user/update')
+				.set('Cookie', Cookie)
+				.send(data)
+				.end(function(err, res) {
+					expect(res).to.have.status(200);
+					expect(res.body.name).to.equal(data.name);
+					done();
 				});
 		});
 	});
