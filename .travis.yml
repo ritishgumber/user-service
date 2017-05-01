@@ -26,11 +26,26 @@ before_install:
 install:
 - npm install
 - docker build -t cloudboost/user-service:2.0.$TRAVIS_BUILD_NUMBER .
-- docker build -t cloudboost/user-service:latest .
 - docker run --name user-service -e LOG_TOKEN='c064fc7e-4fc6-41e6-b51f-32c30deafdcc' -p 3000:3000 -it --link cloudboost:api --link redis:redis --link mongo:mongo -d cloudboost/user-service:2.0.$TRAVIS_BUILD_NUMBER 
 - sleep 30s
 after_success:
-- echo "OK"
+# Build Docker Images
+- if [ "$TRAVIS_BRANCH" == "master" ]; then
+    docker build -t cloudboost/user-service:latest .;
+  fi
+# Docker Deploy for staging builds
+- if [ "$TRAVIS_BRANCH" == "staging" ]; then
+    docker build -t cloudboost/user-service:staging .;
+    docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD --email $DOCKEREMAIL;
+    docker push cloudboost/user-service:staging;
+    git clone https://github.com/CloudBoost/kube-cred.git;
+    cd kube-cred;
+    openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC;
+    mkdir ~/.kube;
+    mv config ~/.kube/;
+    kubectl rolling-update cloudboost-user-service-staging --image=cloudboost/user-service:staging --image-pull-policy=Always;
+    curl -X DELETE "https://api.cloudflare.com/client/v4/zones/""$cloudflare_zone""/purge_cache" -H "X-Auth-Email:hello@cloudboost.io" -H "X-Auth-Key:""$cloud_flare_key" -H "Content-Type:application/json" --data "{'purge_everything':true}";
+  fi
 after_failure:
 - docker logs user-service
 before_deploy:
@@ -46,7 +61,7 @@ deploy:
   skip_cleanup: true
   on:
     tags: false
-    all_branches: true
+    branch: master
 after_deploy:
 # Docker Deploy.
 - if [ "$TRAVIS_BRANCH" == "master" ]; then
