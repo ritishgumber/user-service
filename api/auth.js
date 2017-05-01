@@ -243,7 +243,9 @@ module.exports = function(passport) {
 					// global.mandrillService.sendPasswordResetSuccessful(user);
 					global.mailService.sendUpdatePasswordMail(user);
 				}
-				req.logout();
+				if(user) {
+					delete user._doc.password;
+				}
 				return res.status(200).json(user);
 			}, function(error) {
 				console.log("Error on updating user");

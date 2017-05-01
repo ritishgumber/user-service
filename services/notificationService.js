@@ -23,6 +23,7 @@ module.exports = function(Notification) {
 				notification.text = text;
 				notification.seen = false;
 				notification.timestamp = new Date().getTime();
+				notification.meta = {};
 
 				notification.save(function(err, notificationObj) {
 					if (err) {

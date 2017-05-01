@@ -600,47 +600,28 @@ module.exports = function(User) {
 			var deffered = Q.defer();
 
 			try {
-				if (oldPassword && newPassword) {
 
-					self.getAccountById(userId).then(function(user) {
+				self.getAccountById(userId).then(function(user) {
+
+					var updated_user = {};
+
+					if (oldPassword && newPassword) {
 						if (!self.validatePassword(oldPassword, user.password, user.salt)) {
 							console.log("Password is Incorrect..");
 							return deffered.reject("Password is Incorrect");
 						} else {
-
-							var setPassword = {};
-
-							setPassword.salt = self.makeSalt();
-							setPassword.password = self.encryptPassword(newPassword, setPassword.salt);
-
-							User.findOneAndUpdate({
-								_id: userId
-							}, {
-								$set: setPassword
-							}, {
-								new: true
-							}, function(err, user) {
-								if (err) {
-									console.log("Error on update user profile..");
-									return deffered.reject(err);
-								}
-								if (!user) {
-									console.log("User not found on update user profile..");
-									return deffered.reject(null);
-								}
-								console.log("Success on update user profile..");
-								return deffered.resolve(user);
-							});
+							updated_user.salt = self.makeSalt();
+							updated_user.password = self.encryptPassword(newPassword, updated_user.salt);
 						}
-					});
+					}
+					if(name) {
+						updated_user.name = name;
+					}
 
-				} else if (name) {
 					User.findOneAndUpdate({
 						_id: userId
 					}, {
-						$set: {
-							name: name
-						}
+						$set: updated_user
 					}, {
 						new: true
 					}, function(err, user) {
@@ -655,7 +636,9 @@ module.exports = function(User) {
 						console.log("Success on update user profile..");
 						return deffered.resolve(user);
 					});
-				}
+
+				});
+
 			} catch (err) {
 				global.winston.log('error', {
 					"error": String(err),
