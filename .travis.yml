@@ -26,7 +26,7 @@ before_install:
 install:
 - npm install
 - docker build -t cloudboost/user-service:2.0.$TRAVIS_BUILD_NUMBER .
-- docker run --name user-service -e LOG_TOKEN='c064fc7e-4fc6-41e6-b51f-32c30deafdcc' -p 3000:3000 -it --link cloudboost:api --link redis:redis --link mongo:mongo -d cloudboost/user-service:2.0.$TRAVIS_BUILD_NUMBER 
+- docker run --name user-service -e LOG_TOKEN='c064fc7e-4fc6-41e6-b51f-32c30deafdcc' -e SENDGRID_API_KEY='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' -p 3000:3000 -it --link cloudboost:api --link redis:redis --link mongo:mongo -d cloudboost/user-service:2.0.$TRAVIS_BUILD_NUMBER 
 - sleep 30s
 after_success:
 # Build Docker Images
