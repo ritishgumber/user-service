@@ -223,7 +223,7 @@ module.exports = function(Card, User) {
                             if (sameCard)
                                 deferred.reject('Card already exists.');
                             else {
-                                cardDetails.number = cardDetails.number.slice(0, 4) + "-****" + cardDetails.number.slice(-4);
+                                cardDetails.number = cardDetails.number.slice(0, 4) + "-" + cardDetails.number.slice(-4);
                                 data.cards.push(cardDetails);
                                 data.markModified('cards');
                                 data.save(function(err) {
@@ -236,7 +236,7 @@ module.exports = function(Card, User) {
                             var newCard = new Card();
                             newCard._userId = userId;
                             cardDetails.number_actual = encrypt(cardDetails.number, userData.salt);
-                            cardDetails.number = cardDetails.number.slice(0, 4) + "-****" + cardDetails.number.slice(-4);
+                            cardDetails.number = cardDetails.number.slice(0, 4) + "-" + cardDetails.number.slice(-4);
                             newCard.cards = [cardDetails];
                             newCard.save(function(err) {
                                 if (err)
