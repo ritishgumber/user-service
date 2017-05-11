@@ -1,15 +1,16 @@
-# CloudBoost 
+# CloudBoost
+
 
 [![Build Status](https://travis-ci.org/CloudBoost/user-service.svg?branch=master)](https://travis-ci.org/CloudBoost/user-service)
 
 CloudBoost is the Complete NoSQL Database Service for your app. **Think of CloudBoost as Parse + Firebase + Algolia + Iron.io all combined into one** :
  - Data-Storage / JSON Storage / BLOB Storage
  - 100% data ownership
- - Realtime 
+ - Realtime
  - Search
  - Cache
  - Queues
- - More - ACL's, User Authentication, Server-less apps and more. 
+ - More - ACL's, User Authentication, Server-less apps and more.
 
 
 # CloudBoost User Service
@@ -22,7 +23,7 @@ You can run CloudBoost with Docker (recommended). Check out the docker project [
 
 # Contributing
 
-Pull requests are very welcome! Your pull request will be deployed immediately after its been accepted. 
+Pull requests are very welcome! Your pull request will be deployed immediately after its been accepted.
 
 We'd love to hear your feedback and suggestions in the issue tracker.
 
