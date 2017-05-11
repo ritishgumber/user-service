@@ -16,7 +16,7 @@ before_install:
 - docker run --name redis -p 6379:6379 -d redis:3.0
 - sleep 30s
 - docker exec $(docker ps -aqf "name=mongo") mongo _GLOBAL --eval "db.getCollection('_Settings').insertOne({secureKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',clusterKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',myURL:'http://localhost:4730'});"
-- docker run --name analytics -e LOG_TOKEN='c064fc7e-4fc6-41e6-b51f-32c30deafdcc' -p 5555:5555 -it --link mongo:mongo -d cloudboost/analytics:latest
+- docker run --name analytics -e HOSTED_SECUREKEY='1227d1c4-1385-4d5f-ae73-23e99f74b006' -e LOG_TOKEN='c064fc7e-4fc6-41e6-b51f-32c30deafdcc' -p 5555:5555 -it --link mongo:mongo -d cloudboost/analytics:latest
 - sleep 30s
 - curl http://localhost:5555/status
 - docker logs analytics
@@ -26,7 +26,7 @@ before_install:
 install:
 - npm install
 - docker build -t cloudboost/user-service:2.0.$TRAVIS_BUILD_NUMBER .
-- docker run --name user-service -e LOG_TOKEN='c064fc7e-4fc6-41e6-b51f-32c30deafdcc' -e CB_MONGO_1_SERVER='us-east-mongo1.cloudboost.io:27017' -e CB_MONGO_2_SERVER='us-east-mongo2.cloudboost.io:27017' -e CB_MONGO_3_SERVER='us-east-mongo3.cloudboost.io:27017' -e SENDGRID_API_KEY='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' -p 3000:3000 -it --link cloudboost:api --link redis:redis --link mongo:mongo -d cloudboost/user-service:2.0.$TRAVIS_BUILD_NUMBER 
+- docker run --name user-service -e LOG_TOKEN='c064fc7e-4fc6-41e6-b51f-32c30deafdcc' -e CB_MONGO_1_SERVER='us-east-mongo1.cloudboost.io:27017' -e CB_MONGO_2_SERVER='us-east-mongo2.cloudboost.io:27017' -e CB_MONGO_3_SERVER='us-east-mongo3.cloudboost.io:27017' -e SENDGRID_API_KEY='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' -p 3000:3000 -it --link cloudboost:api --link redis:redis --link mongo:mongo -d cloudboost/user-service:2.0.$TRAVIS_BUILD_NUMBER
 - sleep 30s
 after_success:
 # Build Docker Images
