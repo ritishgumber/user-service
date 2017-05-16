@@ -68,10 +68,7 @@ module.exports = function() {
 		}));
 	});
 
-	global.app.use(function(req,res,next){
-		res.json({status : 404,message : 'The endpoint was not found. Please check.'});
-	})
-
+	
 	//this fucntion add connections to the DB.
 	function addConnections(passport) {
 		//setUp Redis
