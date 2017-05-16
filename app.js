@@ -68,6 +68,10 @@ module.exports = function() {
 		}));
 	});
 
+	global.app.use(function(req,res,next){
+		res.json({status : 404,message : 'The endpoint was not found. Please check.'});
+	})
+
 	//this fucntion add connections to the DB.
 	function addConnections(passport) {
 		//setUp Redis
@@ -363,7 +367,10 @@ module.exports = function() {
 			global.app.use('/', require('./api/cbPartner.js')());
 			global.app.use('/', require('./api/dbAccess.js')());
 			global.app.use('/', require('./api/azure.js')());
-
+			
+			global.app.use(function(req,res,next){
+    			res.status(404).json({status : 404,message : 'The endpoint was not found. Please check.'});
+			});
 			global.app.use(expressWinston.errorLogger({
 				transports: [
 					new global.winston.transports.Console({
